@@ -7,6 +7,12 @@ _build
 *.o
 core
 
+#Audio files
+*.wav
+*.mp3
+*.midi
+*.mid
+
 #Mac
 .DS_Store
 ._*
