@@ -1,0 +1,15 @@
+#OCaml
+_build
+*.cmi
+*.cmo
+
+#C++
+*.o
+core
+
+#Mac
+.DS_Store
+._*
+
+#Windows
+Thumbs.db
