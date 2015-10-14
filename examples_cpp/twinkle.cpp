@@ -51,8 +51,8 @@ int main()
     FileLoop sine, silence;
     FileWvOut output;
     // Load the sine wave file.
-    sine.openFile("/usr/local/share/stk/rawwaves/sinewave.raw", true);
-    silence.openFile("/usr/local/share/stk/rawwaves/silence.raw", true);
+    sine.openFile("../stk/rawwaves/sinewave.raw", true);
+    silence.openFile("../stk/rawwaves/silence.raw", true);
     // Open a 16-bit, one-channel WAV formatted output file
     output.openFile("twinkle.wav", 1, FileWrite::FILE_WAV, Stk::STK_SINT16);
     

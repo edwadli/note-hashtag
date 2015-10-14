@@ -1,0 +1,3 @@
+[submodule "examples_cpp/stk"]
+	path = examples_cpp/stk
+	url = https://github.com/thestk/stk
