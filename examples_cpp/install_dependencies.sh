@@ -10,7 +10,7 @@ echo -ne "Press return to install stk: "
 read
 
 if [[ $platform == 'linux' ]]; then
-   sudo apt-get clang install stk stk-doc libstk0-dev
+   sudo apt-get install clang stk stk-doc libstk0-dev
 elif [[ $platform == 'osx' ]]; then
    brew install stk
 fi
