@@ -1,0 +1,11 @@
+type operator = Add | Sub | Mul | Div | Mod
+
+type expr =
+  | Binop of expr * operator * expr
+  | LitBool of bool
+  | LitInt of int
+  | LitFloat of float
+  | LitStr of bytes
+  | Asn of int * expr
+  | IdVar of bytes
+  | IdFun of bytes
