@@ -24,22 +24,37 @@
 
 %%
 
+expr:
+| apply     { $1 }
+| non_apply { $1 }
+| arith { $1 }
+| ID_VAR DOT_LPAREN expr RPAREN { ArrIdx($1, $3) }
+| LBRACK stmt_list RBRACK { Arr(List.rev $2) }
+| LBRACE stmt_list RBRACE { ArrMusic(List.rev $2) }
+
 stmt_list:
 | /* nothing */ { [] }
-| stmt_list expr { $2 :: $1 }
+| stmt_list non_apply { $2 :: $1 }
 
-expr:
+apply:
+| apply     non_apply { FunApply($1, $2) }
+| non_apply non_apply { FunApply($1, $2) }
+
+non_apply:
 | LPAREN expr RPAREN { $2 }
-| expr PLUS   expr { Binop($1, Add, $3) }
-| expr MINUS  expr { Binop($1, Sub, $3) }
-| expr TIMES  expr { Binop($1, Mul, $3) }
-| expr DIVIDE expr { Binop($1, Div, $3) }
-| ID_VAR           { IdVar($1) }
-| ID_FUN           { IdFun($1) }
+| lit                { $1 }
+| ID_VAR             { IdVar($1) }
+| ID_FUN             { IdFun($1) }
+
+lit:
 | LIT_BOOL         { LitBool($1) }
 | LIT_INT          { LitInt($1) }
 | LIT_FLOAT        { LitFloat($1) }
 | LIT_STR          { LitStr($1) }
-| ID_VAR DOT_LPAREN expr RPAREN { ArrIdx($1, $3) }
-| LBRACK stmt_list RBRACK { Arr(List.rev $2) }
-| LBRACE stmt_list RBRACE { ArrMusic(List.rev $2) }
+
+arith:
+| expr PLUS   expr { Binop($1, Add, $3) }
+| expr MINUS  expr { Binop($1, Sub, $3) }
+| expr TIMES  expr { Binop($1, Mul, $3) }
+| expr DIVIDE expr { Binop($1, Div, $3) }
+| expr MOD    expr { Binop($1, Mod, $3) }
