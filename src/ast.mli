@@ -9,6 +9,7 @@ type expr =
   | Asn of int * expr
   | IdVar of bytes
   | IdFun of bytes
+  | FunApply of expr * expr
   | ArrIdx of bytes * expr
   | Arr of expr list
   | ArrMusic of expr list
