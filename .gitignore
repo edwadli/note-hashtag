@@ -2,10 +2,7 @@
 _build
 *.cmi
 *.cmo
-nhc
-parser.ml
-parser.mli
-scanner.ml
+*.native
 
 #C++
 *.o
