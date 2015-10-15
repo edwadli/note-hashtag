@@ -54,6 +54,7 @@ lit:
 | LIT_STR          { LitStr($1) }
 
 arith:
+|      MINUS  expr { Binop(LitInt(-1), Mul, $2) }
 | expr PLUS   expr { Binop($1, Add, $3) }
 | expr MINUS  expr { Binop($1, Sub, $3) }
 | expr TIMES  expr { Binop($1, Mul, $3) }
