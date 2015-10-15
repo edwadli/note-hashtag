@@ -14,6 +14,12 @@ rule token = parse
 | '/' { DIVIDE }
 | '%' { MOD }
 | '=' { ASSIGN }
+| "==" { EQ }
+| "!=" { NEQ }
+| '<' { LT }
+| "<=" { LTE }
+| '>' { GT }
+| ">=" { GTE }
 | ".(" { DOT_LPAREN }
 | '.' { CONCAT }
 | "true" { LIT_BOOL(true) }

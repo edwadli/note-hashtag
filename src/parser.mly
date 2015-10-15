@@ -3,6 +3,7 @@
 %token SEP
 %token LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE DOT_LPAREN CONCAT
 %token PLUS MINUS TIMES DIVIDE MOD
+%token EQ NEQ LT LTE GT GTE
 %token ASSIGN
 %token EOF
 
@@ -16,6 +17,8 @@
 
 %left SEP
 %right ASSIGN
+/* Note: "1 == 1 == 1" is valid grammar, though it's a type error. */
+%left EQ NEQ LT LTE GT GTE
 %left PLUS MINUS
 %left TIMES DIVIDE MOD
 
@@ -27,7 +30,8 @@
 expr:
 | apply     { $1 }
 | non_apply { $1 }
-| arith { $1 }
+| arith     { $1 }
+| bool      { $1 }
 | ID_VAR DOT_LPAREN expr RPAREN { ArrIdx($1, $3) }
 | LBRACK stmt_list RBRACK { Arr(List.rev $2) }
 | LBRACE stmt_list RBRACE { ArrMusic(List.rev $2) }
@@ -60,3 +64,14 @@ arith:
 | expr TIMES  expr { Binop($1, Mul, $3) }
 | expr DIVIDE expr { Binop($1, Div, $3) }
 | expr MOD    expr { Binop($1, Mod, $3) }
+
+bool:
+| cmp { $1 }
+
+cmp:
+| expr EQ  expr { Binop($1, Eq,  $3) }
+| expr NEQ expr { Binop($1, Neq, $3) }
+| expr LT  expr { Binop($1, Lt,  $3) }
+| expr LTE expr { Binop($1, Lte, $3) }
+| expr GT  expr { Binop($3, Lt,  $1) }
+| expr GTE expr { Binop($3, Lte, $1) }
