@@ -37,14 +37,15 @@ stmt_list:
 | stmt_list non_apply { $2 :: $1 }
 
 apply:
-| apply     non_apply { FunApply($1, $2) }
-| non_apply non_apply { FunApply($1, $2) }
+| ID_FUN          { FunApply($1, []) }
+| apply non_apply { match $1 with
+                    | FunApply(x, y) -> FunApply(x, $2 :: y)
+                    | _ -> raise (Failure("apply must be FunApply")) }
 
 non_apply:
 | LPAREN expr RPAREN { $2 }
 | lit                { $1 }
 | ID_VAR             { IdVar($1) }
-| ID_FUN             { IdFun($1) }
 
 lit:
 | LIT_BOOL         { LitBool($1) }
