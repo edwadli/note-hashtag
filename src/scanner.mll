@@ -22,6 +22,9 @@ rule token = parse
 | ">=" { GTE }
 | ".(" { DOT_LPAREN }
 | '.' { CONCAT }
+| '!' { NOT }
+| "&&" { AND }
+| "||" { OR }
 | "true" { LIT_BOOL(true) }
 | "false" { LIT_BOOL(false) }
 | digit+ as lit { LIT_INT(int_of_string lit) }

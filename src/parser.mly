@@ -4,6 +4,7 @@
 %token LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE DOT_LPAREN CONCAT
 %token PLUS MINUS TIMES DIVIDE MOD
 %token EQ NEQ LT LTE GT GTE
+%token NOT AND OR
 %token ASSIGN
 %token EOF
 
@@ -18,10 +19,15 @@
 %left SEP
 %right ASSIGN
 %left CONCAT
+%left OR
+%left AND
 /* Note: "1 == 1 == 1" is valid grammar, though it's a type error. */
 %left EQ NEQ LT LTE GT GTE
 %left PLUS MINUS
 %left TIMES DIVIDE MOD
+
+/* Unary Operators */
+%nonassoc NOT
 
 %start expr
 %type < Ast.expr> expr
@@ -69,6 +75,7 @@ arith:
 
 bool:
 | cmp { $1 }
+| logic { $1 }
 
 cmp:
 | expr EQ  expr { Binop($1, Eq,  $3) }
@@ -77,3 +84,8 @@ cmp:
 | expr LTE expr { Binop($1, Lte, $3) }
 | expr GT  expr { Binop($3, Lt,  $1) }
 | expr GTE expr { Binop($3, Lte, $1) }
+
+logic:
+|      NOT expr { Uniop(Not, $2) }
+| expr AND expr { Binop($1, And, $3) }
+| expr OR  expr { Binop($1, Or,  $3) }
