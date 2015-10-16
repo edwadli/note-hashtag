@@ -1,4 +1,7 @@
-type operator = Add | Sub | Mul | Div | Mod | Eq | Neq | Lt | Lte
+type operator =
+  | Add | Sub | Mul | Div | Mod
+  | Eq | Neq | Lt | Lte
+  | Concat
 
 type expr =
   | Binop of expr * operator * expr

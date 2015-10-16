@@ -17,6 +17,7 @@
 
 %left SEP
 %right ASSIGN
+%left CONCAT
 /* Note: "1 == 1 == 1" is valid grammar, though it's a type error. */
 %left EQ NEQ LT LTE GT GTE
 %left PLUS MINUS
@@ -32,6 +33,7 @@ expr:
 | non_apply { $1 }
 | arith     { $1 }
 | bool      { $1 }
+| expr CONCAT expr { Binop($1, Concat, $3) }
 | ID_VAR DOT_LPAREN expr RPAREN { ArrIdx($1, $3) }
 | LBRACK stmt_list RBRACK { Arr(List.rev $2) }
 | LBRACE stmt_list RBRACE { ArrMusic(List.rev $2) }
