@@ -52,6 +52,8 @@ git submodule update --init
 
 echo 'Installing OPAM, OCaml, and STK'
 
+opam_extra_args=""
+
 if [[ "$platform" == 'ubuntu' || "$platform" == 'debian' ]]; then
     sudo apt-get update
     if ! apt-cache show opam > /dev/null; then
@@ -62,8 +64,11 @@ if [[ "$platform" == 'ubuntu' || "$platform" == 'debian' ]]; then
         sudo add-apt-repository ppa:avsm/ppa
         sudo apt-get update
     fi
-    sudo apt-get install curl build-essential clang m4 zlib1g-dev libssl-dev ocaml ocaml-native-compilers opam \
+    sudo apt-get install m4 ocaml-native-compilers camlp4-extra opam \
     stk stk-doc libstk0-dev
+    
+    # Ubuntu's OCaml package is ridiculously old. Ask OPAM to compile v4.02.3 for us.
+    opam_extra_args="--comp 4.02.3"
 elif [[ "$platform" == 'osx' ]]; then
     # Check for Xcode
     if ! command_exists 'xcode-select'; then
@@ -95,10 +100,10 @@ else
     if choice 'Install OPAM with the default settings?'; then
         # Answer 'y' to all of OPAM's questions
         # For some reason, opam init doesn't return 0 on success.
-        yes | opam init || true
+        yes | opam init $opam_extra_args || true
     else
         # Let the user deal with OPAM
-        opam init || true
+        opam init $opam_extra_args || true
     fi
 fi
 
@@ -120,4 +125,3 @@ echo ''
 
 echo 'Done! For editor-specific setup, please see this guide:'
 echo 'https://github.com/realworldocaml/book/wiki/Installation-Instructions'
-return 0
