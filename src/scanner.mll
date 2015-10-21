@@ -8,6 +8,11 @@ let newline = ('\n' | '\r' | "\r\n")
 let whitespace = [' ' '\t']
 let separator = (newline | ';')
 
+(* Used for float parsing *)
+let hasint = digit+ '.' digit*
+let hasfrac = digit* '.' digit+
+let hasexp = 'e' ('+'? | '-') digit+
+
 rule token = parse
 | '\\' newline { token lexbuf }
 | separator { SEP }
@@ -32,6 +37,7 @@ rule token = parse
 | "true" { LIT_BOOL(true) }
 | "false" { LIT_BOOL(false) }
 | digit+ as lit { LIT_INT(int_of_string lit) }
+| ((hasint | hasfrac) hasexp?) | (digit+ hasexp) as lit { LIT_FLOAT(float_of_string lit) }
 | '\"' ([^ '\"']* as str) '\"' { LIT_STR(str) }
 | (lowercase | '_') (letter | digit | '_')* as lit { ID_VAR(lit) }
 | uppercase (letter | digit | '_')* as lit { ID_FUN(lit) }
