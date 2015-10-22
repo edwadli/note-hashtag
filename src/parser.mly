@@ -5,6 +5,8 @@
 %token PLUS MINUS TIMES DIVIDE MOD
 %token EQ NEQ LT LTE GT GTE
 %token NOT AND OR
+/* Note: "a = b = 3" is valid; 3 is assigned to b, and the value of that */
+/* expression is assigned to a. */
 %token ASSIGN
 %token IF THEN ELSE BE UNLESS INWHICHCASE FOR IN DO
 %token EOF
@@ -148,4 +150,7 @@ logic:
 | expr OR  expr { Binop($1, Or,  $3) }
 
 
+ass_list:
+| /* nothing */ { [] }
+| ass_list assignment { $2 :: $1 }
 
