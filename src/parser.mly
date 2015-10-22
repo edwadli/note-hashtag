@@ -29,10 +29,22 @@
 /* Unary Operators */
 %nonassoc NOT
 
-%start expr
-%type < Ast.expr> expr
+%start block
+%type < Ast.expr> block
 
 %%
+
+block:
+| sep_list sep_star { Block(List.rev $1) } 
+| expr sep_list sep_star { Block($1 :: List.rev $2) }
+
+sep_list:
+| /* nothing */ { [] }
+| sep_list SEP sep_star expr { $4 :: $1 }
+
+sep_star:
+| /* nothing */ { () }
+| SEP sep_star { () }
 
 expr:
 | apply     { $1 }
@@ -55,7 +67,7 @@ apply:
                     | _ -> raise (Failure("apply must be FunApply")) }
 
 non_apply:
-| LPAREN expr RPAREN { $2 }
+| LPAREN block RPAREN { $2 } /* we get unit () notation for free (see block) */
 | lit                { $1 }
 | ID_VAR             { IdVar($1) }
 
@@ -89,3 +101,6 @@ logic:
 |      NOT expr { Uniop(Not, $2) }
 | expr AND expr { Binop($1, And, $3) }
 | expr OR  expr { Binop($1, Or,  $3) }
+
+
+
