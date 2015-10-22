@@ -5,6 +5,8 @@
 %token PLUS MINUS TIMES DIVIDE MOD
 %token EQ NEQ LT LTE GT GTE
 %token NOT AND OR
+/* Note: "a = b = 3" is valid; 3 is assigned to b, and the value of that */
+/* expression is assigned to a. */
 %token ASSIGN
 %token EOF
 
@@ -89,3 +91,12 @@ logic:
 |      NOT expr { Uniop(Not, $2) }
 | expr AND expr { Binop($1, And, $3) }
 | expr OR  expr { Binop($1, Or,  $3) }
+
+assignment:
+| ID_VAR ASSIGN expr { Assign($1, $3) }
+| ID_VAR ASSIGN assignment { Assign($1, $3) }
+
+ass_list:
+| /* nothing */ { [] }
+| ass_list assignment { $2 :: $1 }
+
