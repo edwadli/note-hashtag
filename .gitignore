@@ -3,6 +3,9 @@ _build
 *.cmi
 *.cmo
 *.native
+parser.output
+parser.ml
+parser.mli
 
 #C++
 *.o
