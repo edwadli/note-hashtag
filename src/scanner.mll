@@ -4,10 +4,11 @@ let lowercase = ['a'-'z']
 let uppercase = ['A'-'Z']
 let letter = lowercase | uppercase
 let digit = ['0'-'9']
-let separator = ['\n' '\r' ';']
+let newline = ('\n'|'\r'|"\r\n")
+let separator = (newline | ';')
 
 rule token = parse
-| '\\' separator { token lexbuf }
+| '\\' newline { token lexbuf }
 | separator { SEP }
 | [' ' '\t'] { token lexbuf }
 | '+' { PLUS }
