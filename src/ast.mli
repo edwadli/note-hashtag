@@ -6,6 +6,7 @@ type binary_operator =
 
 type unary_operator =
   | Not
+  | Neg
 
 type expr =
   | Binop of expr * binary_operator * expr
@@ -23,3 +24,10 @@ type expr =
   | ArrMusic of expr list
   | Block of expr list
 
+type fundef = {
+  fname : string;
+  fargs : string list;
+  fbody : expr;
+}
+
+type program = fundef list * expr list

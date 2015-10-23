@@ -7,6 +7,7 @@
 %token NOT AND OR
 %token ASSIGN
 %token EOF
+%token FUN
 
 %token <bytes> ID_VAR
 %token <bytes> ID_FUN
@@ -28,11 +29,20 @@
 
 /* Unary Operators */
 %nonassoc NOT
+%right prec_unary_minus
 
-%start block
-%type < Ast.expr> block
+%start program
+%type <Ast.program> program
 
 %%
+
+program:
+| /* nothing */ { [], [] }
+| fun_def sep_plus program { (fun (fdefs, exprs) -> ($1 :: fdefs, exprs)) $3 }
+| expr    sep_plus program { (fun (fdefs, exprs) -> (fdefs, $1 :: exprs)) $3 }
+
+fun_def:
+| FUN ID_FUN id_var_list EQ expr { { fname = $2; fargs = $3; fbody = $5 } }
 
 block:
 | sep_list sep_star { Block(List.rev $1) } 
@@ -40,14 +50,20 @@ block:
 
 sep_list:
 | /* nothing */ { [] }
-| sep_list SEP sep_star expr { $4 :: $1 }
+| sep_list sep_plus expr { $3 :: $1 }
 
+/* Helper: One or more separators */
+sep_plus:
+| SEP { () }
+| SEP sep_plus { () }
+
+/* Helper: Zero or more separators */
 sep_star:
 | /* nothing */ { () }
 | SEP sep_star { () }
 
 expr:
-| apply     { $1 }
+| LPAREN apply RPAREN     { $2 }
 | non_apply { $1 }
 | arith     { $1 }
 | bool      { $1 }
@@ -56,15 +72,21 @@ expr:
 | LBRACK stmt_list RBRACK { Arr(List.rev $2) }
 | LBRACE stmt_list RBRACE { ArrMusic(List.rev $2) }
 
+id_var_list:
+| /* nothing */ { [] }
+| ID_VAR id_var_list { $1 :: $2 }
+
 stmt_list:
 | /* nothing */ { [] }
 | stmt_list non_apply { $2 :: $1 }
 
 apply:
-| ID_FUN          { FunApply($1, []) }
-| apply non_apply { match $1 with
-                    | FunApply(x, y) -> FunApply(x, $2 :: y)
-                    | _ -> raise (Failure("apply must be FunApply")) }
+| LPAREN ID_FUN args_list RPAREN { FunApply($2, $3) }
+| ID_FUN args_list sep_plus { FunApply($1, $2) }
+
+args_list:
+| non_apply           { [ $1 ] }
+| non_apply args_list { $1 :: $2 }
 
 non_apply:
 | LPAREN block RPAREN { $2 } /* we get unit () notation for free (see block) */
@@ -78,7 +100,7 @@ lit:
 | LIT_STR          { LitStr($1) }
 
 arith:
-|      MINUS  expr { Binop(LitInt(-1), Mul, $2) }
+| MINUS expr %prec prec_unary_minus { Uniop(Neg, $2) }
 | expr PLUS   expr { Binop($1, Add, $3) }
 | expr MINUS  expr { Binop($1, Sub, $3) }
 | expr TIMES  expr { Binop($1, Mul, $3) }
