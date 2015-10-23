@@ -6,6 +6,7 @@
 %token EQ NEQ LT LTE GT GTE
 %token NOT AND OR
 %token ASSIGN
+%token IF THEN ELSE BE UNLESS INWHICHCASE FOR IN DO
 %token EOF
 
 %token <bytes> ID_VAR
@@ -16,6 +17,7 @@
 %token <float> LIT_FLOAT
 %token <bytes> LIT_STR
 
+%nonassoc ELSE INWHICHCASE DO
 %left SEP
 %right ASSIGN
 %left CONCAT
@@ -55,6 +57,12 @@ expr:
 | ID_VAR DOT_LPAREN expr RPAREN { ArrIdx($1, $3) }
 | LBRACK stmt_list RBRACK { Arr(List.rev $2) }
 | LBRACE stmt_list RBRACE { ArrMusic(List.rev $2) }
+| control { $1 }
+
+control:
+| IF sep_expr_sep THEN sep_expr_sep ELSE sep_star expr { Conditional($2,$4,$7) }
+| BE sep_expr_sep UNLESS sep_expr_sep INWHICHCASE sep_star expr { Conditional($4,$7,$2) }
+| FOR sep_expr_sep IN sep_expr_sep DO sep_star expr { For($2,$4,$7) }
 
 stmt_list:
 | /* nothing */ { [] }
@@ -70,6 +78,9 @@ non_apply:
 | LPAREN block RPAREN { $2 } /* we get unit () notation for free (see block) */
 | lit                { $1 }
 | ID_VAR             { IdVar($1) }
+
+sep_expr_sep:
+| sep_star expr sep_star { $2 }
 
 lit:
 | LIT_BOOL         { LitBool($1) }

@@ -22,4 +22,5 @@ type expr =
   | Arr of expr list
   | ArrMusic of expr list
   | Block of expr list
-
+  | Conditional of expr * expr * expr
+  | For of expr * expr * expr

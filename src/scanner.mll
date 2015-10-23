@@ -40,4 +40,13 @@ rule token = parse
 | ']' { RBRACK }
 | '{' { LBRACE }
 | '}' { RBRACE }
+| "if" { IF }
+| "then" { THEN }
+| "else"{ ELSE }
+| "be" { BE }
+| "unless" { UNLESS }
+| "inwhichcase" { INWHICHCASE }
+| "for" { FOR }
+| "in" { IN }
+| "do" { DO }
 | eof { EOF }
