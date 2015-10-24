@@ -30,3 +30,7 @@ type fundef =
   | FunDef of bytes * bytes list * expr
 
 type program = bytes list * fundef list * expr list
+
+(* struct is actually a keywork in ocaml, called it struct_type instead *)
+type struct_type =
+  | New_struct of assign list

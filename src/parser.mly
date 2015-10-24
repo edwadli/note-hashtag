@@ -8,7 +8,11 @@
 /* Note: "a = b = 3" is valid; 3 is assigned to b, and the value of that */
 /* expression is assigned to a. */
 %token ASSIGN
+<<<<<<< HEAD
 %token IF THEN ELSE BE UNLESS INWHICHCASE FOR IN DO
+=======
+%token TYPE
+>>>>>>> 1) Made assignments its own union type, made struct its own union type, tokenized type word
 %token EOF
 %token INCLUDE FUN
 
@@ -149,8 +153,9 @@ logic:
 | expr AND expr { Binop($1, And, $3) }
 | expr OR  expr { Binop($1, Or,  $3) }
 
-
 ass_list:
 | /* nothing */ { [] }
 | ass_list assignment { $2 :: $1 }
 
+struct_construct: 
+| LBRACE ass_list RBRACE { New_struct(List.rev $2) }

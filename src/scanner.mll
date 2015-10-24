@@ -43,7 +43,7 @@ rule token = parse
 | '\"' ([^ '\"']* as str) '\"' { LIT_STR(str) }
 | (lowercase | '_') (letter | digit | '_')* as lit { ID_VAR(lit) }
 | uppercase (letter | digit | '_')* as lit { ID_FUN(lit) }
-| "type" { LIT_STR("type") }
+| "type" { TYPE }
 | '(' { LPAREN }
 | ')' { RPAREN }
 | '[' { LBRACK }
