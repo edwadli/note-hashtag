@@ -21,3 +21,5 @@ type expr =
   | ArrIdx of bytes * expr
   | Arr of expr list
   | ArrMusic of expr list
+  | Block of expr list
+
