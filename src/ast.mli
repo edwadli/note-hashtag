@@ -21,4 +21,11 @@ type expr =
   | ArrIdx of bytes * expr
   | Arr of expr list
   | ArrMusic of expr list
-  | Assign of bytes * expr
+
+type assign =
+  | Multi_assign of bytes * assign
+  | Single_assign of bytes * expr
+
+(* struct is actually a keywork in ocaml, called it struct_type instead *)
+type struct_type =
+  | New_struct of assign list

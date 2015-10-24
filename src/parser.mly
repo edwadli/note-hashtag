@@ -8,6 +8,7 @@
 /* Note: "a = b = 3" is valid; 3 is assigned to b, and the value of that */
 /* expression is assigned to a. */
 %token ASSIGN
+%token TYPE
 %token EOF
 
 %token <bytes> ID_VAR
@@ -93,10 +94,12 @@ logic:
 | expr OR  expr { Binop($1, Or,  $3) }
 
 assignment:
-| ID_VAR ASSIGN expr { Assign($1, $3) }
-| ID_VAR ASSIGN assignment { Assign($1, $3) }
+| ID_VAR ASSIGN expr { Single_assign($1, $3) }
+| ID_VAR ASSIGN assignment { Multi_assign($1, $3) }
 
 ass_list:
 | /* nothing */ { [] }
 | ass_list assignment { $2 :: $1 }
 
+struct_construct: 
+| LBRACE ass_list RBRACE { New_struct(List.rev $2) }
