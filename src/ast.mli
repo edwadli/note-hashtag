@@ -28,4 +28,4 @@ type assign =
 
 (* struct is actually a keywork in ocaml, called it struct_type instead *)
 type struct_type =
-  | New_struct of assign list
+  | New_struct of bytes * assign list

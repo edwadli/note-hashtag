@@ -102,4 +102,4 @@ ass_list:
 | ass_list assignment { $2 :: $1 }
 
 struct_construct: 
-| LBRACE ass_list RBRACE { New_struct(List.rev $2) }
+| TYPE ID_VAR LBRACE ass_list RBRACE { New_struct($2, List.rev $4) }
