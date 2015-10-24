@@ -20,7 +20,8 @@ let string_of_unop o = match o with
 	Not -> "!"
 
 let rec string_of_expr e s = match e with
-	Binop(x, op, y) -> String.concat " " ["("; string_of_expr x "";string_of_op op;string_of_expr y ""; ")"]
+	Block(l) -> String.concat " " ["["; string_of_exp_list l; "]"]
+	|Binop(x, op, y) -> String.concat " " ["("; string_of_expr x "";string_of_op op;string_of_expr y ""; ")"]
 	|Uniop(op, x) -> String.concat " " ["("; string_of_unop op; string_of_expr x ""; ")"]
 	|LitBool(x) -> string_of_bool x
 	|LitInt(x) -> string_of_int x
@@ -35,11 +36,13 @@ let rec string_of_expr e s = match e with
 	|ArrMusic(x) -> String.concat " " ["{"; string_of_exp_list x; "}"]
 and string_of_exp_list l = match l with
 	[] -> ""
+	|[s] -> string_of_expr s ""
 	|s::rest -> String.concat " " [string_of_expr s ""; ","; string_of_exp_list rest]
 
 
 let _ =
   let lexbuf = Lexing.from_channel stdin in
-  let expr = Parser.expr Scanner.token lexbuf
-	in 123; 
+  let expr = Parser.block Scanner.token lexbuf
+	in let s = string_of_expr expr ""
+	in print_endline s
 (* string_of_expr expr "" *)
