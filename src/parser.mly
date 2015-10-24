@@ -29,7 +29,7 @@
 /* Unary Operators */
 %nonassoc NOT
 
-%start expr
+%start prog
 %type < Ast.expr> expr
 
 %%
