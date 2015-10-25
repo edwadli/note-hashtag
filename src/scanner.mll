@@ -39,7 +39,7 @@ rule token = parse
 | digit+ as lit { LIT_INT(int_of_string lit) }
 | ((hasint | hasfrac) hasexp?) | (digit+ hasexp) as lit { LIT_FLOAT(float_of_string lit) }
 (* matches only outer quotes *)
-| '\"' ( ([^'\"']* '\\'_ [^'\"']*)* as str) '\"' { LIT_STR(str) }
+| '\"' ( ([^'\"']* '\\'_* [^'\"']*)* as str) '\"' { LIT_STR(str) }
 | (lowercase | '_') (letter | digit | '_')* as lit { ID_VAR(lit) }
 | uppercase (letter | digit | '_')* as lit { ID_FUN(lit) }
 | '(' { LPAREN }
