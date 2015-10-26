@@ -62,7 +62,7 @@ expr:
 control:
 | IF sep_expr_sep THEN sep_expr_sep ELSE sep_star expr { Conditional($2,$4,$7) }
 | BE sep_expr_sep UNLESS sep_expr_sep INWHICHCASE sep_star expr { Conditional($4,$7,$2) }
-| FOR sep_expr_sep IN sep_expr_sep DO sep_star expr { For($2,$4,$7) }
+| FOR sep_star ID_VAR sep_star IN sep_expr_sep DO sep_star expr { For($3,$6,$9) }
 
 stmt_list:
 | /* nothing */ { [] }

@@ -23,4 +23,4 @@ type expr =
   | ArrMusic of expr list
   | Block of expr list
   | Conditional of expr * expr * expr
-  | For of expr * expr * expr
+  | For of bytes * expr * expr
