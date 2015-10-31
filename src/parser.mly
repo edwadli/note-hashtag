@@ -37,17 +37,23 @@
 %%
 
 program:
-| include_list EOF { $1, [], [] }
-| SEP program { $2 }
-| fun_def sep_plus program { (fun (incls, fdefs, exprs) -> (incls, $1 :: fdefs, exprs)) $3 }
-| expr    sep_plus program { (fun (incls, fdefs, exprs) -> (incls, fdefs, $1 :: exprs)) $3 }
+| program_header program_body { (fun incls (fdefs, exprs) -> (incls, fdefs, exprs)) $1 $2 }
+
+program_header:
+| include_list { $1 }
+
+program_body:
+| EOF { [], [] }
+| fun_def sep_plus program_body { (fun (fdefs, exprs) -> ($1 :: fdefs, exprs)) $3 }
+| expr    sep_plus program_body { (fun (fdefs, exprs) -> (fdefs, $1 :: exprs)) $3 }
 
 fun_def:
 | FUN ID_FUN id_var_list EQ expr { { fname = $2; fargs = $3; fbody = $5 } }
 
 include_list:
 | /* nothing */ { [] }
-| INCLUDE ID_VAR include_list sep_plus { $2 :: $3 }
+| SEP include_list { $2 }
+| INCLUDE ID_VAR sep_plus include_list { $2 :: $4 }
 
 block:
 | sep_list sep_star { Block(List.rev $1) } 
