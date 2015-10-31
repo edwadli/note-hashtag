@@ -30,4 +30,4 @@ type fundef = {
   fbody : expr;
 }
 
-type program = fundef list * expr list
+type program = bytes list * fundef list * expr list
