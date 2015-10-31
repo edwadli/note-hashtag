@@ -25,8 +25,8 @@ type expr =
   | Block of expr list
 
 type fundef = {
-  fname : string;
-  fargs : string list;
+  fname : bytes;
+  fargs : bytes list;
   fbody : expr;
 }
 
