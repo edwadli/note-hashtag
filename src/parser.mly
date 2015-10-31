@@ -37,7 +37,8 @@
 %%
 
 program:
-| /* nothing */ { [], [] }
+| EOF { [], [] }
+| SEP program { $2 }
 | fun_def sep_plus program { (fun (fdefs, exprs) -> ($1 :: fdefs, exprs)) $3 }
 | expr    sep_plus program { (fun (fdefs, exprs) -> (fdefs, $1 :: exprs)) $3 }
 
@@ -63,7 +64,7 @@ sep_star:
 | SEP sep_star { () }
 
 expr:
-| LPAREN apply RPAREN     { $2 }
+| apply     { $1 }
 | non_apply { $1 }
 | arith     { $1 }
 | bool      { $1 }
@@ -81,8 +82,7 @@ stmt_list:
 | stmt_list non_apply { $2 :: $1 }
 
 apply:
-| LPAREN ID_FUN args_list RPAREN { FunApply($2, $3) }
-| ID_FUN args_list sep_plus { FunApply($1, $2) }
+| ID_FUN args_list { FunApply($1, $2) }
 
 args_list:
 | non_apply           { [ $1 ] }
