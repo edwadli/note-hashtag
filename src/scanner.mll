@@ -61,6 +61,7 @@ rule token = parse
 | "do" { DO }
 | "//" { comment_oneline lexbuf }
 | "/*" { comment_multiline 0 lexbuf }
+| '$' { BLING }
 | eof { EOF }
 
 and comment_oneline = parse

@@ -12,11 +12,16 @@
 %token IF THEN ELSE BE UNLESS INWHICHCASE FOR IN DO
 =======
 %token TYPE
+<<<<<<< HEAD
 >>>>>>> 1) Made assignments its own union type, made struct its own union type, tokenized type word
+=======
+%token BLING
+>>>>>>> Assignment operator now differentiates between assignable values and assigned values. Defined struct access using $ sign.
 %token EOF
 %token INCLUDE FUN
 
 %token <bytes> ID_VAR
+%token <Ast.assignable> ID_VAR_ASSIGNABLE
 %token <bytes> ID_FUN
 
 %token <bool> LIT_BOOL
@@ -156,7 +161,9 @@ logic:
 <<<<<<< HEAD
 =======
 assignment:
-| ID_VAR ASSIGN expr { Assign($1, $3) }
+| ID_VAR_ASSIGNABLE ASSIGN expr { Assign($1, $3) }
+| ID_VAR BLING ID_VAR ASSIGN expr { Assign(StructAccess_assignable($1, $3), $5) }
+| ID_VAR_ASSIGNABLE ASSIGN ID_VAR BLING ID_VAR { Assign($1, StructAccess($3, $5)) }
 
 >>>>>>> fixed a typo in comment
 ass_list:
