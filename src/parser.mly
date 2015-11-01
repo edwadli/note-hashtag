@@ -20,7 +20,7 @@
 %token <bytes> LIT_STR
 
 %left SEP
-%right ASSIGN
+%nonassoc ASSIGN
 %left CONCAT
 %left OR
 %left AND
@@ -94,8 +94,7 @@ logic:
 | expr OR  expr { Binop($1, Or,  $3) }
 
 assignment:
-| ID_VAR ASSIGN expr { Single_assign($1, $3) }
-| ID_VAR ASSIGN assignment { Multi_assign($1, $3) }
+| ID_VAR ASSIGN expr { Assign($1, $3) }
 
 ass_list:
 | /* nothing */ { [] }
