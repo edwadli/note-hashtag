@@ -8,15 +8,11 @@
 /* Note: "a = b = 3" is valid; 3 is assigned to b, and the value of that */
 /* expression is assigned to a. */
 %token ASSIGN
-<<<<<<< HEAD
 %token IF THEN ELSE BE UNLESS INWHICHCASE FOR IN DO
-=======
 %token TYPE
-<<<<<<< HEAD
->>>>>>> 1) Made assignments its own union type, made struct its own union type, tokenized type word
-=======
 %token BLING
->>>>>>> Assignment operator now differentiates between assignable values and assigned values. Defined struct access using $ sign.
+%token TYPE
+%token BLING
 %token EOF
 %token INCLUDE FUN
 

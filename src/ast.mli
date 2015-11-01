@@ -12,6 +12,10 @@ type assignable =
   | IdVar_assignable of bytes 
   | StructAccess_assignable of bytes * bytes
 
+type assignable =
+  | IdVar_assignable of bytes 
+  | StructAccess_assignable of bytes * bytes
+
 type expr =
   | Binop of expr * binary_operator * expr
   | Uniop of unary_operator * expr
