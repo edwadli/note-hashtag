@@ -23,8 +23,10 @@
 %left CONCAT
 %left OR
 %left AND
-/* Note: "1 == 1 == 1" is valid grammar, though it's a type error. */
-%left EQ NEQ LT LTE GT GTE
+/* 1 == 1 == true is valid */
+%left EQ NEQ
+/* x < y < z can never be valid because can't use < on bool type. */
+%nonassoc LT LTE GT GTE
 %left PLUS MINUS
 %left TIMES DIVIDE MOD
 
