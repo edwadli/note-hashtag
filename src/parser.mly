@@ -9,6 +9,7 @@
 /* Note: "a = b = 3" is valid; 3 is assigned to b, and the value of that */
 /* expression is assigned to a. */
 %token ASSIGN
+%token TILDE
 %token IF THEN ELSE BE UNLESS INWHICHCASE FOR IN DO
 %token TYPE
 %token BLING
@@ -182,6 +183,7 @@ lit:
 | LIT_INT          { LitInt($1) }
 | LIT_FLOAT        { LitFloat($1) }
 | LIT_STR          { LitStr($1) }
+| TILDE            { StructInit("chord", []) }
 
 arith:
 | MINUS expr %prec prec_unary_minus { Uniop(Neg, $2) }

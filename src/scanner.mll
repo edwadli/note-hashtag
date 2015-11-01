@@ -39,6 +39,7 @@ rule token = parse
 | 'b' {FLAT}
 | ':' {COLON}
 | '@' {OCTAVE}
+| '~' { TILDE }
 | "-" ">" { RARROW }
 | "<" "-" { LARROW }
 | "unit" { TYPE_UNIT }
