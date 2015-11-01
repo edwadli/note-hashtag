@@ -48,15 +48,19 @@
 %%
 
 program:
-| program_header program_body { (fun incls (fdefs, exprs) -> (incls, fdefs, exprs)) $1 $2 }
+| program_header program_body { (fun incls (fdefs, exprs, structdefs) -> (incls, fdefs, exprs, structdefs)) $1 $2 }
 
 program_header:
 | include_list { $1 }
 
 program_body:
-| EOF { [], [] }
-| fun_def sep_plus program_body { (fun (fdefs, exprs) -> ($1 :: fdefs, exprs)) $3 }
-| expr    sep_plus program_body { (fun (fdefs, exprs) -> (fdefs, $1 :: exprs)) $3 }
+| EOF { [], [], [] }
+| struct_construct sep_plus program_body { (fun (fdefs, exprs, structdefs) -> (fdefs, exprs, $1 :: structdefs)) $3 }
+| fun_def sep_plus program_body { (fun (fdefs, exprs, structdefs) -> ($1 :: fdefs, exprs, structdefs)) $3 }
+| expr    sep_plus program_body { (fun (fdefs, exprs, structdefs) -> (fdefs, $1 :: exprs, structdefs)) $3 }
+
+struct_construct: 
+| TYPE ID_VAR LBRACE ass_list RBRACE { New_struct($2, List.rev $4) }
 
 fun_def:
 | FUN ID_FUN id_var_list EQ expr { FunDef($2, $3, $5) }
@@ -163,5 +167,4 @@ ass_list:
 | /* nothing */ { [] }
 | ass_list assignment { $2 :: $1 }
 
-struct_construct: 
-| TYPE ID_VAR LBRACE ass_list RBRACE { New_struct($2, List.rev $4) }
+
