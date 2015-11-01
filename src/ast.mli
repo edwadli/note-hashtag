@@ -26,20 +26,16 @@ type expr =
   | ArrIdx of bytes * expr
   | Arr of expr list
   | ArrMusic of expr list
-<<<<<<< HEAD
   | Block of expr list
   | Conditional of expr * expr * expr
   | For of bytes * expr * expr
   | Assign of assignable * expr
+  | StructAccess of bytes * bytes
 
 type fundef =
   | FunDef of bytes * bytes list * expr
 
 type program = bytes list * fundef list * expr list
-=======
-  | StructAccess of bytes * bytes
-  | Assign of assignable * expr
->>>>>>> Assignment operator now differentiates between assignable values and assigned values. Defined struct access using $ sign.
 
 (* struct is actually a keywork in ocaml, called it struct_type instead *)
 type struct_type =

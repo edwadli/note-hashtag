@@ -158,14 +158,11 @@ logic:
 | expr AND expr { Binop($1, And, $3) }
 | expr OR  expr { Binop($1, Or,  $3) }
 
-<<<<<<< HEAD
-=======
 assignment:
 | ID_VAR_ASSIGNABLE ASSIGN expr { Assign($1, $3) }
 | ID_VAR BLING ID_VAR ASSIGN expr { Assign(StructAccess_assignable($1, $3), $5) }
 | ID_VAR_ASSIGNABLE ASSIGN ID_VAR BLING ID_VAR { Assign($1, StructAccess($3, $5)) }
 
->>>>>>> fixed a typo in comment
 ass_list:
 | /* nothing */ { [] }
 | ass_list assignment { $2 :: $1 }
