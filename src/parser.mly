@@ -95,7 +95,7 @@ apply:
 | ID_FUN args_list { FunApply($1, $2) }
 
 args_list:
-| non_apply           { [ $1 ] }
+| /* nothing */       { [] }
 | non_apply args_list { $1 :: $2 }
 
 non_apply:
