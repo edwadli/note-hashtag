@@ -9,9 +9,11 @@
 /* expression is assigned to a. */
 %token ASSIGN
 %token TYPE
+%token BLING
 %token EOF
 
 %token <bytes> ID_VAR
+%token <Ast.assignable> ID_VAR_ASSIGNABLE
 %token <bytes> ID_FUN
 
 %token <bool> LIT_BOOL
@@ -94,7 +96,9 @@ logic:
 | expr OR  expr { Binop($1, Or,  $3) }
 
 assignment:
-| ID_VAR ASSIGN expr { Assign($1, $3) }
+| ID_VAR_ASSIGNABLE ASSIGN expr { Assign($1, $3) }
+| ID_VAR BLING ID_VAR ASSIGN expr { Assign(StructAccess_assignable($1, $3), $5) }
+| ID_VAR_ASSIGNABLE ASSIGN ID_VAR BLING ID_VAR { Assign($1, StructAccess($3, $5)) }
 
 ass_list:
 | /* nothing */ { [] }

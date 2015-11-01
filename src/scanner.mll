@@ -38,4 +38,5 @@ rule token = parse
 | ']' { RBRACK }
 | '{' { LBRACE }
 | '}' { RBRACE }
+| '$' { BLING }
 | eof { EOF }
