@@ -36,6 +36,8 @@ rule token = parse
 | "||" { OR }
 | "true" { LIT_BOOL(true) }
 | "false" { LIT_BOOL(false) }
+| "fun" { FUN }
+| "include" { INCLUDE }
 | digit+ as lit { LIT_INT(int_of_string lit) }
 | ((hasint | hasfrac) hasexp?) | (digit+ hasexp) as lit { LIT_FLOAT(float_of_string lit) }
 | '\"' ([^ '\"']* as str) '\"' { LIT_STR(str) }
@@ -47,6 +49,15 @@ rule token = parse
 | ']' { RBRACK }
 | '{' { LBRACE }
 | '}' { RBRACE }
+| "if" { IF }
+| "then" { THEN }
+| "else"{ ELSE }
+| "be" { BE }
+| "unless" { UNLESS }
+| "inwhichcase" { INWHICHCASE }
+| "for" { FOR }
+| "in" { IN }
+| "do" { DO }
 | "//" { comment_oneline lexbuf }
 | "/*" { comment_multiline 0 lexbuf }
 | eof { EOF }

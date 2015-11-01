@@ -6,6 +6,7 @@ type binary_operator =
 
 type unary_operator =
   | Not
+  | Neg
 
 type expr =
   | Binop of expr * binary_operator * expr
@@ -22,4 +23,10 @@ type expr =
   | Arr of expr list
   | ArrMusic of expr list
   | Block of expr list
+  | Conditional of expr * expr * expr
+  | For of bytes * expr * expr
 
+type fundef =
+  | FunDef of bytes * bytes list * expr
+
+type program = bytes list * fundef list * expr list

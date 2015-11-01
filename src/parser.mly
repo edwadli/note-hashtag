@@ -6,7 +6,9 @@
 %token EQ NEQ LT LTE GT GTE
 %token NOT AND OR
 %token ASSIGN
+%token IF THEN ELSE BE UNLESS INWHICHCASE FOR IN DO
 %token EOF
+%token INCLUDE FUN
 
 %token <bytes> ID_VAR
 %token <bytes> ID_FUN
@@ -16,23 +18,46 @@
 %token <float> LIT_FLOAT
 %token <bytes> LIT_STR
 
+%nonassoc ELSE INWHICHCASE DO
 %left SEP
 %right ASSIGN
 %left CONCAT
 %left OR
 %left AND
-/* Note: "1 == 1 == 1" is valid grammar, though it's a type error. */
-%left EQ NEQ LT LTE GT GTE
+/* 1 == 1 == true is valid */
+%left EQ NEQ
+/* x < y < z can never be valid because can't use < on bool type. */
+%nonassoc LT LTE GT GTE
 %left PLUS MINUS
 %left TIMES DIVIDE MOD
 
 /* Unary Operators */
 %nonassoc NOT
+%right prec_unary_minus
 
-%start block
-%type < Ast.expr> block
+%start program
+%type <Ast.program> program
 
 %%
+
+program:
+| program_header program_body { (fun incls (fdefs, exprs) -> (incls, fdefs, exprs)) $1 $2 }
+
+program_header:
+| include_list { $1 }
+
+program_body:
+| EOF { [], [] }
+| fun_def sep_plus program_body { (fun (fdefs, exprs) -> ($1 :: fdefs, exprs)) $3 }
+| expr    sep_plus program_body { (fun (fdefs, exprs) -> (fdefs, $1 :: exprs)) $3 }
+
+fun_def:
+| FUN ID_FUN id_var_list EQ expr { FunDef($2, $3, $5) }
+
+include_list:
+| /* nothing */ { [] }
+| SEP include_list { $2 }
+| INCLUDE ID_VAR sep_plus include_list { $2 :: $4 }
 
 block:
 | sep_list sep_star { Block(List.rev $1) } 
@@ -40,8 +65,14 @@ block:
 
 sep_list:
 | /* nothing */ { [] }
-| sep_list SEP sep_star expr { $4 :: $1 }
+| sep_list sep_plus expr { $3 :: $1 }
 
+/* Helper: One or more separators */
+sep_plus:
+| SEP { () }
+| SEP sep_plus { () }
+
+/* Helper: Zero or more separators */
 sep_star:
 | /* nothing */ { () }
 | SEP sep_star { () }
@@ -55,21 +86,35 @@ expr:
 | ID_VAR DOT_LPAREN expr RPAREN { ArrIdx($1, $3) }
 | LBRACK stmt_list RBRACK { Arr(List.rev $2) }
 | LBRACE stmt_list RBRACE { ArrMusic(List.rev $2) }
+| control { $1 }
+
+control:
+| IF sep_expr_sep THEN sep_expr_sep ELSE sep_star expr { Conditional($2,$4,$7) }
+| BE sep_expr_sep UNLESS sep_expr_sep INWHICHCASE sep_star expr { Conditional($4,$7,$2) }
+| FOR sep_star ID_VAR sep_star IN sep_expr_sep DO sep_star expr { For($3,$6,$9) }
+
+id_var_list:
+| /* nothing */ { [] }
+| ID_VAR id_var_list { $1 :: $2 }
 
 stmt_list:
 | /* nothing */ { [] }
 | stmt_list non_apply { $2 :: $1 }
 
 apply:
-| ID_FUN          { FunApply($1, []) }
-| apply non_apply { match $1 with
-                    | FunApply(x, y) -> FunApply(x, $2 :: y)
-                    | _ -> raise (Failure("apply must be FunApply")) }
+| ID_FUN args_list { FunApply($1, $2) }
+
+args_list:
+| /* nothing */       { [] }
+| non_apply args_list { $1 :: $2 }
 
 non_apply:
 | LPAREN block RPAREN { $2 } /* we get unit () notation for free (see block) */
 | lit                { $1 }
 | ID_VAR             { IdVar($1) }
+
+sep_expr_sep:
+| sep_star expr sep_star { $2 }
 
 lit:
 | LIT_BOOL         { LitBool($1) }
@@ -78,7 +123,7 @@ lit:
 | LIT_STR          { LitStr($1) }
 
 arith:
-|      MINUS  expr { Binop(LitInt(-1), Mul, $2) }
+| MINUS expr %prec prec_unary_minus { Uniop(Neg, $2) }
 | expr PLUS   expr { Binop($1, Add, $3) }
 | expr MINUS  expr { Binop($1, Sub, $3) }
 | expr TIMES  expr { Binop($1, Mul, $3) }
