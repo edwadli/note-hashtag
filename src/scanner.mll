@@ -36,6 +36,8 @@ rule token = parse
 | "||" { OR }
 | "true" { LIT_BOOL(true) }
 | "false" { LIT_BOOL(false) }
+| "fun" { FUN }
+| "include" { INCLUDE }
 | digit+ as lit { LIT_INT(int_of_string lit) }
 | ((hasint | hasfrac) hasexp?) | (digit+ hasexp) as lit { LIT_FLOAT(float_of_string lit) }
 | '\"' ([^ '\"']* as str) '\"' { LIT_STR(str) }
