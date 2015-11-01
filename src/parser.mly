@@ -48,7 +48,7 @@ program_body:
 | expr    sep_plus program_body { (fun (fdefs, exprs) -> (fdefs, $1 :: exprs)) $3 }
 
 fun_def:
-| FUN ID_FUN id_var_list EQ expr { { fname = $2; fargs = $3; fbody = $5 } }
+| FUN ID_FUN id_var_list EQ expr { FunDef($2, $3, $5) }
 
 include_list:
 | /* nothing */ { [] }

@@ -24,10 +24,7 @@ type expr =
   | ArrMusic of expr list
   | Block of expr list
 
-type fundef = {
-  fname : bytes;
-  fargs : bytes list;
-  fbody : expr;
-}
+type fundef =
+  | FunDef of bytes * bytes list * expr
 
 type program = bytes list * fundef list * expr list
