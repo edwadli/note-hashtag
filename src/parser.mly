@@ -26,7 +26,7 @@
 
 %nonassoc ELSE INWHICHCASE DO
 %left SEP
-%right ASSIGN
+%nonassoc ASSIGN
 %left CONCAT
 %left OR
 %left AND
@@ -153,6 +153,12 @@ logic:
 | expr AND expr { Binop($1, And, $3) }
 | expr OR  expr { Binop($1, Or,  $3) }
 
+<<<<<<< HEAD
+=======
+assignment:
+| ID_VAR ASSIGN expr { Assign($1, $3) }
+
+>>>>>>> fixed a typo in comment
 ass_list:
 | /* nothing */ { [] }
 | ass_list assignment { $2 :: $1 }

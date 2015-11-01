@@ -25,6 +25,7 @@ type expr =
   | Block of expr list
   | Conditional of expr * expr * expr
   | For of bytes * expr * expr
+  | Assign of assignable * expr
 
 type fundef =
   | FunDef of bytes * bytes list * expr
@@ -33,4 +34,4 @@ type program = bytes list * fundef list * expr list
 
 (* struct is actually a keywork in ocaml, called it struct_type instead *)
 type struct_type =
-  | New_struct of bytes * assign list
+  | New_struct of bytes * expr list
