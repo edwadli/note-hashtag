@@ -1,7 +1,8 @@
 OCAMLBUILD = corebuild
+OCAMLFLAGS = -use-ocamlfind
 
 nhc:
-	$(OCAMLBUILD) nhc.native
+	$(OCAMLBUILD) $(OCAMLFLAGS) nhc.native
 
 
 .PHONY: clean
