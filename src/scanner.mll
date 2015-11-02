@@ -31,9 +31,14 @@ rule token = parse
 | ">=" { GTE }
 | ".(" { DOT_LPAREN }
 | '.' { CONCAT }
+| ',' {COMMA}
 | '!' { NOT }
 | "&&" { AND }
 | "||" { OR }
+| '#' {SHARP}
+| 'b' {FLAT}
+| ':' {COLON}
+| '@' {OCTAVE}
 | "true" { LIT_BOOL(true) }
 | "false" { LIT_BOOL(false) }
 | "fun" { FUN }

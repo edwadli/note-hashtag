@@ -1,10 +1,11 @@
 %{ open Ast %}
 
 %token SEP
-%token LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE DOT_LPAREN CONCAT
+%token LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE DOT_LPAREN CONCAT COMMA
 %token PLUS MINUS TIMES DIVIDE MOD
 %token EQ NEQ LT LTE GT GTE
 %token NOT AND OR
+%token SHARP FLAT COLON OCTAVE
 %token ASSIGN
 %token IF THEN ELSE BE UNLESS INWHICHCASE FOR IN DO
 %token EOF
@@ -29,12 +30,16 @@
 %left EQ NEQ
 /* x < y < z can never be valid because can't use < on bool type. */
 %nonassoc LT LTE GT GTE
+%left OCTAVE
+%left COLON
+%left COMMA
 %left PLUS MINUS
 %left TIMES DIVIDE MOD
 
 /* Unary Operators */
 %nonassoc NOT
 %right prec_unary_minus
+%left SHARP FLAT
 
 %start program
 %type <Ast.program> program
@@ -83,10 +88,13 @@ expr:
 | non_apply { $1 }
 | arith     { $1 }
 | bool      { $1 }
+| music     { $1 }
+| expr OCTAVE expr {Binop($1, Octave, $3)}
+| OCTAVE non_apply non_apply {Binop($2, Octave, $3)}
+| expr COLON expr {Binop($1, Zip, $3)}
+| expr COMMA expr {Binop($1, Chord, $3)}
 | expr CONCAT expr { Binop($1, Concat, $3) }
 | ID_VAR DOT_LPAREN expr RPAREN { ArrIdx($1, $3) }
-| LBRACK stmt_list RBRACK { Arr(List.rev $2) }
-| LBRACE stmt_list RBRACE { ArrMusic(List.rev $2) }
 | control { $1 }
 | THROW non_apply non_apply { Throw($2, $3) }
 
@@ -112,8 +120,10 @@ args_list:
 
 non_apply:
 | LPAREN block RPAREN { $2 } /* we get unit () notation for free (see block) */
-| lit                { $1 }
-| ID_VAR             { IdVar($1) }
+| LBRACK stmt_list RBRACK { Arr(List.rev $2) }
+| LBRACE stmt_list RBRACE { ArrMusic(List.rev $2) }
+| lit                 { $1 }
+| ID_VAR              { IdVar($1) }
 
 sep_expr_sep:
 | sep_star expr sep_star { $2 }
@@ -149,5 +159,6 @@ logic:
 | expr AND expr { Binop($1, And, $3) }
 | expr OR  expr { Binop($1, Or,  $3) }
 
-
-
+music:
+| expr FLAT     { Uniop(Flat, $1)}
+| expr SHARP    { Uniop(Sharp, $1)}
