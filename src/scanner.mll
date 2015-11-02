@@ -44,6 +44,7 @@ rule token = parse
 | '"' (('\\' '"'| [^'"'])* as str) '"' { LIT_STR(Scanf.unescaped(str)) }
 | (lowercase | '_') (letter | digit | '_')* as lit { ID_VAR(lit) }
 | uppercase (letter | digit | '_')* as lit { ID_FUN(lit) }
+| "type" { TYPE }
 | '(' { LPAREN }
 | ')' { RPAREN }
 | '[' { LBRACK }
@@ -61,6 +62,7 @@ rule token = parse
 | "do" { DO }
 | "//" { comment_oneline lexbuf }
 | "/*" { comment_multiline 0 lexbuf }
+| '$' { BLING }
 | eof { EOF }
 
 and comment_oneline = parse

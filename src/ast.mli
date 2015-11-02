@@ -8,6 +8,10 @@ type unary_operator =
   | Not
   | Neg
 
+type assignable =
+  | IdVar_assignable of bytes 
+  | StructAccess_assignable of bytes * assignable
+
 type expr =
   | Binop of expr * binary_operator * expr
   | Uniop of unary_operator * expr
@@ -15,8 +19,8 @@ type expr =
   | LitInt of int
   | LitFloat of float
   | LitStr of bytes
-  | Asn of int * expr
   | IdVar of bytes
+  | Asn of int * expr
   | IdFun of bytes
   | FunApply of bytes * expr list
   | ArrIdx of bytes * expr
@@ -25,8 +29,16 @@ type expr =
   | Block of expr list
   | Conditional of expr * expr * expr
   | For of bytes * expr * expr
+  | Assign of assignable * expr
+  | StructAccess of bytes * bytes
 
 type fundef =
   | FunDef of bytes * bytes list * expr
 
-type program = bytes list * fundef list * expr list
+(* struct is actually a keyword in ocaml, called it struct_type instead *)
+type struct_type =
+  | New_struct of bytes * expr list
+
+type program = bytes list * fundef list * expr list * struct_type list
+
+
