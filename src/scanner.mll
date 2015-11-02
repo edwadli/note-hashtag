@@ -39,9 +39,8 @@ rule token = parse
 | "false" { LIT_BOOL(false) }
 | digit+ as lit { LIT_INT(int_of_string lit) }
 | ((hasint | hasfrac) hasexp?) | (digit+ hasexp) as lit { LIT_FLOAT(float_of_string lit) }
-| ('\\' escapable as esc_char) { UNESCAPE(esc_char) }
 (* matches only outer quotes *)
-| '"' ( ('\\' escapable | [^'"'])* as str) '"' { LIT_STR(str) }
+| '"' ( ('\\' escapable | [^'"'])* as str) '"' { LIT_STR(Scanf.sscanf("\"" ^ str ^ "\"") "%S%!" (fun u -> u)) }
 | (lowercase | '_') (letter | digit | '_')* as lit { ID_VAR(lit) }
 | uppercase (letter | digit | '_')* as lit { ID_FUN(lit) }
 | '(' { LPAREN }
