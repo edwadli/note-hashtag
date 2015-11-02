@@ -123,6 +123,7 @@ non_apply:
 | LPAREN block RPAREN { $2 } /* we get unit () notation for free (see block) */
 | lit                { $1 }
 | ID_VAR             { IdVar($1) }
+| ID_VAR BLING ID_VAR { StructAccess($1, $3) }
 
 sep_expr_sep:
 | sep_star expr sep_star { $2 }
@@ -159,9 +160,8 @@ logic:
 | expr OR  expr { Binop($1, Or,  $3) }
 
 assignment:
-| ID_VAR_ASSIGNABLE ASSIGN expr { Assign($1, $3) }
+| ID_VAR ASSIGN expr { Assign(IdVar_assignable($1), $3) }
 | ID_VAR BLING ID_VAR ASSIGN expr { Assign(StructAccess_assignable($1, $3), $5) }
-| ID_VAR_ASSIGNABLE ASSIGN ID_VAR BLING ID_VAR { Assign($1, StructAccess($3, $5)) }
 
 ass_list:
 | /* nothing */ { [] }
