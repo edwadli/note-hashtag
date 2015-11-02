@@ -1,4 +1,5 @@
 open Ast
+open Test
 
 let _ =
   let lexbuf = Lexing.from_string "123\n" in

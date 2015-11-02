@@ -1,7 +1,8 @@
 OCAMLBUILD = corebuild
 
 nhc:
-	$(OCAMLBUILD) test.native
+	$(OCAMLBUILD) nhc.native
+
 
 .PHONY: clean
 clean:
