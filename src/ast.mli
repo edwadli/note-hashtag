@@ -10,7 +10,7 @@ type unary_operator =
 
 type assignable =
   | IdVar_assignable of bytes 
-  | StructAccess_assignable of bytes * bytes 
+  | StructAccess_assignable of bytes * assignable
 
 type expr =
   | Binop of expr * binary_operator * expr

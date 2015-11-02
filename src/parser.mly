@@ -37,6 +37,7 @@
 %nonassoc LT LTE GT GTE
 %left PLUS MINUS
 %left TIMES DIVIDE MOD
+%left BLING
 
 /* Unary Operators */
 %nonassoc NOT
@@ -159,9 +160,12 @@ logic:
 | expr AND expr { Binop($1, And, $3) }
 | expr OR  expr { Binop($1, Or,  $3) }
 
+assignable:
+| ID_VAR { IdVar_assignable($1) }
+| ID_VAR BLING assignable { StructAccess_assignable($1, $3) }
+
 assignment:
-| ID_VAR ASSIGN expr { Assign(IdVar_assignable($1), $3) }
-| ID_VAR BLING ID_VAR ASSIGN expr { Assign(StructAccess_assignable($1, $3), $5) }
+| assignable ASSIGN expr { Assign($1, $3) }
 
 ass_list:
 | /* nothing */ { [] }
