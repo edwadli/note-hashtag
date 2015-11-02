@@ -7,7 +7,6 @@ let digit = ['0'-'9']
 let newline = ('\n' | '\r' | "\r\n")
 let whitespace = [' ' '\t']
 let separator = (newline | ';')
-let escapable = ('\n' | '\t' | '\r' | '\\' | '\"')
 
 (* Used for float parsing *)
 let hasint = digit+ '.' digit*
@@ -40,7 +39,7 @@ rule token = parse
 | digit+ as lit { LIT_INT(int_of_string lit) }
 | ((hasint | hasfrac) hasexp?) | (digit+ hasexp) as lit { LIT_FLOAT(float_of_string lit) }
 (* matches only outer quotes *)
-| ('"' ('\\' '"'| [^'"'])* '"') as str { LIT_STR(Scanf.unescaped(str)) }
+| '"' (('\\' '"'| [^'"'])* as str) '"' { LIT_STR(Scanf.unescaped(str)) }
 | (lowercase | '_') (letter | digit | '_')* as lit { ID_VAR(lit) }
 | uppercase (letter | digit | '_')* as lit { ID_FUN(lit) }
 | '(' { LPAREN }
