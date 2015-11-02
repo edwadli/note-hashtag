@@ -15,6 +15,7 @@
 %token <int> LIT_INT
 %token <float> LIT_FLOAT
 %token <bytes> LIT_STR
+%token <bytes> UNESCAPE
 
 %left SEP
 %right ASSIGN
@@ -76,6 +77,7 @@ lit:
 | LIT_INT          { LitInt($1) }
 | LIT_FLOAT        { LitFloat($1) }
 | LIT_STR          { LitStr($1) }
+| UNESCAPE	   { Unescape($1) }
 
 arith:
 |      MINUS  expr { Binop(LitInt(-1), Mul, $2) }

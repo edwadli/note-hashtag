@@ -14,6 +14,7 @@ type expr =
   | LitInt of int
   | LitFloat of float
   | LitStr of bytes
+  | Unescape of bytes
   | Asn of int * expr
   | IdVar of bytes
   | IdFun of bytes
