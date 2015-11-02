@@ -1,12 +1,14 @@
 type binary_operator =
   | Add | Sub | Mul | Div | Mod
   | Eq | Neq | Lt | Lte
-  | And | Or
-  | Concat
+  | And | Or | Zip
+  | Concat | Chord | Octave
 
 type unary_operator =
   | Not
   | Neg
+  | Sharp
+  | Flat
 
 type expr =
   | Binop of expr * binary_operator * expr

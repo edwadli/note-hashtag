@@ -31,16 +31,19 @@ rule token = parse
 | ">=" { GTE }
 | ".(" { DOT_LPAREN }
 | '.' { CONCAT }
+| ',' {COMMA}
 | '!' { NOT }
 | "&&" { AND }
 | "||" { OR }
+| '#' {SHARP}
+| 'b' {FLAT}
+| ':' {COLON}
+| '@' {OCTAVE}
 | "true" { LIT_BOOL(true) }
 | "false" { LIT_BOOL(false) }
 | "fun" { FUN }
 | "include" { INCLUDE }
-| digit+ as lit { LIT_INT(int_of_string lit) }
-| ((hasint | hasfrac) hasexp?) | (digit+ hasexp) as lit { LIT_FLOAT(float_of_string lit) }
-| '\"' ([^ '\"']* as str) '\"' { LIT_STR(str) }
+|  '\"' ([^ '\"']* as str) '\"' { LIT_STR(str) }
 | (lowercase | '_') (letter | digit | '_')* as lit { ID_VAR(lit) }
 | uppercase (letter | digit | '_')* as lit { ID_FUN(lit) }
 | '(' { LPAREN }
