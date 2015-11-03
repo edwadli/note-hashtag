@@ -1,10 +1,15 @@
 OCAMLBUILD = corebuild
 OCAMLFLAGS = -use-ocamlfind
 
-nhc:
+.PHONY: nhc
+nhc: update-version
 	$(OCAMLBUILD) $(OCAMLFLAGS) nhc.native
 
+.PHONY: update-version
+update-version:
+	./update_version.sh
 
 .PHONY: clean
 clean:
 	$(OCAMLBUILD) -clean
+	rm version.ml
