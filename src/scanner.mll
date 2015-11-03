@@ -59,6 +59,7 @@ rule token = parse
 | "for" { FOR }
 | "in" { IN }
 | "do" { DO }
+| "throw" { THROW }
 | "//" { comment_oneline lexbuf }
 | "/*" { comment_multiline 0 lexbuf }
 | eof { EOF }

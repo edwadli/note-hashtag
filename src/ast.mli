@@ -25,6 +25,7 @@ type expr =
   | Block of expr list
   | Conditional of expr * expr * expr
   | For of bytes * expr * expr
+  | Throw of expr * expr
 
 type fundef =
   | FunDef of bytes * bytes list * expr

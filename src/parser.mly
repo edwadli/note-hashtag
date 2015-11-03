@@ -9,6 +9,7 @@
 %token IF THEN ELSE BE UNLESS INWHICHCASE FOR IN DO
 %token EOF
 %token INCLUDE FUN
+%token THROW
 
 %token <bytes> ID_VAR
 %token <bytes> ID_FUN
@@ -87,6 +88,7 @@ expr:
 | LBRACK stmt_list RBRACK { Arr(List.rev $2) }
 | LBRACE stmt_list RBRACE { ArrMusic(List.rev $2) }
 | control { $1 }
+| THROW non_apply non_apply { Throw($2, $3) }
 
 control:
 | IF sep_expr_sep THEN sep_expr_sep ELSE sep_star expr { Conditional($2,$4,$7) }
