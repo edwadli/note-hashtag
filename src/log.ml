@@ -11,7 +11,7 @@ let int_of_level = function
   | Debug -> 40
 
 let string_of_level = function
-  | Fatal -> "🎵 #️⃣ c"
+  | Fatal -> "fatal"
   | Error -> "error"
   | Warn -> "warning"
   | Info -> "info"
