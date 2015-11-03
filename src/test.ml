@@ -62,8 +62,3 @@ let string_of_prog_struc p =
   match p with
   | (a, b, c) ->
       String.concat " " [ "INCLUDES:"; string_of_incl_list a; "\nFDEF:"; string_of_fdef b; "\nEXPR: "; string_of_exp_list c ]
-
-let print_ast_dump =
-  let lexbuf = Lexing.from_channel stdin in
-  let prog = Parser.program Scanner.token lexbuf in
-  let p = string_of_prog_struc prog in print_endline p

@@ -11,7 +11,13 @@ let get_inchan = function
 
 let do_compile src_path bin_path keep_ast keep_il =
   let inchan = get_inchan src_path in
-  print_endline (In_channel.input_all inchan)
+  let lexbuf = Lexing.from_channel inchan in
+  let ast = Parser.program Scanner.token lexbuf in
+  if keep_ast then
+    let ast_file = Out_channel.create ~binary:true (bin_path ^ ".ast") in
+    Out_channel.output_string ast_file (string_of_prog_struc ast);
+    Out_channel.close ast_file
+  else ()
 
 let command =
   Command.basic
@@ -41,7 +47,5 @@ let command =
     )
 
 let _ =
-  Command.run ~version:(Version.release ()) ~build_info:(Version.build ()) command
-  let lexbuf = Lexing.from_string "123\n" in
-  let _ = Parser.program Scanner.token lexbuf in
+  Command.run ~version:(Version.release ()) ~build_info:(Version.build ()) command;
   Log.info "scanner and parser ran without crashing";
