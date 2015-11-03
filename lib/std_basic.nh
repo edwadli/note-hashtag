@@ -1,0 +1,65 @@
+
+Include math.nh
+Include stdio.nh
+
+type time_signature = {
+	upper = 4
+	lower = 4
+}
+
+// note_number zero is A4 (440.0 Hz)
+fun A4Frequency note_number = 440.0 * Pow 2.0 (FloatOfInt note_number)
+
+// returns an array of frequencies based on the int array note_numbers
+fun A4FrequencyScale note_numbers = (
+	freqs = float{}
+	for note_number in note_numbers do freqs. freqs . { A4Frequency note_number }
+	freqs
+)
+
+
+/* TODO: how do we want to implement sharp and flat */
+_C3 = -21;_C3s = -20; _D3 = -19; _E3f = -18; _E3 = -17; _F3 = -16
+_F3s = -15; _G3 = -14; _A3f = -13; _A3 = -12; _B3f = -11; _B3 = -10
+
+_C4 = -9;_C4s = -8; _D4 = -7; _E4f = -6; _E4 = -5; _F4 = -4
+_F4s = -3; _G4 = -2; _A4f = -1; _A4 = 0; _B4f = 1; _B4 = 2
+_C5 = 3
+
+type key_signature = {
+	scale = A4FrequencyScale { _C4 _D4 _E4 _F4 _G4 _A4 _B4 }
+	sharp = A4FrequencyScale { _C4s _E4f _F4 _F4s _A4f _B4f _C5 }
+	flat = A4FrequencyScale { _B3 _C4s _E4f _E4 _F4s _A4f _B4f }
+}
+
+
+/*
+ These convenience definitions are
+ here for your convenience obviously.
+ These include common time signatures and
+ key signatures of the western music.
+*/
+// time signatures
+const four_four = init time_signature
+const three_four = init time_signature { upper = 3 }
+const three_three = init time_signature { upper = 3; lower = 3 }
+// TODO: And so on ...
+
+// key signatures
+const C_Major = init key_signature
+const C_Minor = init key_signature {
+	scale = A4FrequencyScale {}
+	sharp = A4FrequencyScale {}
+	flat = A4FrequencyScale {}
+}
+const D_Major = init key_signature {
+	scale = A4FrequencyScale {}
+	sharp = A4FrequencyScale {}
+	flat = A4FrequencyScale {}
+}
+const C_Major_Pentatonic = init key_signature {
+	scale = A4FrequencyScale {}
+	sharp = A4FrequencyScale {}
+	flat = A4FrequencyScale {}
+}
+// TODO: And so on ...

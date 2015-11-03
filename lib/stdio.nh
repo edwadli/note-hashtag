@@ -1,0 +1,15 @@
+
+
+
+fun Print str = (
+	// TODO: call C/C++
+)
+
+fun Render filename song = (
+	// TODO: generate wav file
+	// maybe should also be "Render filename track"
+)
+
+fun Exit code = (
+	// TODO: call C/C++
+)

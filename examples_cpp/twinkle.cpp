@@ -7,6 +7,10 @@
 #include <unordered_map>
 #include <vector>
 
+#include "stk/BlowHole.h"
+#include "stk/Rhodey.h"
+#include "stk/Bowed.h"
+#include "stk/Wurley.h"
 #include "stk/FileLoop.h"
 #include "stk/FileWvOut.h"
 
@@ -48,21 +52,33 @@ int main()
     
     // Set the global sample rate before creating class instances.
     Stk::setSampleRate(44100.0);
+    Stk::setRawwavePath("../stk/rawwaves/");
     FileLoop sine, silence;
     FileWvOut output;
     // Load the sine wave file.
-    sine.openFile("../stk/rawwaves/sinewave.raw", true);
+//    sine.openFile("../stk/rawwaves/sinewave.raw", true);
+//    sine.openFile("../stk/rawwaves/cowbell1.raw", true);
     silence.openFile("../stk/rawwaves/silence.raw", true);
     // Open a 16-bit, one-channel WAV formatted output file
     output.openFile("twinkle.wav", 1, FileWrite::FILE_WAV, Stk::STK_SINT16);
     
     const int note_length = 15000;
-    
+
+    //BlowHole violin(8.0);
+    //Rhodey violin;
+    Bowed violin;
+    //Wurley violin;
     for (int note : song)
     {
-        sine.setFrequency(scale[note]);
-        for (int i = 0; i < note_length; i++)
-            output.tick(sine.tick());
+//        sine.setFrequency(scale[note]);
+        for (int i = 0; i < note_length; i++){
+            //output.tick(sine.tick());
+	    violin.noteOn(scale[note], 1);
+//            violin.setFrequency(110.0);
+	    double x = violin.tick();
+//	    if (x > 0) fprintf(stderr, "%lf\n", x);
+            output.tick(x);
+        }
         for (int i = 0; i < note_length / 10; i++)
             output.tick(silence.tick());
     }

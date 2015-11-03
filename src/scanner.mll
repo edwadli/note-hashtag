@@ -46,6 +46,8 @@ rule token = parse
 | digit+ as lit { LIT_INT(int_of_string lit) }
 | ((hasint | hasfrac) hasexp?) | (digit+ hasexp) as lit { LIT_FLOAT(float_of_string lit) }
 |  '\"' ([^ '\"']* as str) '\"' { LIT_STR(str) }
+(* matches only outer quotes *)
+| '"' (('\\' '"'| [^'"'])* as str) '"' { LIT_STR(Scanf.unescaped(str)) }
 | (lowercase | '_') (letter | digit | '_')* as lit { ID_VAR(lit) }
 | uppercase (letter | digit | '_')* as lit { ID_FUN(lit) }
 | '(' { LPAREN }
@@ -63,6 +65,7 @@ rule token = parse
 | "for" { FOR }
 | "in" { IN }
 | "do" { DO }
+| "throw" { THROW }
 | "//" { comment_oneline lexbuf }
 | "/*" { comment_multiline 0 lexbuf }
 | eof { EOF }

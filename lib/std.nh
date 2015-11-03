@@ -1,0 +1,73 @@
+
+Include std_basic.nh
+
+
+key_signature = init key_signature
+time_signature = init time_signature
+tempo = 120
+
+
+fun Scale pitch_start pitch_end = (
+	// TODO: interpolate between pitches
+)
+
+
+fun Arpeggio chord = (
+	// TODO: unpack chord into music array
+)
+
+
+fun Rhythm track = (
+	// TODO: get rhythm from track
+)
+
+
+fun Chords track = (
+	// TODO: get chords from track
+)
+
+
+// TODO: unlimited args option
+fun Parallel *tracks = (
+	// TODO: return song object with tracks aligned in parallel
+)
+
+
+fun Sequential *tracks = (
+	// TODO: return song object with tracks aligned sequentially
+)
+
+fun Length track = (
+	// TODO: return length of track in terms of duration
+)
+
+fun Extend length track = (
+	// TODO: repeat track for up to length duration
+)
+
+fun StartWith track base_track = (
+	
+)
+
+fun EndWith track base_track = (
+
+)
+
+fun Reverse track = (
+
+)
+
+fun Relative shift track = (
+
+)
+
+fun Octave shift track = (
+
+)
+
+fun Repeat times track = (
+
+)
+
+// TODO: volume mix functions for song objects
+
