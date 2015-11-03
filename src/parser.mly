@@ -89,12 +89,11 @@ expr:
 | bool      { $1 }
 | music     { $1 }
 | expr OCTAVE expr {Binop($1, Octave, $3)}
+| OCTAVE non_apply non_apply {Binop($2, Octave, $3)} 
 | expr COLON expr {Binop($1, Zip, $3)}
 | expr COMMA expr {Binop($1, Chord, $3)}
 | expr CONCAT expr { Binop($1, Concat, $3) }
 | ID_VAR DOT_LPAREN expr RPAREN { ArrIdx($1, $3) }
-| LBRACK stmt_list RBRACK { Arr(List.rev $2) }
-| LBRACE stmt_list RBRACE { ArrMusic(List.rev $2) }
 | control { $1 }
 
 control:
@@ -119,6 +118,8 @@ args_list:
 
 non_apply:
 | LPAREN block RPAREN { $2 } /* we get unit () notation for free (see block) */
+| LBRACK stmt_list RBRACK { Arr(List.rev $2) }
+| LBRACE stmt_list RBRACE { ArrMusic(List.rev $2) }
 | lit                 { $1 }
 | ID_VAR              { IdVar($1) }
 
