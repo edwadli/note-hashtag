@@ -125,7 +125,7 @@ non_apply:
 | lit                { $1 }
 | ID_VAR             { VarRef(IdVar($1)) }
 | struct_access_expr  { VarRef($1)} 
-| INIT ID_VAR { StructInitDefault($2) }
+| INIT ID_VAR { StructInit($2, []) }
 | INIT ID_VAR LBRACE ass_list RBRACE { StructInit($2, List.rev $4) }
 
 struct_access_expr:

@@ -34,7 +34,6 @@ type expr =
   | Conditional of expr * expr * expr
   | For of bytes * expr * expr
   | Assign of var_reference * expr
-  | StructInitDefault of bytes
   | StructInit of bytes * expr list
 
 type fundef =
