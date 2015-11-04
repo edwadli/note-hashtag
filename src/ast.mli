@@ -12,6 +12,11 @@ type assignable =
   | IdVar_assignable of bytes
   | StructAccess_assignable of bytes * assignable
 
+type var_reference = 
+  | IdVar of bytes
+  | StructAccess of bytes * var_reference
+
+
 type expr =
   | Binop of expr * binary_operator * expr
   | Uniop of unary_operator * expr
@@ -19,7 +24,7 @@ type expr =
   | LitInt of int
   | LitFloat of float
   | LitStr of bytes
-  | IdVar of bytes
+  | VarRef of var_reference
   | IdFun of bytes
   | FunApply of bytes * expr list
   | ArrIdx of bytes * expr
@@ -28,8 +33,7 @@ type expr =
   | Block of expr list
   | Conditional of expr * expr * expr
   | For of bytes * expr * expr
-  | Assign of assignable * expr
-  | StructAccess of bytes * expr
+  | Assign of var_reference * expr
   | StructInitDefault of bytes
   | StructInit of bytes * expr list
 

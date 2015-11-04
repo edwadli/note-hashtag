@@ -93,6 +93,7 @@ expr:
 | non_apply { $1 }
 | arith     { $1 }
 | bool      { $1 }
+| assignment { $1 }
 | expr CONCAT expr { Binop($1, Concat, $3) }
 | ID_VAR DOT_LPAREN expr RPAREN { ArrIdx($1, $3) }
 | LBRACK stmt_list RBRACK { Arr(List.rev $2) }
@@ -122,8 +123,8 @@ args_list:
 non_apply:
 | LPAREN block RPAREN { $2 } /* we get unit () notation for free (see block) */
 | lit                { $1 }
-| ID_VAR             { IdVar($1) }
-| struct_access_expr  { $1} 
+| ID_VAR             { VarRef(IdVar($1)) }
+| struct_access_expr  { VarRef($1)} 
 | INIT ID_VAR { StructInitDefault($2) }
 | INIT ID_VAR LBRACE ass_list RBRACE { StructInit($2, List.rev $4) }
 
@@ -165,12 +166,12 @@ logic:
 | expr AND expr { Binop($1, And, $3) }
 | expr OR  expr { Binop($1, Or,  $3) }
 
-assignable:
-| ID_VAR { IdVar_assignable($1) }
-| ID_VAR BLING assignable { StructAccess_assignable($1, $3) }
+var_ref:
+| ID_VAR { IdVar($1) }
+| ID_VAR BLING var_ref { StructAccess($1, $3) }
 
 assignment:
-| assignable ASSIGN expr { Assign($1, $3) }
+| var_ref ASSIGN expr { Assign($1, $3) }
 
 ass_list:
 | assignment { [$1] }
