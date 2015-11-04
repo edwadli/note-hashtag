@@ -29,9 +29,8 @@ type expr =
   | Block of expr list
   | Conditional of expr * expr * expr
   | For of bytes * expr * expr
-  (*| Assign of bytes * expr*)
   | Assign of assignable * expr
-  | StructAccess of bytes * bytes
+  | StructAccess of bytes * expr
 
 type fundef =
   | FunDef of bytes * bytes list * expr

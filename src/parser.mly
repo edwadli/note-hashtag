@@ -17,7 +17,6 @@
 %token INCLUDE FUN
 
 %token <bytes> ID_VAR
-/*%token <Ast.assignable> ID_VAR_ASSIGNABLE*/
 %token <bytes> ID_FUN
 
 %token <bool> LIT_BOOL
@@ -27,11 +26,10 @@
 
 %nonassoc ELSE INWHICHCASE DO
 %left SEP
-%right ASSIGN
+%nonassoc ASSIGN
 %left CONCAT
 %left OR
 %left AND
-/* 1 == 1 == true is valid */
 %left EQ NEQ
 /* x < y < z can never be valid because can't use < on bool type. */
 %nonassoc LT LTE GT GTE
@@ -51,9 +49,6 @@
 program:
 | program_header program_body { (fun incls (fdefs, exprs, structdefs) -> (incls, fdefs, exprs, structdefs)) $1 $2 } 
 
-/*program:
-| program_header program_body { (fun incls (fdefs, exprs) -> (incls, fdefs, exprs)) $1 $2 } */
-
 program_header:
 | include_list { $1 }
 
@@ -63,17 +58,8 @@ program_body:
 | fun_def sep_plus program_body { (fun (fdefs, exprs, structdefs) -> ($1 :: fdefs, exprs, structdefs)) $3 }
 | expr    sep_plus program_body { (fun (fdefs, exprs, structdefs) -> (fdefs, $1 :: exprs, structdefs)) $3 }
 
-/*program_body:
-| EOF { [], []}
-| fun_def sep_plus program_body { (fun (fdefs, exprs) -> ($1 :: fdefs, exprs)) $3 }
-| expr    sep_plus program_body { (fun (fdefs, exprs) -> (fdefs, $1 :: exprs)) $3 }*/
-
-
 struct_construct: 
 | TYPE ID_VAR LBRACE ass_list RBRACE { New_struct($2, List.rev $4) }
-
-/*struct_construct:
-| TYPE ID_VAR LBRACE assignment RBRACE { New_struct($2, $4) }*/
 
 fun_def:
 | FUN ID_FUN id_var_list EQ expr { FunDef($2, $3, $5) }
@@ -136,7 +122,11 @@ non_apply:
 | LPAREN block RPAREN { $2 } /* we get unit () notation for free (see block) */
 | lit                { $1 }
 | ID_VAR             { IdVar($1) }
-| ID_VAR BLING ID_VAR { StructAccess($1, $3) }
+| struct_access_expr  { $1} 
+
+struct_access_expr:
+| ID_VAR BLING ID_VAR { StructAccess($1, IdVar($3)) }
+| ID_VAR BLING struct_access_expr { StructAccess($1, $3) }
 
 sep_expr_sep:
 | sep_star expr sep_star { $2 }
@@ -182,5 +172,4 @@ assignment:
 ass_list:
 | assignment { [$1] }
 | ass_list SEP assignment { $3 :: $1 } 
-
 
