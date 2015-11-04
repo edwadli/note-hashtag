@@ -20,7 +20,6 @@ type expr =
   | LitFloat of float
   | LitStr of bytes
   | IdVar of bytes
-  | Asn of int * expr
   | IdFun of bytes
   | FunApply of bytes * expr list
   | ArrIdx of bytes * expr
