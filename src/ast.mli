@@ -9,7 +9,7 @@ type unary_operator =
   | Neg
 
 type assignable =
-  | IdVar_assignable of bytes 
+  | IdVar_assignable of bytes
   | StructAccess_assignable of bytes * assignable
 
 type expr =
@@ -29,6 +29,7 @@ type expr =
   | Block of expr list
   | Conditional of expr * expr * expr
   | For of bytes * expr * expr
+  (*| Assign of bytes * expr*)
   | Assign of assignable * expr
   | StructAccess of bytes * bytes
 
