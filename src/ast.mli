@@ -8,14 +8,9 @@ type unary_operator =
   | Not
   | Neg
 
-type assignable =
-  | IdVar_assignable of bytes
-  | StructAccess_assignable of bytes * assignable
-
 type var_reference = 
   | IdVar of bytes
   | StructAccess of bytes * var_reference
-
 
 type expr =
   | Binop of expr * binary_operator * expr

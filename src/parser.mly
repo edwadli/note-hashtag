@@ -11,8 +11,6 @@
 %token IF THEN ELSE BE UNLESS INWHICHCASE FOR IN DO
 %token TYPE
 %token BLING
-%token TYPE
-%token BLING
 %token EOF
 %token INCLUDE FUN
 %token INIT
@@ -60,7 +58,7 @@ program_body:
 | expr    sep_plus program_body { (fun (fdefs, exprs, structdefs) -> (fdefs, $1 :: exprs, structdefs)) $3 }
 
 struct_construct: 
-| TYPE ID_VAR LBRACE ass_list RBRACE { New_struct($2, List.rev $4) }
+| TYPE ID_VAR LBRACE sep_star ass_list sep_star RBRACE { New_struct($2, List.rev $5) }
 
 fun_def:
 | FUN ID_FUN id_var_list EQ expr { FunDef($2, $3, $5) }
@@ -123,14 +121,9 @@ args_list:
 non_apply:
 | LPAREN block RPAREN { $2 } /* we get unit () notation for free (see block) */
 | lit                { $1 }
-| ID_VAR             { VarRef(IdVar($1)) }
-| struct_access_expr  { VarRef($1)} 
+| var_ref { VarRef($1) }
 | INIT ID_VAR { StructInit($2, []) }
 | INIT ID_VAR LBRACE ass_list RBRACE { StructInit($2, List.rev $4) }
-
-struct_access_expr:
-| ID_VAR BLING ID_VAR { StructAccess($1, IdVar($3)) }
-| ID_VAR BLING struct_access_expr { StructAccess($1, $3) }
 
 sep_expr_sep:
 | sep_star expr sep_star { $2 }
@@ -175,5 +168,5 @@ assignment:
 
 ass_list:
 | assignment { [$1] }
-| ass_list SEP assignment { $3 :: $1 } 
+| ass_list sep_plus assignment { $3 :: $1 } 
 
