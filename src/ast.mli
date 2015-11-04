@@ -31,6 +31,8 @@ type expr =
   | For of bytes * expr * expr
   | Assign of assignable * expr
   | StructAccess of bytes * expr
+  | StructInitDefault of bytes
+  | StructInit of bytes * expr list
 
 type fundef =
   | FunDef of bytes * bytes list * expr

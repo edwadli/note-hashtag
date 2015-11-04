@@ -15,6 +15,7 @@
 %token BLING
 %token EOF
 %token INCLUDE FUN
+%token INIT
 
 %token <bytes> ID_VAR
 %token <bytes> ID_FUN
@@ -123,6 +124,8 @@ non_apply:
 | lit                { $1 }
 | ID_VAR             { IdVar($1) }
 | struct_access_expr  { $1} 
+| INIT ID_VAR { StructInitDefault($2) }
+| INIT ID_VAR LBRACE ass_list RBRACE { StructInit($2, List.rev $4) }
 
 struct_access_expr:
 | ID_VAR BLING ID_VAR { StructAccess($1, IdVar($3)) }
