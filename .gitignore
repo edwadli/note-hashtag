@@ -23,3 +23,7 @@ core
 
 #Windows
 Thumbs.db
+
+#vim
+*.swp
+*.swo

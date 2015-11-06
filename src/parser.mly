@@ -53,12 +53,12 @@ program_header:
 
 program_body:
 | EOF { [], [], [] }
-| struct_construct sep_plus program_body { (fun (fdefs, exprs, structdefs) -> (fdefs, exprs, $1 :: structdefs)) $3 }
+| struct_declaration sep_plus program_body { (fun (fdefs, exprs, structdefs) -> (fdefs, exprs, $1 :: structdefs)) $3 }
 | fun_def sep_plus program_body { (fun (fdefs, exprs, structdefs) -> ($1 :: fdefs, exprs, structdefs)) $3 }
 | expr    sep_plus program_body { (fun (fdefs, exprs, structdefs) -> (fdefs, $1 :: exprs, structdefs)) $3 }
 
-struct_construct: 
-| TYPE ID_VAR LBRACE sep_star ass_list sep_star RBRACE { New_struct($2, List.rev $5) }
+struct_declaration: 
+| TYPE ID_VAR EQ LBRACE sep_star ass_list sep_star RBRACE { New_struct($2, List.rev $6) }
 
 fun_def:
 | FUN ID_FUN id_var_list EQ expr { FunDef($2, $3, $5) }
