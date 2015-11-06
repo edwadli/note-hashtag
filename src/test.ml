@@ -16,8 +16,12 @@ let string_of_op o =
   | And -> "&&"
   | Or  -> "||"
   | Concat -> "."
+  | Chord -> ","
+  | Zip -> ":"
+  | Octave -> "@"
 
-let string_of_unop o = match o with | Not -> "!" | Neg -> "-"
+let string_of_unop o = match o with | Not -> "!" | Neg -> "-" | Sharp -> "#"
+				    | Flat -> "b"
 
 let rec string_of_expr e =
   match e with
@@ -37,6 +41,7 @@ let rec string_of_expr e =
   | ArrIdx (x, y) -> String.concat " " [ Bytes.to_string x; ".("; string_of_expr y; ")" ]
   | Arr(x) -> String.concat " " [ "["; string_of_exp_list x; "]" ]
   | ArrMusic(x) -> String.concat " " [ "{"; string_of_exp_list x; "}" ]
+  | Throw(x, y) -> String.concat " " ["Throw"; string_of_expr x; string_of_expr y]
 and string_of_exp_list l =
   match l with
   | [] -> ""
