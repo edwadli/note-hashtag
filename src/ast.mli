@@ -32,10 +32,9 @@ type expr =
 type fundef =
   | FunDef of bytes * bytes list * expr
 
-(* struct is actually a keyword in ocaml, called it struct_type instead *)
-type struct_type =
-  | New_struct of bytes * expr list
+type typedef =
+  | TypeDef of bytes * expr list
 
-type program = bytes list * fundef list * expr list * struct_type list
+type program = bytes list * fundef list * expr list * typedef list
 
 

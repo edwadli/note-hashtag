@@ -58,7 +58,7 @@ program_body:
 | expr    sep_plus program_body { (fun (fdefs, exprs, structdefs) -> (fdefs, $1 :: exprs, structdefs)) $3 }
 
 struct_declaration: 
-| TYPE ID_VAR EQ LBRACE sep_star ass_list sep_star RBRACE { New_struct($2, List.rev $6) }
+| TYPE ID_VAR EQ LBRACE sep_star ass_list sep_star RBRACE { TypeDef($2, List.rev $6) }
 
 fun_def:
 | FUN ID_FUN id_var_list EQ expr { FunDef($2, $3, $5) }
