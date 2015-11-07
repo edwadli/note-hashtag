@@ -62,7 +62,7 @@ rule token = parse
 | "//" { comment_oneline lexbuf }
 | "/*" { comment_multiline 0 lexbuf }
 | '$' { BLING }
-| "init" { INIT }
+| "init" | "beget" | "bringintobeing" { INIT }
 | eof { EOF }
 
 and comment_oneline = parse
