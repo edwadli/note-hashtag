@@ -30,8 +30,9 @@ let rec string_of_expr e =
   | LitInt(x) -> string_of_int x
   | LitFloat(x) -> string_of_float x
   | LitStr(x) -> x
-  | Asn(x, y) -> String.concat " " [ "("; string_of_int x; "="; string_of_expr y; ")" ]
-  | IdVar(x) -> Bytes.to_string x
+  | VarRef(x) -> String.concat "$" x
+  | Assign(x, y) -> String.concat " " [ "("; string_of_expr (VarRef(x)); "="; string_of_expr y; ")" ]
+  | StructInit(x, y) -> String.concat " " [ x; string_of_exp_list y ]
   | IdFun(x) -> Bytes.to_string x
   | FunApply(x, y) -> String.concat " " [ Bytes.to_string x; "("; string_of_exp_list y; ")" ]
   | ArrIdx (x, y) -> String.concat " " [ Bytes.to_string x; ".("; string_of_expr y; ")" ]
@@ -58,7 +59,16 @@ let rec string_of_incl_list p =
   | [] -> "[]"
   | s :: rest -> String.concat " " [ Bytes.to_string s; string_of_incl_list rest ]
 
+let rec string_of_typedefs typedefs =
+  match typedefs with
+  | [] -> ""
+  | TypeDef(name, exprs) :: rest -> name ^ string_of_exp_list exprs ^ "\n" ^ string_of_typedefs rest
+
 let string_of_prog_struc p =
   match p with
-  | (a, b, c) ->
-      String.concat " " [ "INCLUDES:"; string_of_incl_list a; "\nFDEF:"; string_of_fdef b; "\nEXPR: "; string_of_exp_list c ]
+  | (incls, fdefs, exprs, typedefs) ->
+      String.concat "\n" [ "INCLUDES:" ^ string_of_incl_list incls;
+                           "TYPEDEFS: " ^ string_of_typedefs typedefs;
+                           "FDEF:" ^ string_of_fdef fdefs;
+                           "EXPR: " ^ string_of_exp_list exprs;
+                         ]

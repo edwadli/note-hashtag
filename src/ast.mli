@@ -10,6 +10,8 @@ type unary_operator =
   | Sharp
   | Flat
 
+type var_reference = bytes list
+
 type expr =
   | Binop of expr * binary_operator * expr
   | Uniop of unary_operator * expr
@@ -17,8 +19,7 @@ type expr =
   | LitInt of int
   | LitFloat of float
   | LitStr of bytes
-  | Asn of int * expr
-  | IdVar of bytes
+  | VarRef of var_reference
   | IdFun of bytes
   | FunApply of bytes * expr list
   | ArrIdx of bytes * expr
@@ -28,8 +29,13 @@ type expr =
   | Conditional of expr * expr * expr
   | For of bytes * expr * expr
   | Throw of expr * expr
+  | Assign of var_reference * expr
+  | StructInit of bytes * expr list
 
 type fundef =
   | FunDef of bytes * bytes list * expr
 
-type program = bytes list * fundef list * expr list
+type typedef =
+  | TypeDef of bytes * expr list
+
+type program = bytes list * fundef list * expr list * typedef list
