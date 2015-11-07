@@ -160,8 +160,8 @@ logic:
 | expr OR  expr { Binop($1, Or,  $3) }
 
 var_ref:
-| ID_VAR { IdVar($1) }
-| ID_VAR BLING var_ref { StructAccess($1, $3) }
+| ID_VAR { [ $1 ] }
+| ID_VAR BLING var_ref { $1 :: $3 }
 
 assignment:
 | var_ref ASSIGN expr { Assign($1, $3) }

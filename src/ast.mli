@@ -8,9 +8,7 @@ type unary_operator =
   | Not
   | Neg
 
-type var_reference = 
-  | IdVar of bytes
-  | StructAccess of bytes * var_reference
+type var_reference = bytes list
 
 type expr =
   | Binop of expr * binary_operator * expr
