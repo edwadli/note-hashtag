@@ -2,7 +2,6 @@ open Core.Std
 
 open Ast
 open Log
-open Test
 open Version
 
 let get_inchan = function
