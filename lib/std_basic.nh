@@ -1,6 +1,9 @@
 
 Include math.nh
 Include stdio.nh
+Include list.nh
+
+
 
 type time_signature = {
 	upper = 4
@@ -33,6 +36,7 @@ type key_signature = {
 }
 
 
+tempo = 120
 /*
  These convenience definitions are
  here for your convenience obviously.
@@ -63,3 +67,24 @@ const C_Major_Pentatonic = init key_signature {
 	flat = A4FrequencyScale {}
 }
 // TODO: And so on ...
+
+
+
+/*
+  These basic types are defined here for you
+  So that this language is a joy to use
+*/
+
+// pitch is simply a primitive type
+// chord is a set of pitch - it's very light
+// duration is a primitive that's equivalent to float
+// our types are simple, without any bloat
+type track = {
+	key_signature = init key_signature
+	time_signature = init time_signature
+	tempo = tempo
+	chords = pitch{}{} // chord[]
+	durations = float[] // float{}
+}
+
+
