@@ -12,4 +12,4 @@ update-version:
 .PHONY: clean
 clean:
 	$(OCAMLBUILD) -clean
-	rm version.ml
+	rm -f version.ml
