@@ -16,6 +16,11 @@ let do_compile src_path bin_path keep_ast keep_il =
     let ast_file = Out_channel.create ~binary:true (bin_path ^ ".ast") in
     Out_channel.output_string ast_file (string_of_prog_struc ast);
     Out_channel.close ast_file
+  else ();
+  if keep_il then
+    let il_file = Out_channel.create ~binary:true (bin_path ^ ".cpp") in
+    Out_channel.output_string il_file "placeholder";
+    Out_channel.close il_file
   else ()
 
 let command =
