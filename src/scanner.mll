@@ -39,6 +39,13 @@ rule token = parse
 | 'b' {FLAT}
 | ':' {COLON}
 | '@' {OCTAVE}
+| "->" { RARROW }
+| "<-" { LARROW }
+| "unit" { TYPE_UNIT }
+| "bool" { TYPE_BOOL }
+| "int" { TYPE_INT }
+| "float" { TYPE_FLOAT }
+| "string" { TYPE_STR }
 | "true" { LIT_BOOL(true) }
 | "false" { LIT_BOOL(false) }
 | "fun" { FUN }
@@ -54,6 +61,7 @@ rule token = parse
 | "do" { DO }
 | "throw" { THROW }
 | "type" { TYPE }
+| "extern" { EXTERN }
 | digit+ as lit { LIT_INT(int_of_string lit) }
 | ((hasint | hasfrac) hasexp?) | (digit+ hasexp) as lit { LIT_FLOAT(float_of_string lit) }
 (* matches only outer quotes *)

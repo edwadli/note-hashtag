@@ -13,7 +13,7 @@
 %token TYPE
 %token BLING
 %token EOF
-%token INCLUDE FUN
+%token INCLUDE FUN EXTERN LARROW RARROW
 %token THROW
 %token INIT
 
@@ -24,6 +24,7 @@
 %token <int> LIT_INT
 %token <float> LIT_FLOAT
 %token <string> LIT_STR
+%token TYPE_UNIT TYPE_BOOL TYPE_INT TYPE_FLOAT TYPE_STR
 
 %nonassoc ELSE INWHICHCASE DO
 %left SEP
@@ -52,11 +53,11 @@
 %%
 
 program:
-| sep_star EOF { [],[],[],[] }
-| sep_star program_header_follow_body program_body EOF { (fun incls (fdefs, exprs, structdefs) -> (incls, fdefs, exprs, structdefs)) $2 $3 }
-| sep_star program_body EOF { (fun (fdefs, exprs, structdefs) -> ([], fdefs, exprs, structdefs)) $2 }
-| sep_star program_header EOF { $2, [], [] ,[] }
-
+| sep_star EOF { [], [], [], [], [] }
+| sep_star program_header_follow_body program_body EOF
+  { (fun (fdefs, externs, exprs, structdefs) -> ($2, fdefs, externs, exprs, structdefs)) $3 }
+| sep_star program_body EOF { (fun (fdefs, externs, exprs, structdefs) -> ([], fdefs, externs, exprs, structdefs)) $2 }
+| sep_star program_header EOF { $2, [], [] ,[], [] }
 
 program_header_follow_body:
 | INCLUDE ID_VAR include_list sep_plus { $2 :: List.rev $3 }
@@ -68,23 +69,46 @@ include_list:
 | /* nothing */ { [] }
 | include_list sep_plus INCLUDE ID_VAR { $4 :: $1 }
 
-
 program_body:
-| struct_declaration program_body_list sep_star { (fun structdef (fdefs, exprs, structdefs) -> (List.rev fdefs, List.rev exprs, structdef :: List.rev structdefs)) $1 $2 }
-| fun_def program_body_list sep_star { (fun fdef (fdefs, exprs, structdefs) -> (fdef :: List.rev fdefs, List.rev exprs, List.rev structdefs)) $1 $2 }
-| expr program_body_list sep_star { (fun expr (fdefs, exprs, structdefs) -> (List.rev fdefs, expr :: List.rev exprs, List.rev structdefs)) $1 $2 }
+| struct_declaration program_body_list sep_star
+  { (fun (fdefs, externs, exprs, structdefs) -> (fdefs, externs, exprs, $1 :: structdefs)) $2 }
+| fun_def program_body_list sep_star
+  { (fun (fdefs, externs, exprs, structdefs) -> ($1 :: fdefs, externs, exprs, structdefs)) $2 }
+| extern_fun program_body_list sep_star
+  { (fun (fdefs, externs, exprs, structdefs) -> (fdefs, $1 :: externs, exprs, structdefs)) $2 }
+| expr program_body_list sep_star
+  { (fun (fdefs, externs, exprs, structdefs) -> (fdefs, externs, $1 :: exprs, structdefs)) $2 }
 
 program_body_list:
-| /* nothing */ { [], [], [] }
-| program_body_list sep_plus struct_declaration { (fun (fdefs, exprs, structdefs) -> (fdefs, exprs, $3 :: structdefs)) $1 }
-| program_body_list sep_plus fun_def { (fun (fdefs, exprs, structdefs) -> ($3 :: fdefs, exprs, structdefs)) $1 }
-| program_body_list sep_plus expr { (fun (fdefs, exprs, structdefs) -> (fdefs, $3 :: exprs, structdefs)) $1 }
+| /* nothing */ { [], [], [], [] }
+| program_body_list sep_plus struct_declaration
+  { (fun (fdefs, externs, exprs, structdefs) -> (fdefs, externs, exprs, structdefs @ [ $3 ])) $1 }
+| program_body_list sep_plus fun_def
+  { (fun (fdefs, externs, exprs, structdefs) -> (fdefs @ [ $3 ], externs, exprs, structdefs)) $1 }
+| program_body_list sep_plus extern_fun
+  { (fun (fdefs, externs, exprs, structdefs) -> (fdefs, externs @ [ $3 ], exprs, structdefs)) $1 }
+| program_body_list sep_plus expr
+  { (fun (fdefs, externs, exprs, structdefs) -> (fdefs, externs, exprs @ [ $3 ], structdefs)) $1 }
 
 struct_declaration:
 | TYPE ID_VAR EQ LBRACE sep_star ass_list sep_star RBRACE { TypeDef($2, List.rev $6) }
 
 fun_def:
 | FUN ID_FUN id_var_list EQ expr { FunDef($2, $3, $5) }
+
+extern_fun:
+| EXTERN LIT_STR LIT_STR LIT_STR FUN ID_FUN typename_list RARROW typename { ExternFunDecl($2, $3, $4, $6, $7, $9) }
+
+typename_list:
+| /* nothing */ { [] }
+| typename typename_list { $1 :: $2 }
+
+typename:
+| TYPE_UNIT  { Unit }
+| TYPE_BOOL  { Bool }
+| TYPE_INT   { Int }
+| TYPE_FLOAT { Float }
+| TYPE_STR   { String }
 
 
 block:

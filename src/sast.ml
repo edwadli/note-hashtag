@@ -3,17 +3,10 @@ open Ast
 
 type variable_name = VarName of Ast.var_reference
 type new_variable_name = NewVarName of string
-type function_name = string
-type type_name = string
-
-type t =
-  | Unit
-  | Int
-  | Float
-  | String
-  | Bool
-  | Type of type_name
-  | Array of t
+type function_name =
+  | NhFunction of string
+  (* Header file name, namespace, C++ function name *)
+  | CppFunction of string * string * string
 
 type expr_detail =
   | LitBool of bool
@@ -39,7 +32,7 @@ and expr_typed = expr_detail * t
 (* type name, fields and default values *)
 type tdefault = TDefault of type_name * ((string * expr_typed) list)
 
-type fundef_typed = FunDef of function_name * ((string * t) list) * expr_typed
+type fundef_typed = FunDef of string * ((string * t) list) * expr_typed
 
-(* function declarations, expressions, types, type defaults *)
-type program_typed = fundef_typed list * expr_typed list * tdefault list
+(* C++ includes, function declarations, expressions, types, type defaults *)
+type program_typed = string list * fundef_typed list * expr_typed list * tdefault list
