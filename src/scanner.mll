@@ -43,19 +43,6 @@ rule token = parse
 | "false" { LIT_BOOL(false) }
 | "fun" { FUN }
 | "include" { INCLUDE }
-| digit+ as lit { LIT_INT(int_of_string lit) }
-| ((hasint | hasfrac) hasexp?) | (digit+ hasexp) as lit { LIT_FLOAT(float_of_string lit) }
-(* matches only outer quotes *)
-| '"' (('\\' '"'| [^'"'])* as str) '"' { LIT_STR(Scanf.unescaped(str)) }
-| (lowercase | '_') (letter | digit | '_')* as lit { ID_VAR(lit) }
-| uppercase (letter | digit | '_')* as lit { ID_FUN(lit) }
-| "type" { TYPE }
-| '(' { LPAREN }
-| ')' { RPAREN }
-| '[' { LBRACK }
-| ']' { RBRACK }
-| '{' { LBRACE }
-| '}' { RBRACE }
 | "if" { IF }
 | "then" { THEN }
 | "else"{ ELSE }
@@ -66,6 +53,19 @@ rule token = parse
 | "in" { IN }
 | "do" { DO }
 | "throw" { THROW }
+| "type" { TYPE }
+| digit+ as lit { LIT_INT(int_of_string lit) }
+| ((hasint | hasfrac) hasexp?) | (digit+ hasexp) as lit { LIT_FLOAT(float_of_string lit) }
+(* matches only outer quotes *)
+| '"' (('\\' '"'| [^'"'])* as str) '"' { LIT_STR(Scanf.unescaped(str)) }
+| (lowercase | '_') (letter | digit | '_')* as lit { ID_VAR(lit) }
+| uppercase (letter | digit | '_')* as lit { ID_FUN(lit) }
+| '(' { LPAREN }
+| ')' { RPAREN }
+| '[' { LBRACK }
+| ']' { RBRACK }
+| '{' { LBRACE }
+| '}' { RBRACE }
 | "//" { comment_oneline lexbuf }
 | "/*" { comment_multiline 0 lexbuf }
 | '$' { BLING }
