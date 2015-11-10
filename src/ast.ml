@@ -34,6 +34,8 @@ type expr =
 
 type fundef =
   | FunDef of string * string list * expr
+  (* Header file name, namespace, C++ function name, NH function name, list of param types *)
+  | ExternFunDecl of string * string * string * string * string list
 
 type typedef =
   | TypeDef of string * expr list
@@ -89,15 +91,15 @@ and string_of_exp_list l =
   | [ s ] -> string_of_expr s
   | s :: rest -> String.concat " " [ string_of_expr s; ","; string_of_exp_list rest ]
 
-let rec string_of_fdef f =
-  match f with
+let rec string_of_fdefs fdefs =
+  match fdefs with
   | [] -> ""
   | FunDef(x, y, z) :: rest ->
-      String.concat " " [ x; string_of_var_list y; string_of_expr z; string_of_fdef rest ]
-and string_of_var_list v =
-  match v with
-  | [] -> ""
-  | s :: rest -> String.concat " " [ s; string_of_var_list rest ]
+      String.concat " " ([ x ] @ y @ [ string_of_expr z; string_of_fdefs rest ])
+  | ExternFunDecl(hpp, ns, cpp_name, nh_name, param_types) :: rest ->
+      let cpp_path = String.concat "::" [ hpp; ns; cpp_name ] in
+      let this_str = String.concat " " ([ "extern"; cpp_path; "->"; nh_name ] @ param_types) in
+      this_str ^ "\n" ^ string_of_fdefs rest
 
 let rec string_of_incl_list p =
   match p with
@@ -114,6 +116,6 @@ let string_of_prog_struc p =
   | (incls, fdefs, exprs, typedefs) ->
       String.concat "\n" [ "INCLUDES:" ^ string_of_incl_list incls;
                            "TYPEDEFS: " ^ string_of_typedefs typedefs;
-                           "FDEF:" ^ string_of_fdef fdefs;
+                           "FDEF:" ^ string_of_fdefs fdefs;
                            "EXPR: " ^ string_of_exp_list exprs;
                          ]

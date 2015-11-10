@@ -13,7 +13,7 @@
 %token TYPE
 %token BLING
 %token EOF
-%token INCLUDE FUN
+%token INCLUDE FUN EXTERN
 %token THROW
 %token INIT
 
@@ -68,6 +68,7 @@ struct_declaration:
 
 fun_def:
 | FUN ID_FUN id_var_list EQ expr { FunDef($2, $3, $5) }
+| EXTERN LIT_STR LIT_STR LIT_STR FUN ID_FUN id_var_list { ExternFunDecl($2, $3, $4, $6, $7) }
 
 include_list:
 | /* nothing */ { [] }

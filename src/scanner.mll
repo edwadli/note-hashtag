@@ -54,6 +54,7 @@ rule token = parse
 | "do" { DO }
 | "throw" { THROW }
 | "type" { TYPE }
+| "extern" { EXTERN }
 | digit+ as lit { LIT_INT(int_of_string lit) }
 | ((hasint | hasfrac) hasexp?) | (digit+ hasexp) as lit { LIT_FLOAT(float_of_string lit) }
 (* matches only outer quotes *)
