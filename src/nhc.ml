@@ -6,19 +6,19 @@ open Version
 
 let get_inchan = function
   | None -> In_channel.stdin
-  | Some filename -> In_channel.create ~binary:true filename
+  | Some filename -> In_channel.create filename
 
 let do_compile src_path bin_path keep_ast keep_il =
   let inchan = get_inchan src_path in
   let lexbuf = Lexing.from_channel inchan in
   let ast = Parser.program Scanner.token lexbuf in
   if keep_ast then
-    let ast_file = Out_channel.create ~binary:true (bin_path ^ ".ast") in
+    let ast_file = Out_channel.create (bin_path ^ ".ast") in
     Out_channel.output_string ast_file (string_of_prog_struc ast);
     Out_channel.close ast_file
   else ();
   if keep_il then
-    let il_file = Out_channel.create ~binary:true (bin_path ^ ".cpp") in
+    let il_file = Out_channel.create (bin_path ^ ".cpp") in
     Out_channel.output_string il_file "placeholder";
     Out_channel.close il_file
   else ()
