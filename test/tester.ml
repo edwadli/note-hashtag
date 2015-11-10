@@ -7,11 +7,43 @@ type filesystem = File of string | Directory of filesystem list
     with
       End_of_file -> None
 
+let rec run_file f =
+    let read_file = open_in (String.sub f 0 (String.length f - 3) ^ ".out") in
+    let n = in_channel_length read_file in
+    let s = Bytes.create n in
+    really_input read_file s 0 n;
+    close_in read_file;
+    let compiler = "../nhc.native " ^ f in
+    ignore(Sys.command compiler);
+    let exec = (String.sub f 0 (String.length f - 3)) ^ ".native" in
+    let ch = Unix.open_process_in exec in
+	try
+  	    while true do
+  	    	()
+	    done
+	with End_of_file ->
+  	    	ignore(close_process_in ch);
+		let line = input_line ch in	
+		    if s = line then
+			print_endline "OUTPUT MATCHES"
+		    else
+			print_endline "OUTPUT DIFFERS";;		
+
+let rec check_file fs =
+    match fs with
+    | File f ->
+	if String.sub f (String.length f - 3) 3  = ".nh" then
+	    print_endline f
+ 	else
+	   () 
+    | Directory d ->
+	List.iter check_file d;;	
+
 let rec string_of_filesystem fs =
     match fs with
     | File filename -> filename ^ "\n"
     | Directory fs_list ->
-        List.fold_left (^) "" (List.map string_of_filesystem fs_list)
+        List.fold_left (^) "" (List.map string_of_filesystem fs_list);;
 
 let rec read_directory path =
     let dirh = opendir path in
@@ -29,7 +61,8 @@ let rec read_directory path =
                      else
                        File pathname in
           this :: loop () in
-    Directory (loop ());; 
+    Directory (loop ());;
+ 
 let path = Sys.argv.(1) in
 let fs = read_directory path in
-print_endline (string_of_filesystem fs)
+check_file fs;
