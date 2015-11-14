@@ -1,4 +1,3 @@
-
 type binary_operator =
   | Add | Sub | Mul | Div | Mod
   | Eq | Neq | Lt | Lte
@@ -21,6 +20,7 @@ type expr =
   | LitFloat of float
   | LitStr of string
   | VarRef of var_reference
+  | IdFun of string
   | FunApply of string * expr list
   | ArrIdx of string * expr
   | Arr of expr list
@@ -39,6 +39,8 @@ type typedef =
   | TypeDef of string * expr list
 
 type program = string list * fundef list * expr list * typedef list
+
+let a = Array.make 26 0
 
 let string_of_op o =
   match o with
@@ -75,6 +77,7 @@ let rec string_of_expr e =
   | VarRef(x) -> String.concat "$" x
   | Assign(x, y) -> String.concat " " [ "("; string_of_expr (VarRef(x)); "="; string_of_expr y; ")" ]
   | StructInit(x, y) -> String.concat " " [ x; string_of_exp_list y ]
+  | IdFun(x) -> x
   | FunApply(x, y) -> String.concat " " [ x; "("; string_of_exp_list y; ")" ]
   | ArrIdx (x, y) -> String.concat " " [ x; ".("; string_of_expr y; ")" ]
   | Arr(x) -> String.concat " " [ "["; string_of_exp_list x; "]" ]
@@ -100,11 +103,6 @@ let rec string_of_incl_list p =
   match p with
   | [] -> "[]"
   | s :: rest -> String.concat " " [ s; string_of_incl_list rest ]
-
-let rec string_of_typedefs typedefs =
-  match typedefs with
-  | [] -> ""
-  | TypeDef(name, exprs) :: rest -> name ^ string_of_exp_list exprs ^ "\n" ^ string_of_typedefs rest
 
 let rec string_of_typedefs typedefs =
   match typedefs with
