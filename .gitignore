@@ -1,11 +1,16 @@
 #OCaml
+_log
 _build
 *.cmi
 *.cmo
 *.native
+*.byte
 parser.output
 parser.ml
 parser.mli
+
+#nhc
+/src/version.ml
 
 #C++
 *.o

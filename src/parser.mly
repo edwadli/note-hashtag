@@ -1,40 +1,50 @@
 %{ open Ast %}
 
 %token SEP
-%token LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE DOT_LPAREN CONCAT
+%token LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE DOT_LPAREN CONCAT COMMA
 %token PLUS MINUS TIMES DIVIDE MOD
 %token EQ NEQ LT LTE GT GTE
 %token NOT AND OR
+%token SHARP FLAT COLON OCTAVE
+/* Note: "a = b = 3" is valid; 3 is assigned to b, and the value of that */
+/* expression is assigned to a. */
 %token ASSIGN
 %token IF THEN ELSE BE UNLESS INWHICHCASE FOR IN DO
+%token TYPE
+%token BLING
 %token EOF
 %token INCLUDE FUN
 %token THROW
+%token INIT
 
-%token <bytes> ID_VAR
-%token <bytes> ID_FUN
+%token <string> ID_VAR
+%token <string> ID_FUN
 
 %token <bool> LIT_BOOL
 %token <int> LIT_INT
 %token <float> LIT_FLOAT
-%token <bytes> LIT_STR
+%token <string> LIT_STR
 
 %nonassoc ELSE INWHICHCASE DO
 %left SEP
-%right ASSIGN
+%nonassoc ASSIGN
 %left CONCAT
 %left OR
 %left AND
-/* 1 == 1 == true is valid */
 %left EQ NEQ
 /* x < y < z can never be valid because can't use < on bool type. */
 %nonassoc LT LTE GT GTE
+%left OCTAVE
+%left COLON
+%left COMMA
 %left PLUS MINUS
 %left TIMES DIVIDE MOD
+%left BLING
 
 /* Unary Operators */
 %nonassoc NOT
 %right prec_unary_minus
+%left SHARP FLAT
 
 %start program
 %type <Ast.program> program
@@ -42,15 +52,19 @@
 %%
 
 program:
-| program_header program_body { (fun incls (fdefs, exprs) -> (incls, fdefs, exprs)) $1 $2 }
+| program_header program_body { (fun incls (fdefs, exprs, structdefs) -> (incls, fdefs, exprs, structdefs)) $1 $2 }
 
 program_header:
 | include_list { $1 }
 
 program_body:
-| EOF { [], [] }
-| fun_def sep_plus program_body { (fun (fdefs, exprs) -> ($1 :: fdefs, exprs)) $3 }
-| expr    sep_plus program_body { (fun (fdefs, exprs) -> (fdefs, $1 :: exprs)) $3 }
+| EOF { [], [], [] }
+| struct_declaration sep_plus program_body { (fun (fdefs, exprs, structdefs) -> (fdefs, exprs, $1 :: structdefs)) $3 }
+| fun_def sep_plus program_body { (fun (fdefs, exprs, structdefs) -> ($1 :: fdefs, exprs, structdefs)) $3 }
+| expr    sep_plus program_body { (fun (fdefs, exprs, structdefs) -> (fdefs, $1 :: exprs, structdefs)) $3 }
+
+struct_declaration:
+| TYPE ID_VAR EQ LBRACE sep_star ass_list sep_star RBRACE { TypeDef($2, List.rev $6) }
 
 fun_def:
 | FUN ID_FUN id_var_list EQ expr { FunDef($2, $3, $5) }
@@ -83,10 +97,14 @@ expr:
 | non_apply { $1 }
 | arith     { $1 }
 | bool      { $1 }
+| music     { $1 }
+| expr OCTAVE expr {Binop($1, Octave, $3)}
+| OCTAVE non_apply non_apply {Binop($2, Octave, $3)}
+| expr COLON expr {Binop($1, Zip, $3)}
+| expr COMMA expr {Binop($1, Chord, $3)}
+| assignment { $1 }
 | expr CONCAT expr { Binop($1, Concat, $3) }
 | ID_VAR DOT_LPAREN expr RPAREN { ArrIdx($1, $3) }
-| LBRACK stmt_list RBRACK { Arr(List.rev $2) }
-| LBRACE stmt_list RBRACE { ArrMusic(List.rev $2) }
 | control { $1 }
 | THROW non_apply non_apply { Throw($2, $3) }
 
@@ -94,6 +112,8 @@ control:
 | IF sep_expr_sep THEN sep_expr_sep ELSE sep_star expr { Conditional($2,$4,$7) }
 | BE sep_expr_sep UNLESS sep_expr_sep INWHICHCASE sep_star expr { Conditional($4,$7,$2) }
 | FOR sep_star ID_VAR sep_star IN sep_expr_sep DO sep_star expr { For($3,$6,$9) }
+| INIT ID_VAR { StructInit($2, []) }
+| INIT ID_VAR LBRACE ass_list RBRACE { StructInit($2, List.rev $4) }
 
 id_var_list:
 | /* nothing */ { [] }
@@ -112,8 +132,10 @@ args_list:
 
 non_apply:
 | LPAREN block RPAREN { $2 } /* we get unit () notation for free (see block) */
-| lit                { $1 }
-| ID_VAR             { IdVar($1) }
+| LBRACK stmt_list RBRACK { Arr(List.rev $2) }
+| LBRACE stmt_list RBRACE { ArrMusic(List.rev $2) }
+| lit { $1 }
+| var_ref { VarRef($1) }
 
 sep_expr_sep:
 | sep_star expr sep_star { $2 }
@@ -149,5 +171,17 @@ logic:
 | expr AND expr { Binop($1, And, $3) }
 | expr OR  expr { Binop($1, Or,  $3) }
 
+music:
+| expr FLAT     { Uniop(Flat, $1)}
+| expr SHARP    { Uniop(Sharp, $1)}
 
+var_ref:
+| ID_VAR { [ $1 ] }
+| ID_VAR BLING var_ref { $1 :: $3 }
 
+assignment:
+| var_ref ASSIGN expr { Assign($1, $3) }
+
+ass_list:
+| assignment { [ $1 ] }
+| ass_list sep_plus assignment { $3 :: $1 }

@@ -31,9 +31,14 @@ rule token = parse
 | ">=" { GTE }
 | ".(" { DOT_LPAREN }
 | '.' { CONCAT }
+| ',' {COMMA}
 | '!' { NOT }
 | "&&" { AND }
 | "||" { OR }
+| '#' {SHARP}
+| 'b' {FLAT}
+| ':' {COLON}
+| '@' {OCTAVE}
 | "true" { LIT_BOOL(true) }
 | "false" { LIT_BOOL(false) }
 | "fun" { FUN }
@@ -44,6 +49,7 @@ rule token = parse
 | '"' (('\\' '"'| [^'"'])* as str) '"' { LIT_STR(Scanf.unescaped(str)) }
 | (lowercase | '_') (letter | digit | '_')* as lit { ID_VAR(lit) }
 | uppercase (letter | digit | '_')* as lit { ID_FUN(lit) }
+| "type" { TYPE }
 | '(' { LPAREN }
 | ')' { RPAREN }
 | '[' { LBRACK }
@@ -62,6 +68,8 @@ rule token = parse
 | "throw" { THROW }
 | "//" { comment_oneline lexbuf }
 | "/*" { comment_multiline 0 lexbuf }
+| '$' { BLING }
+| "init" | "beget" | "bringintobeing" { INIT }
 | eof { EOF }
 
 and comment_oneline = parse
