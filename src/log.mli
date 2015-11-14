@@ -5,7 +5,7 @@ type log_level =
   | Info  (* Informational message (-v) *)
   | Debug (* Low-level information (-vv) *)
 
-val string_of_level : log_level -> bytes
+val string_of_level : log_level -> string
 
 type color = Bold | Reset | Black | Red | Green | Yellow | Blue | Magenta | Cyan | White
 

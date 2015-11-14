@@ -1,0 +1,17 @@
+
+include math.nh
+
+fun Size list = (
+    count = 0
+    for item in list do count = count + 1
+    count
+)
+
+fun AppendCopy count list = (
+    
+)
+
+fun Pop list = (
+    
+)
+

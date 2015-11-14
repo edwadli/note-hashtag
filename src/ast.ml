@@ -10,7 +10,7 @@ type unary_operator =
   | Sharp
   | Flat
 
-type var_reference = bytes list
+type var_reference = string list
 
 type expr =
   | Binop of expr * binary_operator * expr
@@ -18,27 +18,27 @@ type expr =
   | LitBool of bool
   | LitInt of int
   | LitFloat of float
-  | LitStr of bytes
+  | LitStr of string
   | VarRef of var_reference
-  | IdFun of bytes
-  | FunApply of bytes * expr list
-  | ArrIdx of bytes * expr
+  | IdFun of string
+  | FunApply of string * expr list
+  | ArrIdx of string * expr
   | Arr of expr list
   | ArrMusic of expr list
   | Block of expr list
   | Conditional of expr * expr * expr
-  | For of bytes * expr * expr
+  | For of string * expr * expr
   | Throw of expr * expr
   | Assign of var_reference * expr
-  | StructInit of bytes * expr list
+  | StructInit of string * expr list
 
 type fundef =
-  | FunDef of bytes * bytes list * expr
+  | FunDef of string * string list * expr
 
 type typedef =
-  | TypeDef of bytes * expr list
+  | TypeDef of string * expr list
 
-type program = bytes list * fundef list * expr list * typedef list
+type program = string list * fundef list * expr list * typedef list
 
 let a = Array.make 26 0
 
@@ -67,7 +67,7 @@ let rec string_of_expr e =
   match e with
   | Block l -> String.concat " " [ "["; string_of_exp_list l; "]" ]
   | Conditional(x, y, z) -> String.concat " " [ "IF"; string_of_expr x; "THEN"; string_of_expr y; "ELSE"; string_of_expr z ]
-  | For(x, y, z) -> String.concat " " [ "FOR"; Bytes.to_string x; "IN "; string_of_expr y; "DO"; string_of_expr z ]
+  | For(x, y, z) -> String.concat " " [ "FOR"; x; "IN "; string_of_expr y; "DO"; string_of_expr z ]
   | Binop(x, op, y) -> String.concat " " [ "("; string_of_expr x; string_of_op op; string_of_expr y; ")" ]
   | Uniop(op, x) -> String.concat " " [ "("; string_of_unop op; string_of_expr x; ")" ]
   | LitBool(x) -> string_of_bool x
@@ -77,9 +77,9 @@ let rec string_of_expr e =
   | VarRef(x) -> String.concat "$" x
   | Assign(x, y) -> String.concat " " [ "("; string_of_expr (VarRef(x)); "="; string_of_expr y; ")" ]
   | StructInit(x, y) -> String.concat " " [ x; string_of_exp_list y ]
-  | IdFun(x) -> Bytes.to_string x
-  | FunApply(x, y) -> String.concat " " [ Bytes.to_string x; "("; string_of_exp_list y; ")" ]
-  | ArrIdx (x, y) -> String.concat " " [ Bytes.to_string x; ".("; string_of_expr y; ")" ]
+  | IdFun(x) -> x
+  | FunApply(x, y) -> String.concat " " [ x; "("; string_of_exp_list y; ")" ]
+  | ArrIdx (x, y) -> String.concat " " [ x; ".("; string_of_expr y; ")" ]
   | Arr(x) -> String.concat " " [ "["; string_of_exp_list x; "]" ]
   | ArrMusic(x) -> String.concat " " [ "{"; string_of_exp_list x; "}" ]
   | Throw(x, y) -> String.concat " " ["Throw"; string_of_expr x; string_of_expr y]
@@ -93,16 +93,16 @@ let rec string_of_fdef f =
   match f with
   | [] -> ""
   | FunDef(x, y, z) :: rest ->
-      String.concat " " [ Bytes.to_string x; string_of_var_list y; string_of_expr z; string_of_fdef rest ]
+      String.concat " " [ x; string_of_var_list y; string_of_expr z; string_of_fdef rest ]
 and string_of_var_list v =
   match v with
   | [] -> ""
-  | s :: rest -> String.concat " " [ Bytes.to_string s; string_of_var_list rest ]
+  | s :: rest -> String.concat " " [ s; string_of_var_list rest ]
 
 let rec string_of_incl_list p =
   match p with
   | [] -> "[]"
-  | s :: rest -> String.concat " " [ Bytes.to_string s; string_of_incl_list rest ]
+  | s :: rest -> String.concat " " [ s; string_of_incl_list rest ]
 
 let rec string_of_typedefs typedefs =
   match typedefs with

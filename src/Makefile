@@ -1,5 +1,5 @@
 OCAMLBUILD = corebuild
-OCAMLFLAGS = -use-ocamlfind
+OCAMLFLAGS = -use-ocamlfind -cflags -safe-string
 
 .PHONY: nhc
 nhc: update-version

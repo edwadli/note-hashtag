@@ -17,13 +17,13 @@
 %token THROW
 %token INIT
 
-%token <bytes> ID_VAR
-%token <bytes> ID_FUN
+%token <string> ID_VAR
+%token <string> ID_FUN
 
 %token <bool> LIT_BOOL
 %token <int> LIT_INT
 %token <float> LIT_FLOAT
-%token <bytes> LIT_STR
+%token <string> LIT_STR
 
 %nonassoc ELSE INWHICHCASE DO
 %left SEP
