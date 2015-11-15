@@ -55,7 +55,7 @@ program:
 | sep_star EOF { [],[],[],[] }
 | sep_star program_header_follow_body program_body EOF { (fun incls (fdefs, exprs, structdefs) -> (incls, fdefs, exprs, structdefs)) $2 $3 }
 | sep_star program_body EOF { (fun (fdefs, exprs, structdefs) -> ([], fdefs, exprs, structdefs)) $2 }
-| sep_star program_header EOF { (fun incls -> (incls, [], [], [])) $2 }
+| sep_star program_header EOF { $2, [], [] ,[] }
 
 
 program_header_follow_body:
