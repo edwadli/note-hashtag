@@ -1,4 +1,3 @@
-
 open Ast
 
 type variable_name = VarName of Ast.var_reference
@@ -15,7 +14,10 @@ type expr_detail =
   | VarRef of variable_name
   | FunApply of function_name * expr_typed list
   | ArrIdx of variable_name * expr_typed
-  | Arr of (expr_typed list) * t
+  | Arr of (expr_typed list)
+  | ArrMusic of (expr_typed list)
+  | EmptyList of t
+  | EmptyMusicList of t
   | Block of expr_typed list
   | Conditional of expr_typed * expr_typed * expr_typed
   | For of new_variable_name * expr_typed * expr_typed

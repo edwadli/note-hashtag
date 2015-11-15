@@ -148,7 +148,29 @@ let rec sast_expr env tfuns_ref = function
     (* UPDATE tfuns_ref and return the sast node *)
     ignore(unique_add tfuns_ref (Sast.FunDef(name, tparams, (sexpr, t)))); (Sast.FunApply(name, texpr_list), t)
     end
-
+ |Ast.Arr(expr_list) ->
+    let texpr_list = List.map expr_list ~f:(sast_expr env tfuns_ref) in
+    let t = List.nth_exn texpr_list 0 in
+    let same_type = List.for_all texpr_list ~f:(fun x ->
+	(x = t)) in
+    if same_type then
+    	Sast.Arr(texpr_list), t
+    else
+	failwith("Different types found in list")
+ |Ast.ArrMusic(expr_list) ->
+    let texpr_list = List.map expr_list ~f:(sast_expr env tfuns_ref) in
+    let t = List.nth_exn texpr_list 0 in
+    let same_type = List.for_all texpr_list ~f:(fun x ->
+	x = t) in
+    (if same_type then
+	()
+    else
+	failwith("Different types found in list") );
+    Sast.ArrMusic(texpr_list), t
+ |Ast.EmptyList(t) ->
+    Sast.EmptyList(t), t
+ |Ast.EmptyMusicList(t) ->
+    Sast.EmptyMusicList(t), t 
   | _ -> failwith "VarRef, ArrIdx, Arr, ArrMusic, Block, Conditional, For,\
       Throw, Assign, StructInit not implemented"
 (*   | Ast.VarRef(base::access) ->
