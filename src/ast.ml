@@ -1,3 +1,13 @@
+type type_name = string
+type t =
+  | Unit
+  | Int
+  | Float
+  | String
+  | Bool
+  | Type of type_name
+  | Array of t
+
 type binary_operator =
   | Add | Sub | Mul | Div | Mod
   | Eq | Neq | Lt | Lte
@@ -34,15 +44,25 @@ type expr =
 
 type fundef =
   | FunDef of string * string list * expr
+
+type externfun =
   (* Header file name, namespace, C++ function name, NH function name, list of param types *)
-  | ExternFunDecl of string * string * string * string * string list
+  | ExternFunDecl of string * string * string * string * t list
 
 type typedef =
   | TypeDef of string * expr list
 
-type program = string list * fundef list * expr list * typedef list
+type program = string list * fundef list * externfun list * expr list * typedef list
 
-let a = Array.make 26 0
+let rec string_of_type t =
+  match t with
+  | Unit -> "unit"
+  | Int -> "int"
+  | Float -> "float"
+  | String -> "bool"
+  | Bool -> "bool"
+  | Type(name) -> name
+  | Array(t) -> string_of_type t ^ "{}"
 
 let string_of_op o =
   match o with
@@ -96,10 +116,12 @@ let rec string_of_fdefs fdefs =
   | [] -> ""
   | FunDef(x, y, z) :: rest ->
       String.concat " " ([ x ] @ y @ [ string_of_expr z; string_of_fdefs rest ])
-  | ExternFunDecl(hpp, ns, cpp_name, nh_name, param_types) :: rest ->
-      let cpp_path = String.concat "::" [ hpp; ns; cpp_name ] in
-      let this_str = String.concat " " ([ "extern"; cpp_path; "->"; nh_name ] @ param_types) in
-      this_str ^ "\n" ^ string_of_fdefs rest
+
+let string_of_extern extern =
+  let ExternFunDecl(hpp, ns, cpp_name, nh_name, param_types) = extern in
+    let cpp_path = String.concat "::" [ hpp; ns; cpp_name ] in
+    let type_strs = List.map string_of_type param_types in
+    String.concat " " ([ "extern"; cpp_path; "->"; nh_name ] @ type_strs)
 
 let rec string_of_incl_list p =
   match p with
@@ -113,9 +135,10 @@ let rec string_of_typedefs typedefs =
 
 let string_of_prog_struc p =
   match p with
-  | (incls, fdefs, exprs, typedefs) ->
-      String.concat "\n" [ "INCLUDES:" ^ string_of_incl_list incls;
+  | (incls, fdefs, externs, exprs, typedefs) ->
+      String.concat "\n" [ "INCLUDES: " ^ string_of_incl_list incls;
                            "TYPEDEFS: " ^ string_of_typedefs typedefs;
-                           "FDEF:" ^ string_of_fdefs fdefs;
+                           "FDEF: " ^ string_of_fdefs fdefs;
+                           "EXTFUN: " ^ (String.concat "\n" (List.map string_of_extern externs));
                            "EXPR: " ^ string_of_exp_list exprs;
                          ]

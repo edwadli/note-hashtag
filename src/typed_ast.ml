@@ -5,12 +5,13 @@ open Sast
 (* environment *)
 type symbol_table = {
   parent: symbol_table option;
-  variables: (string * t) list;
+  variables: (string * Ast.t) list;
 }
 
 type environment = {
   scope: symbol_table; (* vars symbol table *)
   functions: (int * Ast.fundef) list; (* (num args * fundef) list *)
+  extern_functions: Ast.externfun list;
   types: Sast.tdefault list;
 }
 
@@ -31,24 +32,29 @@ let find_function functions name num_args = match
   List.find functions ~f:(function (n, Ast.FunDef(fname,_,_)) -> name = fname && num_args = n)
   with
     | Some(x) -> x
-    | None -> failwith ("undeclared function "^name)
+    | None -> failwith ("undeclared template " ^ name)
 
-let check_unique fundefs = List.fold_left fundefs ~init:[]
-  ~f:(fun defs astfundef
-    ->  let Ast.FunDef(fname, args, expr) = astfundef in
-        let nfundef = (List.length args, Ast.FunDef(fname, args, expr)) in
-        if List.mem defs nfundef
-          then failwith ("Function "^fname^"already defined")
-          else nfundef :: defs)
-
-
-
+let check_unique_functions fundefs externs =
+  List.fold_left fundefs ~init:[]
+  ~f:(fun defs astfundef ->
+    let Ast.FunDef(fname, args, expr) = astfundef in
+    let nfundef = (List.length args, Ast.FunDef(fname, args, expr)) in
+    if List.exists externs
+      ~f:(fun e ->
+        let Ast.ExternFunDecl(_, _, _, nh_name, types) = e in
+        nh_name = fname && List.length types = List.length args)
+    then failwith ("Function " ^ fname ^ " is already declared as an external function")
+    else
+      if List.mem defs nfundef
+      then failwith ("Function " ^ fname ^ " is already defined")
+      else nfundef :: defs
+  )
 
 let rec sast_expr env tfuns_ref = function
-  | Ast.LitBool(x) -> Sast.LitBool(x), Sast.Int
-  | Ast.LitInt(x) -> Sast.LitInt(x), Sast.Bool
-  | Ast.LitFloat(x) -> Sast.LitFloat(x), Sast.Float
-  | Ast.LitStr(x) -> Sast.LitStr(x), Sast.String
+  | Ast.LitBool(x) -> Sast.LitBool(x), Ast.Int
+  | Ast.LitInt(x) -> Sast.LitInt(x), Ast.Bool
+  | Ast.LitFloat(x) -> Sast.LitFloat(x), Ast.Float
+  | Ast.LitStr(x) -> Sast.LitStr(x), Ast.String
   | Ast.Binop(lexpr, op, rexpr) ->
     let lexprt = sast_expr env tfuns_ref lexpr in
     let rexprt = sast_expr env tfuns_ref rexpr in
@@ -56,71 +62,71 @@ let rec sast_expr env tfuns_ref = function
     let (_, rt) = rexprt in
     begin match op with
       | Ast.Add | Ast.Sub | Ast.Mul | Ast.Div
-      | Ast.Lt | Ast.Lte when (lt = rt && (lt = Sast.Float || lt = Sast.Int)) -> Sast.Binop(lexprt,op,rexprt), lt
+      | Ast.Lt | Ast.Lte when (lt = rt && (lt = Ast.Float || lt = Ast.Int)) -> Sast.Binop(lexprt,op,rexprt), lt
       | Ast.Add | Ast.Sub | Ast.Mul | Ast.Div
       | Ast.Lt | Ast.Lte ->
         failwith "This operation is only defined for float and int"
       
-      | Ast.Mod when (lt = rt && lt = Sast.Int) -> Sast.Binop(lexprt,op,rexprt), lt
+      | Ast.Mod when (lt = rt && lt = Ast.Int) -> Sast.Binop(lexprt,op,rexprt), lt
       | Ast.Mod -> failwith "This operation is only defined for int"
 
       | Ast.Eq | Ast.Neq when lt = rt -> Sast.Binop(lexprt,op,rexprt), lt
       | Ast.Eq | Ast.Neq -> failwith "left and right side expressions must be of same type"
       
-      | Ast.And | Ast.Or when (lt = rt && lt = Sast.Bool) -> Sast.Binop(lexprt,op,rexprt), lt
+      | Ast.And | Ast.Or when (lt = rt && lt = Ast.Bool) -> Sast.Binop(lexprt,op,rexprt), lt
       | Ast.And | Ast.Or -> failwith "This operation is only defined for bool"
 
       | Ast.Concat -> begin match lt, rt with
         (* disallow chords to be concatted *)
-        | Sast.Array(l), Sast.Array(r)
-          when l = r && l <> Sast.Type("pitch") ->
+        | Ast.Array(l), Ast.Array(r)
+          when l = r && l <> Ast.Type("pitch") ->
           Sast.Binop(lexprt,op,rexprt), lt
         (* note that track is a type, not array *)
-        | Sast.Type("track"), Sast.Type("track")
+        | Ast.Type("track"), Ast.Type("track")
           -> Sast.Binop(lexprt,op,rexprt), lt
         | _ -> failwith "This operation is only defined for same nonprimitive types" end
       | Ast.Chord -> begin match lt, rt with
         (* chordOp can be with pitch or chord or int *)
-        | Sast.Array(Sast.Type("pitch")), Sast.Array(Sast.Type("pitch"))
-        | Sast.Type("pitch"), Sast.Array(Sast.Type("pitch"))
-        | Sast.Array(Sast.Type("pitch")), Sast.Type("pitch")
-        | Sast.Type("pitch"), Sast.Type("pitch")
-        | Sast.Int, Sast.Array(Sast.Type("pitch"))
-        | Sast.Array(Sast.Type("pitch")), Sast.Int
-        | Sast.Int, Sast.Type("pitch")
-        | Sast.Type("pitch"), Sast.Int
-        | Sast.Int, Sast.Int
-          -> Sast.Binop(lexprt,op,rexprt), Sast.Array(Sast.Type("pitch"))
+        | Ast.Array(Ast.Type("pitch")), Ast.Array(Ast.Type("pitch"))
+        | Ast.Type("pitch"), Ast.Array(Ast.Type("pitch"))
+        | Ast.Array(Ast.Type("pitch")), Ast.Type("pitch")
+        | Ast.Type("pitch"), Ast.Type("pitch")
+        | Ast.Int, Ast.Array(Ast.Type("pitch"))
+        | Ast.Array(Ast.Type("pitch")), Ast.Int
+        | Ast.Int, Ast.Type("pitch")
+        | Ast.Type("pitch"), Ast.Int
+        | Ast.Int, Ast.Int
+          -> Sast.Binop(lexprt,op,rexprt), Ast.Array(Ast.Type("pitch"))
         | _ -> failwith "This operation is only defined for pitch, chord, or int" end
       | Ast.Octave -> begin match lt, rt with
-        | Sast.Type("pitch"), Sast.Int
-        | Sast.Int, Sast.Int -> Sast.Binop(lexprt,op,rexprt), Sast.Type("pitch")
+        | Ast.Type("pitch"), Ast.Int
+        | Ast.Int, Ast.Int -> Sast.Binop(lexprt,op,rexprt), Ast.Type("pitch")
         | _ -> failwith "This operation is only defined for [pitch int] and int" end
       | Ast.Zip -> begin match lt, rt with
         (* zip works with music arr, chord, pitch, or int/float *)
-        | Sast.Float, Sast.Int
-        | Sast.Float, Sast.Type("pitch")
-        | Sast.Float, Sast.Array(Sast.Type("pitch"))
-        | Sast.Float, Sast.Array(Sast.Array(Sast.Type("pitch")))
-        | Sast.Array(Sast.Float), Sast.Int
-        | Sast.Array(Sast.Float), Sast.Type("pitch")
-        | Sast.Array(Sast.Float), Sast.Array(Sast.Type("pitch"))
-        | Sast.Array(Sast.Float), Sast.Array(Sast.Array(Sast.Type("pitch")))
-          -> Sast.Binop(lexprt,op,rexprt), Sast.Type("track")
+        | Ast.Float, Ast.Int
+        | Ast.Float, Ast.Type("pitch")
+        | Ast.Float, Ast.Array(Ast.Type("pitch"))
+        | Ast.Float, Ast.Array(Ast.Array(Ast.Type("pitch")))
+        | Ast.Array(Ast.Float), Ast.Int
+        | Ast.Array(Ast.Float), Ast.Type("pitch")
+        | Ast.Array(Ast.Float), Ast.Array(Ast.Type("pitch"))
+        | Ast.Array(Ast.Float), Ast.Array(Ast.Array(Ast.Type("pitch")))
+          -> Sast.Binop(lexprt,op,rexprt), Ast.Type("track")
         | _ -> failwith "Incorrect types for zip" end
     end
   | Ast.Uniop(op, expr) ->
     let exprt = sast_expr env tfuns_ref expr in
     let (_, t) = exprt in
     begin match op with
-      | Ast.Not when t = Sast.Bool -> Sast.Uniop(op, exprt), t
+      | Ast.Not when t = Ast.Bool -> Sast.Uniop(op, exprt), t
       | Ast.Not -> failwith "This operator is only defined for bool"
 
-      | Ast.Neg when t = Sast.Int || t = Sast.Float -> Sast.Uniop(op, exprt), t
+      | Ast.Neg when t = Ast.Int || t = Ast.Float -> Sast.Uniop(op, exprt), t
       | Ast.Neg -> failwith "This operator is only defined for int or float"
       
-      | Ast.Sharp | Ast.Flat when t = Sast.Int || t = Sast.Type("pitch")
-        -> Sast.Uniop(op, exprt), Sast.Type("pitch")
+      | Ast.Sharp | Ast.Flat when t = Ast.Int || t = Ast.Type("pitch")
+        -> Sast.Uniop(op, exprt), Ast.Type("pitch")
       |Ast.Sharp | Ast.Flat -> failwith "This operator is only defined for int or pitch"
     end
   | Ast.FunApply(name, expr_list) ->
@@ -152,25 +158,48 @@ let rec sast_expr env tfuns_ref = function
       else  *)
 
 and check_function_type tparams expr tfuns_ref env = 
-  let env = { scope={ variables=tparams; parent=env.scope.parent }; functions=env.functions; types=env.types } in
-  sast_expr env tfuns_ref expr
+  let env' = {
+    scope = { variables = tparams; parent = env.scope.parent };
+    functions = env.functions;
+    extern_functions = env.extern_functions;
+    types = env.types;
+  } in
+  sast_expr env' tfuns_ref expr
 
 and typed_typedefs typedefs =
   (* TODO: actually return list of Sast.tdefault *)
-  []
+  ignore (typedefs); []
 (* Mutually recursive types NO!!!!!!!!!!! *)
 
+and typed_externs externfuns env_types =
+  List.fold_left externfuns ~init:[]
+    ~f:(fun validated item ->
+      let Ast.ExternFunDecl(_, _, _, _, arg_types) = item in
+      (* Find out whether the user-defined types, if any, are valid *)
+      let arg_types_valid = List.for_all arg_types ~f:(function
+        | Ast.Type(name) -> List.exists env_types ~f:(fun (type_name, _) -> type_name = name)
+        | _ -> true (* all other types are OK *)
+      ) in
+      if arg_types_valid && List.mem validated item
+        then failwith ("External function has already been declared:\n" ^ Ast.string_of_extern item)
+        else item :: validated
+    )
 
 (* Note that includes have been processed and merged into exprs by this point *)
-let sast_of_ast (fundefs, exprs, typedefs) = 
+let sast_of_ast (fundefs, externs, exprs, typedefs) = 
   (* temporarily ignore includes -> NO GLOBALS YET *)
   let globals = {variables=[]; parent=None} in
   (* temporarily ignore typedefs *)
   let tdefaults = typed_typedefs typedefs in
   (* make sure fundefs are unique *)
-  let nfundefs = check_unique fundefs in
-  let env = { scope={variables=[]; parent=Some(globals)}; functions=nfundefs; types=tdefaults } in
+  let externs = typed_externs externs tdefaults in
+  let nfundefs = check_unique_functions fundefs externs in
+  let env = {
+    scope = { variables=[]; parent=Some(globals) };
+    functions = nfundefs;
+    extern_functions = externs;
+    types = tdefaults;
+  } in
   let tfuns_ref = ref [] in
   let sexprs = List.map exprs ~f:(sast_expr env tfuns_ref) in
   (!tfuns_ref ,sexprs , env.types )
-

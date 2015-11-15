@@ -24,6 +24,7 @@
 %token <int> LIT_INT
 %token <float> LIT_FLOAT
 %token <string> LIT_STR
+%token TYPE_UNIT TYPE_BOOL TYPE_INT TYPE_FLOAT TYPE_STR
 
 %nonassoc ELSE INWHICHCASE DO
 %left SEP
@@ -52,23 +53,39 @@
 %%
 
 program:
-| program_header program_body { (fun incls (fdefs, exprs, structdefs) -> (incls, fdefs, exprs, structdefs)) $1 $2 }
+| program_header program_body
+  { (fun incls (fdefs, externs, exprs, structdefs) -> (incls, fdefs, externs, exprs, structdefs)) $1 $2 }
 
 program_header:
 | include_list { $1 }
 
 program_body:
-| EOF { [], [], [] }
-| struct_declaration sep_plus program_body { (fun (fdefs, exprs, structdefs) -> (fdefs, exprs, $1 :: structdefs)) $3 }
-| fun_def sep_plus program_body { (fun (fdefs, exprs, structdefs) -> ($1 :: fdefs, exprs, structdefs)) $3 }
-| expr    sep_plus program_body { (fun (fdefs, exprs, structdefs) -> (fdefs, $1 :: exprs, structdefs)) $3 }
+| EOF { [], [], [], [] }
+| struct_declaration sep_plus program_body
+    { (fun (fdefs, externs, exprs, structdefs) -> (fdefs, externs, exprs, $1 :: structdefs)) $3 }
+| fun_def    sep_plus program_body
+    { (fun (fdefs, externs, exprs, structdefs) -> ($1 :: fdefs, externs, exprs, structdefs)) $3 }
+| extern_fun sep_plus program_body
+    { (fun (fdefs, externs, exprs, structdefs) -> (fdefs, $1 :: externs, exprs, structdefs)) $3 }
+| expr       sep_plus program_body
+    { (fun (fdefs, externs, exprs, structdefs) -> (fdefs, externs, $1 :: exprs, structdefs)) $3 }
 
 struct_declaration:
 | TYPE ID_VAR EQ LBRACE sep_star ass_list sep_star RBRACE { TypeDef($2, List.rev $6) }
 
 fun_def:
 | FUN ID_FUN id_var_list EQ expr { FunDef($2, $3, $5) }
-| EXTERN LIT_STR LIT_STR LIT_STR FUN ID_FUN id_var_list { ExternFunDecl($2, $3, $4, $6, $7) }
+
+extern_fun:
+| EXTERN LIT_STR LIT_STR LIT_STR FUN ID_FUN type_list { ExternFunDecl($2, $3, $4, $6, $7) }
+
+type_list:
+| /* nothing */ { [] }
+| TYPE_UNIT  type_list { Unit :: $2 }
+| TYPE_BOOL  type_list { Bool :: $2 }
+| TYPE_INT   type_list { Int :: $2 }
+| TYPE_FLOAT type_list { Float :: $2 }
+| TYPE_STR   type_list { String :: $2 }
 
 include_list:
 | /* nothing */ { [] }

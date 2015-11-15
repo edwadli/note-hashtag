@@ -39,6 +39,11 @@ rule token = parse
 | 'b' {FLAT}
 | ':' {COLON}
 | '@' {OCTAVE}
+| "unit" { TYPE_UNIT }
+| "bool" { TYPE_BOOL }
+| "int" { TYPE_INT }
+| "float" { TYPE_FLOAT }
+| "string" { TYPE_STR }
 | "true" { LIT_BOOL(true) }
 | "false" { LIT_BOOL(false) }
 | "fun" { FUN }
