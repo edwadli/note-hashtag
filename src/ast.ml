@@ -41,6 +41,8 @@ type expr =
   | Throw of expr * expr
   | Assign of var_reference * expr
   | StructInit of string * expr list
+  | EmptyList of t
+  | EmptyMusicList of t
 
 type fundef =
   | FunDef of string * string list * expr
@@ -103,6 +105,8 @@ let rec string_of_expr e =
   | FunApply(x, y) -> String.concat " " [ x; "("; string_of_exp_list y; ")" ]
   | ArrIdx (x, y) -> String.concat " " [ x; ".("; string_of_expr y; ")" ]
   | Arr(x) -> String.concat " " [ "["; string_of_exp_list x; "]" ]
+  | EmptyList(t) -> String.concat " " [string_of_type t;"[";"]"] 
+  | EmptyMusicList(t) -> String.concat " " [string_of_type t; "{";"}"]
   | ArrMusic(x) -> String.concat " " [ "{"; string_of_exp_list x; "}" ]
   | Throw(x, y) -> String.concat " " ["Throw"; string_of_expr x; string_of_expr y]
 and string_of_exp_list l =

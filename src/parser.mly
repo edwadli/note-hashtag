@@ -154,6 +154,13 @@ non_apply:
 | LBRACE stmt_list RBRACE { ArrMusic(List.rev $2) }
 | lit { $1 }
 | var_ref { VarRef($1) }
+| TYPE_UNIT  LBRACK RBRACK { EmptyList(Unit) }
+| TYPE_BOOL  LBRACK RBRACK { EmptyList(Bool) }
+| TYPE_INT   LBRACK RBRACK { EmptyList(Int) }
+| TYPE_FLOAT LBRACK RBRACK { EmptyList(Float) }
+| TYPE_STR   LBRACK RBRACK { EmptyList(String) }
+| TYPE_INT   LBRACE RBRACE { EmptyList(Int) }
+| TYPE_FLOAT LBRACE RBRACE { EmptyList(Float) }
 
 sep_expr_sep:
 | sep_star expr sep_star { $2 }
