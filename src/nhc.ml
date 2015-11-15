@@ -4,6 +4,7 @@ open Ast
 open Log
 open Version
 open Typed_ast
+open Cpp_gen
 
 let get_inchan = function
   | None -> In_channel.stdin
