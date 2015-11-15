@@ -111,11 +111,9 @@ and string_of_exp_list l =
   | [ s ] -> string_of_expr s
   | s :: rest -> String.concat " " [ string_of_expr s; ","; string_of_exp_list rest ]
 
-let rec string_of_fdefs fdefs =
-  match fdefs with
-  | [] -> ""
-  | FunDef(x, y, z) :: rest ->
-      String.concat " " ([ x ] @ y @ [ string_of_expr z; string_of_fdefs rest ])
+let string_of_fdef fdef =
+  let FunDef(name, args, body) = fdef in
+  String.concat " " ([ name ] @ args @ [ string_of_expr body ])
 
 let string_of_extern extern =
   let ExternFunDecl(hpp, ns, cpp_name, nh_name, param_types, ret_type) = extern in
@@ -138,7 +136,7 @@ let string_of_prog_struc p =
   | (incls, fdefs, externs, exprs, typedefs) ->
       String.concat "\n" [ "INCLUDES: " ^ string_of_incl_list incls;
                            "TYPEDEFS: " ^ string_of_typedefs typedefs;
-                           "FDEF: " ^ string_of_fdefs fdefs;
-                           "EXTFUN: " ^ (String.concat "\n" (List.map string_of_extern externs));
+                           "FDEF: " ^ String.concat "\n" (List.map string_of_fdef fdefs);
+                           "EXTFUN: " ^ String.concat "\n" (List.map string_of_extern externs);
                            "EXPR: " ^ string_of_exp_list exprs;
                          ]
