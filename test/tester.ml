@@ -29,8 +29,7 @@ let rec read_out ch l s =
 let rec run_file f =
     let read_file = open_in (String.sub f 0 (String.length f - 3) ^ ".out") in
     let n = in_channel_length read_file in
-    let s = Bytes.create n in
-    really_input read_file s 0 n;
+    let s = really_input_string read_file n in 
     close_in read_file;
     let compiler = "../src/nhc.native " ^ "-c " ^ f in
     ignore(Sys.command compiler);
