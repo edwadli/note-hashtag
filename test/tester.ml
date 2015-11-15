@@ -2,7 +2,7 @@ open Unix
 open Printf
 type filesystem = File of string | Directory of filesystem list
 
-  let readdir_no_ex dirh =
+let readdir_no_ex dirh =
     try
       Some (readdir dirh)
     with
@@ -10,11 +10,9 @@ type filesystem = File of string | Directory of filesystem list
 
 let rec read_out ch l s =
     try
-        while true do
-	    let line = input_line ch in	    
-		let l = (l ^ line) in
-			read_out ch l s
-        done
+	let line = input_line ch in	    
+	let l = (l ^ line) in
+		read_out ch l s
     with End_of_file ->
 	ignore(close_in ch);
 	let l = (l^"\n") in
@@ -22,9 +20,6 @@ let rec read_out ch l s =
 	    print_endline "TEST PASSED: OUTPUT MATCHES"
 	else 
 	    print_endline "TEST FAILED: OUTPUT DIFFERS"
-	|_ -> ()
-	
-	
 
 let rec run_file f =
     let read_file = open_in (String.sub f 0 (String.length f - 3) ^ ".out") in
