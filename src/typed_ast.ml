@@ -149,24 +149,31 @@ let rec sast_expr env tfuns_ref = function
     ignore(unique_add tfuns_ref (Sast.FunDef(name, tparams, (sexpr, t)))); (Sast.FunApply(name, texpr_list), t)
     end
  |Ast.Arr(expr_list) ->
-    let texpr_list = List.map expr_list ~f:(sast_expr env tfuns_ref) in
-    let t = List.nth_exn texpr_list 0 in
-    let same_type = List.for_all texpr_list ~f:(fun x ->
-	(x = t)) in
-    if same_type then
-    	Sast.Arr(texpr_list), t
-    else
-	failwith("Different types found in list")
- |Ast.ArrMusic(expr_list) ->
-    let texpr_list = List.map expr_list ~f:(sast_expr env tfuns_ref) in
-    let t = List.nth_exn texpr_list 0 in
-    let same_type = List.for_all texpr_list ~f:(fun x ->
+    let exprt = List.map expr_list ~f:(sast_expr env tfuns_ref) in
+    let rec make_t l =  match l with
+	|(_, t) :: rest -> t :: make_t rest
+	|[] -> []
+    in let t_list = make_t exprt in
+    let t = List.nth_exn t_list 0 in
+    let same_type = List.for_all t_list ~f:(fun x ->
 	x = t) in
     (if same_type then
-	()
+    	Sast.Arr(exprt), t
     else
-	failwith("Different types found in list") );
-    Sast.ArrMusic(texpr_list), t
+	failwith("Different types found in list"))
+ |Ast.ArrMusic(expr_list) ->
+    let exprt = List.map expr_list ~f:(sast_expr env tfuns_ref) in
+    let rec make_t l =  match l with
+	|(_, t) :: rest -> t :: make_t rest
+	|[] -> []
+    in let t_list = make_t exprt in
+    let t = List.nth_exn t_list 0 in
+    let same_type = List.for_all t_list ~f:(fun x ->
+	x = t) in
+    (if same_type then
+    	Sast.ArrMusic(exprt), t
+    else
+	failwith("Different types found in list"))
  |Ast.EmptyList(t) ->
     Sast.EmptyList(t), t
  |Ast.EmptyMusicList(t) ->

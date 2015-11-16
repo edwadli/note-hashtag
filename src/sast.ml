@@ -14,8 +14,8 @@ type expr_detail =
   | VarRef of variable_name
   | FunApply of function_name * expr_typed list
   | ArrIdx of variable_name * expr_typed
-  | Arr of (expr_typed list)
-  | ArrMusic of (expr_typed list)
+  | Arr of expr_typed list
+  | ArrMusic of expr_typed list
   | EmptyList of t
   | EmptyMusicList of t
   | Block of expr_typed list
