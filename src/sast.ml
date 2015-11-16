@@ -13,6 +13,7 @@ type expr_detail =
   | LitInt of int
   | LitFloat of float
   | LitStr of string
+  | LitUnit
   | Binop of expr_typed * Ast.binary_operator * expr_typed
   | Uniop of Ast.unary_operator * expr_typed
   | VarRef of variable_name

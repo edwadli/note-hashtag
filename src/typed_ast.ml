@@ -31,14 +31,18 @@ let rec find_variable (scope: symbol_table) name =
 let find_function functions name num_args = match
   List.find functions ~f:(function (n, Ast.FunDef(fname,_,_)) -> name = fname && num_args = n)
   with
-    | Some(x) -> x
-    | None -> failwith ("Function " ^ name ^ " can't be called with these arguments")
+    | Some(x) -> Log.debug "Found %s as nh function" name; x
+    | None ->
+      Log.debug "Couldn't find %s in nh functions" name;
+      failwith ("Function " ^ name ^ " can't be called with these arguments")
 
 let find_extern externs name arg_types =
   match List.find externs
     ~f:(fun (Ast.ExternFunDecl(_, _, _, fname, ftypes, _)) -> fname = name && ftypes = arg_types) with
-  | Some(x) -> x
-  | None -> failwith ("Function " ^ name ^ " can't be called with these arguments")
+  | Some(x) -> Log.debug "Found %s as extern function" name; x
+  | None ->
+    Log.debug "Couldn't find %s as extern function" name;
+    failwith ("Function " ^ name ^ " can't be called with these arguments")
 
 let is_nh_function env name =
   List.exists env.functions ~f:(fun (_, Ast.FunDef(fname, _, _)) -> fname = name)
@@ -181,14 +185,44 @@ let rec sast_expr env tfuns_ref = function
       
       (* Function name doesn't exist *)
       else failwith ("There is no function named " ^ name)
-
-  | _ -> failwith "VarRef, ArrIdx, Arr, ArrMusic, Block, Conditional, For,\
-      Throw, Assign, StructInit not implemented"
-(*   | Ast.VarRef(base::access) ->
-    let (_, t) = try find_variable env.scope base with Not_found ->
-      failwith ("undeclared identifier " ^ base) in
-    if List.length access = 0 then Sast.VarRef( VarName(base::access) ), t
-      else  *)
+  
+  | Block(exprs) ->
+    let texprs = List.map exprs ~f:(fun expr -> sast_expr env tfuns_ref expr) in
+    begin
+      match texprs with
+      | [] -> LitUnit, Unit
+      | [ texpr ] -> texpr
+      | _ ->
+        let tlast = match List.last texprs with Some(_, t) -> t | None -> Ast.Unit in
+        Block(texprs), tlast
+    end
+    
+  | VarRef(name) ->
+    ignore name; failwith "Type checking not implemented for VarRef"
+  
+  | ArrIdx(name, idx) ->
+    ignore (name, idx); failwith "Type checking not implemented for ArrIdx"
+  
+  | Arr(exprs) ->
+    ignore exprs; failwith "Type checking not implemented for Arr"
+  
+  | ArrMusic(exprs) ->
+    ignore exprs; failwith "Type checking not implemented for ArrMusic"
+  
+  | Conditional(condition, case_true, case_false) ->
+    ignore (condition, case_true, case_false); failwith "Type checking not implemented for Conditional"
+  
+  | For(loop_var_name, items, body) ->
+    ignore (loop_var_name, items, body); failwith "Type checking not implemented for For"
+  
+  | Throw(retval, msg) ->
+    ignore (retval, msg); failwith "Type checking not implemented for Throw"
+  
+  | Assign(varref, value) ->
+    ignore (varref, value); failwith "Type checking not implemented for Assign"
+  
+  | StructInit(typename, init_list) ->
+    ignore (typename, init_list); failwith "Type checking not implemented for StructInit"
 
 and check_function_type tparams expr tfuns_ref env = 
   let env' = {

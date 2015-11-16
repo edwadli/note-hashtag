@@ -2,6 +2,8 @@
 open Core.Std
 open Sast
 
+let sep = ";\n"
+
 let all_includes includes = 
   let defaults = [
     "<iostream>";
@@ -24,9 +26,13 @@ let cpp_of_typedefs types = let _ = types in ""
 let rec cpp_of_expr texpr =
   let (expr, _) = texpr in match expr with
   | LitBool(b) -> if b then "true" else "false"
+  
   | LitInt(i) ->  string_of_int i
-  | LitFloat(f) -> sprintf "%.17G" f
+  
+  | LitFloat(f) -> sprintf "%.17F" f
+  
   | LitStr(s) -> "\""^String.escaped s^"\""
+  
   | FunApply(fname, exprs) -> let fun_name = match fname with
       | NhFunction(fn) -> fn
       | CppFunction(_,ns,fn) -> ns^"::"^fn
@@ -35,7 +41,11 @@ let rec cpp_of_expr texpr =
       String.concat ~sep:","
         (List.map exprs ~f:(fun texpr -> "("^cpp_of_expr texpr^")"))
       ^")"
-  | _ -> failwith "rest of sast not converted yet"
+  
+  | Block(exprs) ->
+    String.concat (List.map exprs ~f:(fun e -> cpp_of_expr e ^ sep))
+  
+  | _ -> failwith "Codegen not implemented for this kind of expression"
 
 (* TODO keep track of namespace *)
 let cpp_of_sast (includes, fundefs, exprs, types) =
@@ -47,5 +57,5 @@ let cpp_of_sast (includes, fundefs, exprs, types) =
   cpp_of_typedefs types ^ cpp_of_fundefs fundefs ^
   (* add program exprs *)
   "int main() {\n"^
-  List.fold_left exprs ~init:"" ~f:(fun prog expr -> prog ^ cpp_of_expr expr ^ ";\n")^
+  List.fold_left exprs ~init:"" ~f:(fun prog expr -> prog ^ cpp_of_expr expr ^ sep)^
   "}\n"

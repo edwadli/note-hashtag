@@ -30,7 +30,6 @@ type expr =
   | LitFloat of float
   | LitStr of string
   | VarRef of var_reference
-  | IdFun of string
   | FunApply of string * expr list
   | ArrIdx of string * expr
   | Arr of expr list
@@ -99,7 +98,6 @@ let rec string_of_expr e =
   | VarRef(x) -> String.concat "$" x
   | Assign(x, y) -> String.concat " " [ "("; string_of_expr (VarRef(x)); "="; string_of_expr y; ")" ]
   | StructInit(x, y) -> String.concat " " [ x; string_of_exp_list y ]
-  | IdFun(x) -> x
   | FunApply(x, y) -> String.concat " " [ x; "("; string_of_exp_list y; ")" ]
   | ArrIdx (x, y) -> String.concat " " [ x; ".("; string_of_expr y; ")" ]
   | Arr(x) -> String.concat " " [ "["; string_of_exp_list x; "]" ]
