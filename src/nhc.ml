@@ -8,20 +8,21 @@ open Typed_ast
 open Cpp_gen
 
 (* string -> Ast -> Noincl_ast -> Typed_ast -> Code_gen *)
-
-let get_inchan = function
-  | None -> In_channel.stdin
-  | Some filename -> In_channel.create ~binary:true filename
-
 let do_compile src_path bin_path keep_ast keep_il =
-  let inchan = get_inchan src_path in
-  let lexbuf = Lexing.from_channel inchan in
-  let ast = Parser.program Scanner.token lexbuf in
+  let ast = noinclu_ast src_path in
   if keep_ast then
-    let ast_file = Out_channel.create ~binary:true (bin_path ^ ".ast") in
-    Out_channel.output_string ast_file (string_of_prog_struc ast);
+    let ast_file = Out_channel.create (bin_path ^ ".ast") in
+    let (fdefs, externs, exprs, tdefs) = ast in
+    Out_channel.output_string ast_file (string_of_prog_struc ([],fdefs,externs,exprs,tdefs));
     Out_channel.close ast_file
   else ();
+  let sast = sast_of_ast ast in
+  let cpp = cpp_of_sast sast in
+  let cpp_compile = "clang++ -Wall -pedantic -O2 -xc++ - support.cpp" in
+  let ch = Unix.open_process_out cpp_compile in
+  Out_channel.output_string ch cpp;
+  ignore(Unix.close_process_out ch);
+
   if keep_il then
     let il_file = Out_channel.create (bin_path ^ ".cpp") in
     Out_channel.output_string il_file "placeholder";
