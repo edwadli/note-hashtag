@@ -4,6 +4,9 @@ open Ast
 
 type program = Ast.fundef list * Ast.expr list * Ast.typedef list
 
+let get_inchan = function
+  | None -> In_channel.stdin
+  | Some filename -> In_channel.create (filename^".nh")
 
 let rec noinclu incls_ref (incls, fdefs, externs, exprs, tdefs) =
   List.fold_left (List.rev incls) ~init:(fdefs,externs,exprs,tdefs,incls_ref)
@@ -14,11 +17,14 @@ let rec noinclu incls_ref (incls, fdefs, externs, exprs, tdefs) =
           then
             (fdefs,externs,exprs,tdefs,incls_ref)
           else
-            let inchan = In_channel.create (next_incl^".nh") in
+            let inchan = get_inchan next_incl in
             let lexbuf = Lexing.from_channel inchan in
-            let next_ast = Parser.program Scanner.token lexbuf in begin
-            incls_ref := next_incl :: !incls_ref;
-            noinclu incls_ref next_ast end
+            let (incls,fdefs,externs,exprs,tdefs) = Parser.program Scanner.token lexbuf in
+            let next_ast = (List.map incls ~f:(fun s -> Some(s)),fdefs,externs,exprs,tdefs) in
+            begin
+              incls_ref := next_incl :: !incls_ref;
+              noinclu incls_ref next_ast
+            end
       in
       (next_fdefs@fdefs, next_externs@externs, next_exprs@exprs, next_tdefs@tdefs, incls_ref)
     )
@@ -26,5 +32,5 @@ let rec noinclu incls_ref (incls, fdefs, externs, exprs, tdefs) =
 let noinclu_ast name =
   (* keep track of already included files *)
   let incls_ref = ref [] in
-  let (new_fdefs, new_externs, new_exprs, new_tdefs, _) = noinclu incls_ref (["std"; name],[],[],[],[]) in
+  let (new_fdefs, new_externs, new_exprs, new_tdefs, _) = noinclu incls_ref ([Some("../lib/std"); name],[],[],[],[]) in
   (new_fdefs, new_externs, new_exprs, new_tdefs)

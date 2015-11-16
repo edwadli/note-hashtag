@@ -1,4 +1,6 @@
 
+
+/*
 Include math.nh
 Include stdio.nh
 
@@ -63,3 +65,4 @@ const C_Major_Pentatonic = init key_signature {
 	flat = A4FrequencyScale {}
 }
 // TODO: And so on ...
+*/

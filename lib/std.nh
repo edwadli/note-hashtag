@@ -1,6 +1,9 @@
 
-Include std_basic.nh
+extern "support.hpp" "" "print_string" fun Print string -> unit
 
+/*
+
+include std_basic
 
 key_signature = init key_signature
 time_signature = init time_signature
@@ -71,3 +74,4 @@ fun Repeat times track = (
 
 // TODO: volume mix functions for song objects
 
+*/
