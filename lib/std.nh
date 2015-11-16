@@ -1,5 +1,5 @@
 
-extern "support.h" "" "print_string" fun Print string -> unit
+extern "support.hpp" "" "print_string" fun Print string -> unit
 
 /*
 
