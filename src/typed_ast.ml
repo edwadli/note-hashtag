@@ -166,7 +166,9 @@ let rec sast_expr env tfuns_ref = function
       in
       (* check if types of inputs can be used with this function and UPDATE tfuns_ref *)
       let (sexpr, t) = try check_function_type tparams expr tfuns_ref env
-        with _ -> failwith ("Incorrect types passed into function "^name)
+        with Failure(reason) ->
+          Log.info "Function template type check failed. Inner exception: %s" reason;
+          failwith ("Incorrect types passed into function "^name)
       in begin
       (* UPDATE tfuns_ref and return the sast node *)
       ignore(unique_add tfuns_ref (Sast.FunDef(name, tparams, (sexpr, t))));
