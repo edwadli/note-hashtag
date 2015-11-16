@@ -51,7 +51,6 @@
 %type <Ast.program> program
 
 %%
-
 program:
 | program_header program_body
   { (fun incls (fdefs, externs, exprs, structdefs) -> (incls, fdefs, externs, exprs, structdefs)) $1 $2 }

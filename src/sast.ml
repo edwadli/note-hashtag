@@ -25,7 +25,6 @@ type expr_detail =
   | InitAssign of new_variable_name * expr_typed
   | Assign of variable_name * expr_typed
   | StructInit of type_name * expr_typed list
-
 and expr_typed = expr_detail * t
 
 (* type name, fields and default values *)
