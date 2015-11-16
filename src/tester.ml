@@ -1,52 +1,40 @@
-open Unix
+open Core.Std
+open Filename
 open Printf
+open Unix
+
+open Log
+
 type filesystem = File of string | Directory of filesystem list
+
+let rec read_out ch l =
+  try
+    let l = l ^ input_line ch in read_out ch l
+  with End_of_file ->
+    ignore (In_channel.close ch); l
+
+let test_file file =
+  ignore (Sys.command ("./nhc.native " ^ "-c " ^ file));
+  let child = Unix.open_process_in "./a.out" in
+  let output = In_channel.input_all child
+  and retval = Unix.close_process_in child
+  and expected = In_channel.read_all (Filename.chop_extension file ^ ".out") in
+  let passed = (output = expected && retval = Result.Ok( () )) in
+  (if passed then Log.debug "✅  %s" else Log.debug "❎  %s") (Filename.basename file); passed
+
+let test_files files =
+  List.map files ~f:test_file
+
+let rec filenames_of_filesystem fs =
+  match fs with
+  | File(filename) -> if Filename.check_suffix filename ".nh" then [ filename ] else []
+  | Directory(fs_list) -> List.fold_left (List.map fs_list ~f:filenames_of_filesystem) ~init:[] ~f:(@)
 
 let readdir_no_ex dirh =
   try
     Some (readdir dirh)
   with
     End_of_file -> None
-
-let rec read_out ch l s =
-  try
-    let line = input_line ch in
-    let l = (l ^ line) in
-      read_out ch l s
-  with End_of_file ->
-    ignore (close_in ch);
-    let l = (l ^ "\n") in
-    if l = s then
-      print_endline "TEST PASSED: OUTPUT MATCHES"
-    else
-      print_endline "TEST FAILED: OUTPUT DIFFERS"
-
-let rec run_file f =
-  let read_file = open_in (String.sub f 0 (String.length f - 3) ^ ".out") in
-  let n = in_channel_length read_file in
-  let s = really_input_string read_file n in
-  close_in read_file;
-  let compiler = "./nhc.native " ^ "-c " ^ f in
-  ignore (Sys.command compiler);
-  let exec = (String.sub f 0 (String.length f - 3)) ^ ".native" in
-  let l = "" in
-  let ch = Unix.open_process_in exec in
-  read_out ch l s
-
-let rec check_file fs =
-  match fs with
-  | File f ->
-    if String.sub f (String.length f - 3) 3  = ".nh"
-    then
-      print_endline f;
-      ignore(run_file f)
-    else ()
-  | Directory d -> List.iter check_file d
-
-let rec string_of_filesystem fs =
-  match fs with
-  | File filename -> filename ^ "\n"
-  | Directory fs_list -> List.fold_left (^) "" (List.map string_of_filesystem fs_list)
 
 let rec read_directory path =
   let dirh = opendir path in
@@ -63,6 +51,12 @@ let rec read_directory path =
       this :: loop () in
       Directory(loop ());;
 
-let path = Sys.argv.(1) in
-let fs = read_directory path in
-check_file fs
+let _ =
+  Log.set_min_level Debug;
+  let path = Sys.argv.(1) in
+  let fs = read_directory path in
+  let tests = filenames_of_filesystem fs in
+  print_endline (String.concat ~sep:"\n" tests);
+  let results = test_files tests in
+  let num_passed = List.count results ~f:(fun pass -> pass) in
+  Log.info "Passed %d of %d tests" num_passed (List.length results)
