@@ -21,7 +21,7 @@ let do_compile src_path bin_path keep_ast keep_il =
     let il_path = bin_path ^ ".cpp" in
     Out_channel.write_all il_path ~data:cpp
   else ();
-  let cpp_compile = "clang++ -Wall -pedantic -O2 -xc++ - support.cpp" in
+  let cpp_compile = "clang++ -Weverything -O2 -xc++ - support.cpp" in
   let ch = Unix.open_process_out cpp_compile in
   Out_channel.output_string ch cpp;
   ignore(Unix.close_process_out ch)
