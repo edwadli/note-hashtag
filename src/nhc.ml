@@ -31,12 +31,12 @@ let command =
     Command.Spec.(
       empty
       (*+> anon (maybe ("filename" %: string))*)
-      +> flag "-A" no_arg ~doc:"Output internal representation (syntax tree)"
-      +> flag "-c" (optional string) ~doc:"Compile the specified file"
-      +> flag "-o" (optional_with_default "a.out" string) ~doc:"Write output to the specified file"
-      +> flag "-S" no_arg ~doc:"Output intermediate language representation (C++)"
-      +> flag "-v" no_arg ~doc:"Print verbose debugging information"
-      +> flag "-vv" no_arg ~doc:"Print extra verbose debugging information"
+      +> flag "-A" no_arg ~doc:" output internal representation (syntax tree)"
+      +> flag "-c" (optional string) ~doc:"file.nh compile the specified file"
+      +> flag "-o" (optional_with_default "a.out" string) ~doc:"file write output to the specified file"
+      +> flag "-S" no_arg ~doc:" output intermediate language representation (C++)"
+      +> flag "-v" no_arg ~doc:" print verbose debugging information"
+      +> flag "-vv" no_arg ~doc:" print extra verbose debugging information"
     )
     ( (* Handler *)
       fun show_ast infile_path outfile_path show_il verbose1 verbose2 () ->
