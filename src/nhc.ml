@@ -52,7 +52,10 @@ let command =
         Log.debug "  writing executable to: %s" outfile_path;
         Log.debug "  keep intermediate representation: %B" show_il;
         Log.debug "  keep syntax tree: %B" show_ast;
-        do_compile infile_path outfile_path show_ast show_il;
+        try
+          do_compile infile_path outfile_path show_ast show_il;
+        (* Catch any unhandled exceptions to suppress the nasty-looking message *)
+        with Failure(msg) -> Log.error "%s" msg; Log.debug "call stack:\n%s" (Printexc.get_backtrace ()); exit 1
     )
 
 let _ =

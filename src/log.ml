@@ -1,17 +1,16 @@
+open Core.Std
 open Printf
 
-type log_level = Fatal | Error | Warn | Info | Debug
+type log_level = Error | Warn | Info | Debug
 
 (* For comparing logging levels *)
 let int_of_level = function
-  | Fatal -> 120
   | Error -> 100
   | Warn -> 80
   | Info -> 60
   | Debug -> 40
 
 let string_of_level = function
-  | Fatal -> "fatal"
   | Error -> "error"
   | Warn -> "warning"
   | Info -> "info"
@@ -20,7 +19,6 @@ let string_of_level = function
 type color = Bold | Reset | Black | Red | Green | Yellow | Blue | Magenta | Cyan | White
 
 let color_of_level = function
-  | Fatal -> Black
   | Error -> Red
   | Warn -> Yellow
   | Info -> Blue
@@ -51,7 +49,6 @@ let print level fmt =
   let printer = if int_of_level level >= int_of_level !min_level then fprintf else ifprintf in
   printer stderr ("%s " ^^ fmt ^^ "\n") prefix
 
-let fatal fmt = print Fatal fmt
 let error fmt = print Error fmt
 let warn  fmt = print Warn  fmt
 let info  fmt = print Info  fmt
