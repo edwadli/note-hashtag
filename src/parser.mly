@@ -94,7 +94,7 @@ struct_declaration:
 | TYPE ID_VAR EQ LBRACE sep_star ass_list sep_star RBRACE { TypeDef($2, List.rev $6) }
 
 fun_def:
-| FUN ID_FUN id_var_list EQ expr { FunDef($2, $3, $5) }
+| FUN ID_FUN id_var_list ASSIGN expr { FunDef($2, $3, $5) }
 
 extern_fun:
 | EXTERN LIT_STR LIT_STR LIT_STR FUN ID_FUN typename_list RARROW typename { ExternFunDecl($2, $3, $4, $6, $7, $9) }

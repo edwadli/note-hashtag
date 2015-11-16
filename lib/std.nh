@@ -8,6 +8,11 @@ extern "support.hpp" "std" "to_string" fun StringOfInt int -> string
 
 extern "support.hpp" "std" "pow" fun Pow float float -> float
 
+fun PrintEndline str = (
+  Print str
+  Print "\n"
+)
+
 /*
 
 include std_basic
