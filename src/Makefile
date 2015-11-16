@@ -1,13 +1,19 @@
 OCAMLBUILD = corebuild
-OCAMLFLAGS = -use-ocamlfind -cflags -safe-string
+CFLAGS = -safe-string
+BUILDFLAGS = -use-ocamlfind -cflags $(CFLAGS)
 
 .PHONY: nhc
 nhc: update-version
-	$(OCAMLBUILD) $(OCAMLFLAGS) nhc.native
+	$(OCAMLBUILD) $(BUILDFLAGS) nhc.native
 
 .PHONY: update-version
 update-version:
 	./update_version.sh
+
+.PHONY: test
+test: nhc
+	$(OCAMLBUILD) $(BUILDFLAGS) tester.native
+	./tester.native ../test
 
 .PHONY: clean
 clean:

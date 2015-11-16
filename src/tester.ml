@@ -26,7 +26,7 @@ let rec run_file f =
     let n = in_channel_length read_file in
     let s = really_input_string read_file n in 
     close_in read_file;
-    let compiler = "../src/nhc.native " ^ "-c " ^ f in
+    let compiler = "./nhc.native " ^ "-c " ^ f in
     ignore(Sys.command compiler);
     let exec = (String.sub f 0 (String.length f - 3)) ^ ".native" in
     let l = ""  in
