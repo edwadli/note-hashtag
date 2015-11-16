@@ -11,23 +11,20 @@ open Cpp_gen
 let do_compile src_path bin_path keep_ast keep_il =
   let ast = noinclu_ast src_path in
   if keep_ast then
-    let ast_file = Out_channel.create (bin_path ^ ".ast") in
-    let (fdefs, externs, exprs, tdefs) = ast in
-    Out_channel.output_string ast_file (string_of_prog_struc ([],fdefs,externs,exprs,tdefs));
-    Out_channel.close ast_file
+    let ast_path = bin_path ^ ".ast"
+    and (fdefs, externs, exprs, tdefs) = ast in
+    Out_channel.write_all ast_path ~data:(string_of_prog_struc ([], fdefs, externs, exprs, tdefs))
   else ();
   let sast = sast_of_ast ast in
   let cpp = cpp_of_sast sast in
+  if keep_il then
+    let il_path = bin_path ^ ".cpp" in
+    Out_channel.write_all il_path ~data:cpp
+  else ();
   let cpp_compile = "clang++ -Wall -pedantic -O2 -xc++ - support.cpp" in
   let ch = Unix.open_process_out cpp_compile in
   Out_channel.output_string ch cpp;
-  ignore(Unix.close_process_out ch);
-
-  if keep_il then
-    let il_file = Out_channel.create (bin_path ^ ".cpp") in
-    Out_channel.output_string il_file "placeholder";
-    Out_channel.close il_file
-  else ()
+  ignore(Unix.close_process_out ch)
 
 let command =
   Command.basic
