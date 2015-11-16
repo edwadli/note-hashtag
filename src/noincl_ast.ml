@@ -6,7 +6,7 @@ type program = Ast.fundef list * Ast.expr list * Ast.typedef list
 
 let get_inchan = function
   | None -> In_channel.stdin
-  | Some filename -> In_channel.create (filename^".nh")
+  | Some filename -> In_channel.create filename
 
 let rec noinclu incls_ref (incls, fdefs, externs, exprs, tdefs) =
   List.fold_left (List.rev incls) ~init:(fdefs,externs,exprs,tdefs,incls_ref)
@@ -32,5 +32,5 @@ let rec noinclu incls_ref (incls, fdefs, externs, exprs, tdefs) =
 let noinclu_ast name =
   (* keep track of already included files *)
   let incls_ref = ref [] in
-  let (new_fdefs, new_externs, new_exprs, new_tdefs, _) = noinclu incls_ref ([Some("../lib/std"); name],[],[],[],[]) in
+  let (new_fdefs, new_externs, new_exprs, new_tdefs, _) = noinclu incls_ref ([Some("../lib/std.nh"); name],[],[],[],[]) in
   (new_fdefs, new_externs, new_exprs, new_tdefs)
