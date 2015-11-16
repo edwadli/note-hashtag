@@ -10,24 +10,29 @@ let all_includes includes =
     (* "stk/FileLoop.h"; *)
     (* "stk/FileWvOut.h" *)
   ] in
-  List.fold_left (defaults @ includes) ~init:"" ~f:(fun l hname -> l^"#include \""^hname^"\"\n" )
+  List.fold_left (List.dedup (defaults @ includes)) ~init:""
+    ~f:(fun l hname -> l^"#include \""^hname^"\"\n" )
 
-let function_prototypes fundefs = ""
+let hpp_of_fundefs fundefs = ""
 
-let struct_prototypes types = ""
+let hpp_of_typedefs types = ""
 
-let function_defs fundefs = ""
+let cpp_of_fundefs fundefs = ""
 
-let struct_defs types = ""
+let cpp_of_typedefs types = ""
 
-let rec cpp_expr = function
+let rec cpp_of_expr = function
   | LitBool(b) -> if b then "true" else "false"
   | LitInt(i) ->  string_of_int i
-  | LitFloat(f) -> Float.to_string f
+  | LitFloat(f) -> sprintf "%.17G" f
   | LitStr(s) -> "\""^s^"\""
-  | FunApply(fname, exprs) -> fname^"("^
+  | FunApply(fname, exprs) -> let fun_name = match fname with
+      | NhFunction(fn) -> fn
+      | CppFunction(_,ns,fn) -> ns^"::"^fn
+    in
+    fun_name^"("^
       String.concat ~sep:","
-        (List.map exprs ~f:(fun (expr, _) -> "("^cpp_expr expr^")"))
+        (List.map exprs ~f:(fun (expr, _) -> "("^cpp_of_expr expr^")"))
       ^")"
   | _ -> failwith "rest of sast not converted yet"
 
@@ -36,8 +41,10 @@ let cpp_of_sast (includes, fundefs, exprs, types) =
   (* add includes *)
   (* generate function prototypes *)
   (* generate struct prototypes *)
-  all_includes includes ^ function_prototypes fundefs ^ struct_prototypes types ^
+  all_includes includes ^ hpp_of_typedefs types ^ hpp_of_fundefs fundefs ^
   (* add function defs and type defs *)
-  function_defs fundefs ^ struct_defs types ^
+  cpp_of_typedefs types ^ cpp_of_fundefs fundefs ^
   (* add program exprs *)
-  List.fold_left exprs ~init:"" ~f:(fun prog expr -> prog ^ cpp_expr expr ^ ";\n")
+  "int main() {\n"^
+  List.fold_left exprs ~init:"" ~f:(fun prog expr -> prog ^ cpp_of_expr expr ^ ";\n")^
+  "}"
