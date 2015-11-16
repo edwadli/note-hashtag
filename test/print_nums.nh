@@ -1,0 +1,8 @@
+Print (StringOfFloat 42.0)
+Print "\n"
+
+Print (StringOfInt 42)
+Print "\n"
+
+Print (StringOfFloat (Pow 4.0 2.0))
+Print "\n"

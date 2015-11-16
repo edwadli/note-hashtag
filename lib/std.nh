@@ -1,5 +1,12 @@
+extern "support.hpp" "nh_support" "print_string" fun Print string -> unit
 
-extern "support.hpp" "" "print_string" fun Print string -> unit
+extern "support.hpp" "nh_support" "int_of_float" fun IntOfFloat float -> int
+extern "support.hpp" "std" "to_string" fun StringOfFloat float -> string
+
+extern "support.hpp" "nh_support" "float_of_int" fun FloatOfInt int -> float
+extern "support.hpp" "std" "to_string" fun StringOfInt int -> string
+
+extern "support.hpp" "std" "pow" fun Pow float float -> float
 
 /*
 
