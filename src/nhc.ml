@@ -1,11 +1,12 @@
 open Core.Std
 
 open Ast
-open Noincl_ast
-open Log
-open Version
-open Typed_ast
+open Cast
 open Cpp_gen
+open Log
+open Noincl_ast
+open Typed_ast
+open Version
 
 (* string -> Ast -> Noincl_ast -> Typed_ast -> Code_gen *)
 let do_compile src_path bin_path keep_ast keep_il =
