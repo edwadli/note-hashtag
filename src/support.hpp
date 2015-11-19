@@ -2,6 +2,9 @@
 #include <iostream>
 #include <string>
 
+typedef int64_t unit;
+const unit LIT_UNIT = 0;
+
 namespace nh_support
 {
   void print_string(std::string);
