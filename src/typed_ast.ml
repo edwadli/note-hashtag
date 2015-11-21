@@ -15,18 +15,41 @@ type environment = {
   types: Sast.tdefault list;
 }
 
+let rec find_field types t access_list =
+  (* make sure we are accessing a Type() *)
+  let tname = match t with
+    | Ast.Type(tname) -> tname
+    | _ -> failwith (Ast.string_of_type t)
+  in
+  (* make sure type exists *)
+  let TDefault(_, fields) =
+    match List.find types ~f:(fun td -> let TDefault(s,_) = td in s = tname) with
+      | None -> raise Not_found
+      | Some(x) -> x
+  in match access_list with
+    | [] -> failwith "Internal Error: tried field access with empty list"
+    | field ::tail -> let (n,(x,t)) = match List.find fields ~f:(fun (s,_) -> s = field) with
+                        | None -> raise (Invalid_argument field)
+                        | Some(x) -> x
+                      in match tail with
+                        | [] -> (n,(x,t))
+                        | _ -> find_field types t tail
+
+
+
 let unique_add l item = 
   if List.mem !l item
     then l := !l
     else l := item :: !l
 
 let rec find_variable (scope: symbol_table) name =
-  try
-    List.find scope.variables ~f:(fun (s, _) -> s = name)
-  with Not_found ->
+  match List.find scope.variables ~f:(fun (s, _) -> s = name) with
+  | None -> begin
     match scope.parent with
       | Some(parent) -> find_variable parent name
       | None -> raise Not_found
+    end
+  | Some(x) -> x
 
 let find_function functions name num_args = match
   List.find functions ~f:(function (n, Ast.FunDef(fname,_,_)) -> name = fname && num_args = n)
@@ -199,8 +222,21 @@ let rec sast_expr env tfuns_ref = function
         Block(texprs), tlast
     end
     
-  | VarRef(name) ->
-    ignore name; failwith "Type checking not implemented for VarRef"
+  | VarRef(names) -> begin match names with
+    [] -> failwith "Internal error: VarRef(string list) had empty string list"
+    | name :: fields -> let (_,t) = try find_variable env.scope name
+                          with Not_found -> failwith ("Var "^name^" referenced before initalization.")
+                        in begin match fields with
+                          [] -> VarRef(VarName(names)), t
+                          | _ -> let (_,(_,t)) = try find_field env.types t fields
+                                  with
+                                    |Invalid_argument(x) -> failwith ("Field "^x^" not found in var "^name)
+                                    |Failure(x) -> failwith ("Type "^x^" does not have fields")
+                                    |Not_found -> failwith ("Internal Error: could not find type of var "^name)
+                                  in VarRef(VarName(names)), t
+                          end
+    end
+
   
   | ArrIdx(name, idx) ->
     ignore (name, idx); failwith "Type checking not implemented for ArrIdx"
