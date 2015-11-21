@@ -2,10 +2,10 @@ open Core.Std
 
 open Ast
 open Cast
-open Cpp_gen
 open Log
 open Noincl_ast
 open Typed_ast
+open Cpp_sast
 open Version
 
 (* string -> Ast -> Noincl_ast -> Typed_ast -> Code_gen *)
@@ -17,7 +17,8 @@ let do_compile src_path bin_path keep_ast keep_il =
     Out_channel.write_all ast_path ~data:(string_of_prog_struc ([], fdefs, externs, exprs, tdefs))
   else ();
   let sast = sast_of_ast ast in
-  let cpp = cpp_of_sast sast in
+  let cast = cast_of_sast sast in
+  let cpp = string_of_program cast in
   if keep_il then
     let il_path = bin_path ^ ".cpp" in
     Out_channel.write_all il_path ~data:cpp

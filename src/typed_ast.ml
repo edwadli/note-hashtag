@@ -19,17 +19,17 @@ let rec find_field types t access_list =
   (* make sure we are accessing a Type() *)
   let tname = match t with
     | Ast.Type(tname) -> tname
-    | _ -> failwith (Ast.string_of_type t)
+    | _ -> failwith ("cannot field access type "^Ast.string_of_type t)
   in
   (* make sure type exists *)
   let TDefault(_, fields) =
-    match List.find types ~f:(fun td -> let TDefault(s,_) = td in s = tname) with
-      | None -> raise Not_found
+    match List.find types ~f:(fun (TDefault(s,_)) -> s = tname) with
+      | None -> failwith ("Internal Error: Could not find type "^tname)
       | Some(x) -> x
   in match access_list with
     | [] -> failwith "Internal Error: tried field access with empty list"
     | field ::tail -> let (n,(x,t)) = match List.find fields ~f:(fun (s,_) -> s = field) with
-                        | None -> raise (Invalid_argument field)
+                        | None -> failwith ("field "^field^" not found in type "^tname)
                         | Some(x) -> x
                       in match tail with
                         | [] -> (n,(x,t))
@@ -216,7 +216,6 @@ let rec sast_expr env tfuns_ref = function
     begin
       match texprs with
       | [] -> LitUnit, Unit
-      | [ texpr ] -> texpr
       | _ ->
         let tlast = match List.last texprs with Some(_, t) -> t | None -> Ast.Unit in
         Block(texprs), tlast
@@ -228,11 +227,7 @@ let rec sast_expr env tfuns_ref = function
                           with Not_found -> failwith ("Var "^name^" referenced before initalization.")
                         in begin match fields with
                           [] -> VarRef(VarName(names)), t
-                          | _ -> let (_,(_,t)) = try find_field env.types t fields
-                                  with
-                                    |Invalid_argument(x) -> failwith ("Field "^x^" not found in var "^name)
-                                    |Failure(x) -> failwith ("Type "^x^" does not have fields")
-                                    |Not_found -> failwith ("Internal Error: could not find type of var "^name)
+                          | _ -> let (_,(_,t)) = find_field env.types t fields
                                   in VarRef(VarName(names)), t
                           end
     end

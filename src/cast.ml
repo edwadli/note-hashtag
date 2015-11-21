@@ -5,7 +5,8 @@ open Ast
 type binary_operator = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq
 type unary_operator = Not | Neg
 
-type decl = t * string
+type decl = Ast.t * string
+
 
 type expr =
   | LitUnit
@@ -20,11 +21,10 @@ type expr =
   | Binop of expr * binary_operator * expr
   | Uniop of unary_operator * expr
   | Assign of var_reference * expr
-  | CallFunction of string * string * expr list
-  | CallMethod of var_reference * string * expr list
+  | Call of callable * expr list
   | Noexpr
 
-type stmt =
+and stmt =
   | Block of stmt list
   | Expr of expr
   | Return of expr
@@ -33,11 +33,16 @@ type stmt =
   | ForRange of decl * expr * stmt
   | While of expr * stmt
 
+and callable = 
+  | Function of string * string
+  | Method of var_reference * string
+  | LambdaRefCap of decl list * Ast.t * stmt list
+
 type func_decl = {
   fnamespace : string;
   fname : string;
   fargs : decl list;
-  treturn : t;
+  treturn : Ast.t;
   body : stmt list;
 }
 
@@ -79,14 +84,18 @@ let rec string_of_expr = function
       string_of_expr e2
   | Uniop(o, e) -> (match o with Not -> "!" | Neg -> "-") ^ string_of_expr e
   | Assign(v, e) -> string_of_expr (VarRef(v)) ^ " = " ^ string_of_expr e
-  | CallFunction(namespace, fname, el) -> namespace ^ ns ^ fname ^ "(" ^
-      String.concat ~sep:", " (List.map el ~f:string_of_expr) ^ ")"
-  | CallMethod(oname, fname, args) ->
-      string_of_expr (VarRef(oname)) ^ "." ^ fname ^ "(" ^
-        String.concat ~sep:", " (List.map args ~f:string_of_expr) ^ ")"
+  | Call(callexpr, args) -> string_of_callable callexpr ^ "(" ^
+      String.concat ~sep:", " (List.map args ~f:string_of_expr) ^ ")"
   | Noexpr -> ""
 
-let rec string_of_stmt = function
+and string_of_callable = function
+  | LambdaRefCap(decls, treturn, stmts) -> "[&] (" ^
+      String.concat ~sep:", " (List.map decls ~f:(fun (t, name) -> string_of_type t ^ " " ^ name)) ^
+      ") -> " ^ string_of_type treturn ^" "^ string_of_stmt (Block stmts)
+  | Method(oname, fname) -> string_of_expr (VarRef(oname)) ^ "." ^ fname
+  | Function(namespace, fname) -> namespace ^ ns ^ fname
+
+and string_of_stmt = function
   | Block(stmts) -> "{\n" ^ String.concat (List.map stmts ~f:string_of_stmt) ^ "}\n"
   | Expr(expr) -> string_of_expr expr ^ sep
   | Return(expr) -> "return " ^ string_of_expr expr ^ sep

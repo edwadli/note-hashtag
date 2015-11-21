@@ -35,5 +35,5 @@ type tdefault = TDefault of type_name * ((string * expr_typed) list)
 
 type fundef_typed = FunDef of string * ((string * Ast.t) list) * expr_typed
 
-(* C++ includes, function declarations, expressions, types, type defaults *)
+(* C++ includes, function declarations, expressions, types (with defaults) *)
 type program_typed = string list * fundef_typed list * expr_typed list * tdefault list
