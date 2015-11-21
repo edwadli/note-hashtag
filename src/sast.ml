@@ -19,7 +19,7 @@ type expr_detail =
   | VarRef of variable_name
   | FunApply of function_name * expr_typed list
   | ArrIdx of variable_name * expr_typed
-  | Arr of (expr_typed list) * t
+  | Arr of (expr_typed list) * Ast.t
   | Block of expr_typed list
   | Conditional of expr_typed * expr_typed * expr_typed
   | For of new_variable_name * expr_typed * expr_typed
@@ -28,12 +28,12 @@ type expr_detail =
   | Assign of variable_name * expr_typed
   | StructInit of type_name * expr_typed list
 
-and expr_typed = expr_detail * t
+and expr_typed = expr_detail * Ast.t
 
 (* type name, fields and default values *)
 type tdefault = TDefault of type_name * ((string * expr_typed) list)
 
-type fundef_typed = FunDef of string * ((string * t) list) * expr_typed
+type fundef_typed = FunDef of string * ((string * Ast.t) list) * expr_typed
 
-(* C++ includes, function declarations, expressions, types, type defaults *)
+(* C++ includes, function declarations, expressions, types (with defaults) *)
 type program_typed = string list * fundef_typed list * expr_typed list * tdefault list
