@@ -16,6 +16,7 @@ type expr =
   | LitStr of string
   | InitList of expr list
   | Decl of decl
+  | DeclAssign of decl * expr
   | VarRef of var_reference
   | Idx of var_reference * expr
   | Binop of expr * binary_operator * expr
@@ -73,6 +74,7 @@ let rec string_of_expr = function
   | LitStr(x) -> "\"" ^ String.escaped x ^ "\""
   | InitList(exprs) -> "{ " ^ String.concat ~sep:", " (List.map exprs ~f:string_of_expr) ^ " }"
   | Decl(t, name) -> string_of_type t ^ " " ^ name
+  | DeclAssign((t, name), e) -> string_of_type t ^ " " ^ name ^ " = " ^ string_of_expr e
   | VarRef(names) -> String.concat ~sep:"." names
   | Idx(name, e) -> string_of_expr (VarRef(name)) ^ "[" ^ string_of_expr e ^ "]"
   | Binop(e1, o, e2) ->

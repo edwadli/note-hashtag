@@ -51,11 +51,10 @@ let rec castx_of_sastx texpr =
     | Sast.Throw(lexpr,rexpr)
         -> ignore lexpr; ignore rexpr; failwith "Throw cast_sast not implemented"
 
-    | Sast.Init(name, expr)
-        -> ignore name; ignore expr; failwith "Init cast_sast not implemented"
+    | Sast.Init(name, expr) ->
+        let (_,t) = expr in Cast.DeclAssign((t, name), castx_of_sastx expr)
 
-    | Sast.Assign(varname, expr)
-        -> ignore varname; ignore expr; failwith "Assign cast_sast not implemented"
+    | Sast.Assign(varname, expr) -> Cast.Assign(varname, castx_of_sastx expr)
 
     | Sast.Struct(typename, exprs)
         -> ignore typename; ignore exprs; failwith "Struct cast_sast not implemented"
