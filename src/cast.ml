@@ -57,7 +57,11 @@ type incl =
   | IncludeAngleBrack of string
   | IncludeQuote of string
 
-type program = incl list * decl list * struct_decl list * func_decl list
+type signature =
+  | SigStruct of string
+  | SigFunc of string * Ast.t * decl list
+
+type program = incl list * signature list * decl list * struct_decl list * func_decl list
 
 let sep = ";\n"
 let ns = "::"
@@ -130,13 +134,21 @@ let string_of_sdecl sdecl =
     ") : " ^ String.concat ~sep:", " (List.map sdecl.sargs ~f:(fun (_,n) -> n^"("^n^")")) ^
     " {}" ^ "\n};\n"
 
+let string_of_signature = function
+  | SigStruct(name) -> "struct "^name
+  | SigFunc(name, tret, decls) ->
+      string_of_type tret ^ " " ^ name ^ "(" ^
+      String.concat ~sep:", " (List.map decls ~f:(fun (t,_) -> string_of_type t)) ^
+      ")"
+
 let string_of_incl incl =
   match incl with
   | IncludeAngleBrack(path) -> "#include <" ^ path ^ ">"
   | IncludeQuote(path) -> "#include \"" ^ path ^ "\""
 
-let string_of_program (incls, decls, structs, funcs) =
+let string_of_program (incls, signatures, decls, structs, funcs) =
   String.concat ~sep:"\n" (List.map incls ~f:string_of_incl) ^
+  String.concat ~sep:";\n" (List.map signatures ~f:string_of_signature) ^
   String.concat ~sep:"\n" (List.map decls ~f:(fun decl -> string_of_stmt (Expr(Decl(decl))))) ^ "\n" ^
   String.concat ~sep:"\n" (List.map structs ~f:string_of_sdecl) ^
   String.concat ~sep:"\n" (List.map funcs ~f:string_of_fdecl)
