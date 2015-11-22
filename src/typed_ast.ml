@@ -287,7 +287,36 @@ let rec sast_expr env tfuns_ref = function
       end
   
   | StructInit(typename, init_list) ->
-    ignore (typename, init_list); failwith "Type checking not implemented for StructInit"
+      let TDefault(_, defaults) = match List.find env.types ~f:(fun (TDefault(n,_)) -> typename = n) with
+        | Some(x) -> x
+        | None -> failwith ("type "^typename^" not found")
+      in
+      let fields = List.map defaults ~f:(fun (n,_) -> n) in
+      let sexprs = List.map init_list ~f:(sast_expr env tfuns_ref) in
+      let varname = function
+        | Init(name,_),_ when List.mem fields name -> name
+        | Assign(name::_,_),_ when List.mem fields name -> name
+        | _ -> failwith ("Only assignments of fields are allowed in type init of "^typename)
+      in
+      if List.contains_dup sexprs
+        ~compare:(fun lsexpr rsexpr ->
+          let ln = varname lsexpr and rn = varname rsexpr in
+          compare ln rn
+        )
+        then failwith ("cannot assign fields multiple times in type init of "^typename)
+      else let init_exprs = List.fold_left defaults ~init:[]
+        ~f:(fun init_exprs (name, expr) ->
+          (* grab default if not explicitly initalized *)
+          match List.find sexprs ~f:(fun sexpr -> name = varname sexpr) with
+            | Some(x) -> x :: init_exprs
+            | None -> expr :: init_exprs
+        )
+      in
+      Struct(typename, init_exprs), Ast.Type(typename)
+
+
+
+    (* ignore (typename, init_list); failwith "Type checking not implemented for StructInit" *)
 
 and check_function_type tparams expr tfuns_ref env = 
   let env' = {
