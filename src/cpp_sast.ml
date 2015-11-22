@@ -20,7 +20,7 @@ let rec castx_of_sastx texpr =
     | Sast.Uniop(op, expr)
         -> ignore op; ignore expr; failwith "Uniop cast_sast not implemented"
 
-    | Sast.VarRef(varname) -> let Sast.VarName(names) = varname in Cast.VarRef(names)
+    | Sast.VarRef(names) -> Cast.VarRef(names)
 
     | Sast.FunApply(fname, exprs) ->
         let (ns, fn) = match fname with
@@ -51,14 +51,14 @@ let rec castx_of_sastx texpr =
     | Sast.Throw(lexpr,rexpr)
         -> ignore lexpr; ignore rexpr; failwith "Throw cast_sast not implemented"
 
-    | Sast.InitAssign(varname, expr)
-        -> ignore varname; ignore expr; failwith "InitAssign cast_sast not implemented"
+    | Sast.Init(name, expr)
+        -> ignore name; ignore expr; failwith "Init cast_sast not implemented"
 
     | Sast.Assign(varname, expr)
         -> ignore varname; ignore expr; failwith "Assign cast_sast not implemented"
 
-    | Sast.StructInit(tname, exprs)
-        -> ignore tname; ignore exprs; failwith "StructInit cast_sast not implemented"
+    | Sast.Struct(typename, exprs)
+        -> ignore typename; ignore exprs; failwith "Struct cast_sast not implemented"
 
 
 let castfun_of_sastfun fundef =

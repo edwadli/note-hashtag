@@ -212,13 +212,27 @@ let rec sast_expr env tfuns_ref = function
       else failwith ("There is no function named " ^ name)
   
   | Block(exprs) ->
-    let texprs = List.map exprs ~f:(fun expr -> sast_expr env tfuns_ref expr) in
-    begin
-      match texprs with
-      | [] -> LitUnit, Unit
-      | _ ->
-        let tlast = match List.last texprs with Some(_, t) -> t | None -> Ast.Unit in
-        Block(texprs), tlast
+    let texprs = List.rev (List.fold_left exprs ~init:[]
+      ~f:(fun texprs expr ->
+        (* propagate any env changes within block (due to new var initialization) *)
+        let env =
+          match texprs with
+            | [] -> env
+            | head::_ -> begin match head with
+                | Sast.Init(name, (_, t)), _ ->
+                    let new_vars = (name, t) :: env.scope.variables in
+                    let new_scope = { parent=env.scope.parent; variables=new_vars } in
+                    { scope=new_scope; functions=env.functions;
+                      extern_functions=env.extern_functions; types=env.types; }
+                | _ -> env
+              end
+        in let texpr = sast_expr env tfuns_ref expr in
+        texpr :: texprs
+      ))
+    in
+    begin match List.last texprs with
+      | Some(_, t) -> Block(texprs), t
+      | None -> LitUnit, Ast.Unit
     end
     
   | VarRef(names) -> begin match names with
@@ -226,9 +240,9 @@ let rec sast_expr env tfuns_ref = function
     | name :: fields -> let (_,t) = try find_variable env.scope name
                           with Not_found -> failwith ("Var "^name^" referenced before initalization.")
                         in begin match fields with
-                          [] -> VarRef(VarName(names)), t
+                          [] -> VarRef(names), t
                           | _ -> let (_,(_,t)) = find_field env.types t fields
-                                  in VarRef(VarName(names)), t
+                                  in VarRef(names), t
                           end
     end
 
@@ -251,8 +265,26 @@ let rec sast_expr env tfuns_ref = function
   | Throw(retval, msg) ->
     ignore (retval, msg); failwith "Type checking not implemented for Throw"
   
-  | Assign(varref, value) ->
-    ignore (varref, value); failwith "Type checking not implemented for Assign"
+  | Assign(names, expr) ->
+      let (value, tvalue) = sast_expr env tfuns_ref expr in
+      begin match names with
+        | [] -> failwith "Internal error: Assign(names, _) had empty string list"
+        | name :: fields -> try begin
+                            let (_,t) = find_variable env.scope name in
+                            match fields with
+                              | [] -> if t = tvalue
+                                        then Assign(names, (value, tvalue)), Ast.Unit
+                                        else failwith ("cannot assign "^Ast.string_of_type tvalue^
+                                          " to var of type "^Ast.string_of_type t) 
+                              | _ -> let (_,(_,t)) = find_field env.types t fields in
+                                      if t = tvalue
+                                        then Assign(names, (value, tvalue)), Ast.Unit
+                                      else failwith ("cannot assign "^Ast.string_of_type tvalue^
+                                          " to field of type "^Ast.string_of_type t)
+                            end with Not_found -> match fields with
+                              | [] -> Init(name, (value, tvalue)), Ast.Unit
+                              | _ -> failwith ("Cannot assign to fields of uninitialized var "^name)
+      end
   
   | StructInit(typename, init_list) ->
     ignore (typename, init_list); failwith "Type checking not implemented for StructInit"
@@ -305,6 +337,6 @@ let sast_of_ast (fundefs, externs, exprs, typedefs) =
     types = tdefaults;
   } in
   let tfuns_ref = ref [] in
-  let sexprs = List.map exprs ~f:(sast_expr env tfuns_ref) in
+  let sexpr = sast_expr env tfuns_ref (Ast.Block(exprs)) in
   let cpp_includes = List.dedup (List.map externs ~f:(fun (ExternFunDecl(header, _, _, _, _, _)) -> header)) in
-  cpp_includes, !tfuns_ref, sexprs, env.types
+  cpp_includes, !tfuns_ref, [sexpr], env.types
