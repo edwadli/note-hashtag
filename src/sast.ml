@@ -26,7 +26,7 @@ type expr_detail =
   | Throw of expr_typed * expr_typed
   | Init of new_variable_name * expr_typed
   | Assign of variable_name * expr_typed
-  | Struct of type_name * expr_typed list
+  | Struct of type_name * ((string * expr_typed) list)
 
 and expr_typed = expr_detail * Ast.t
 
