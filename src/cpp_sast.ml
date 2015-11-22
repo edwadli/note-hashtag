@@ -56,8 +56,10 @@ let rec castx_of_sastx texpr =
 
     | Sast.Assign(varname, expr) -> Cast.Assign(varname, castx_of_sastx expr)
 
-    | Sast.Struct(typename, exprs)
-        -> ignore typename; ignore exprs; failwith "Struct cast_sast not implemented"
+    | Sast.Struct(typename, fields) ->
+      let fields = List.sort fields ~cmp:(fun (ln,_) (rn,_) -> compare ln rn) in
+      let args = List.map fields ~f:(fun (_,expr) -> castx_of_sastx expr) in
+      Cast.Call(Cast.Struct(typename), args)
 
 
 let castfun_of_sastfun fundef =
@@ -71,8 +73,13 @@ let castfun_of_sastfun fundef =
     body = [ Cast.Return (castx_of_sastx texpr) ];
   }
 
-let casttype_of_sasttype typedef =
-  ignore typedef; failwith "cast_of_sast typedef not implemented yet"
+let casttype_of_sasttype (Sast.TDefault(name, fields)) =
+  let fields = List.sort fields ~cmp:(fun (ln,_) (rn,_) -> compare ln rn) in
+  let sargs = List.map fields ~f:(fun (n, (_,t)) -> (t,n)) in
+  {
+    sname = name;
+    sargs = sargs;
+  }
   
 
 let cast_inclus incls =
@@ -84,7 +91,8 @@ let cast_of_sast (incls, fundefs, texprs, types) =
   let cast_incls = cast_inclus incls in
   let cast_fundefs = List.map fundefs ~f:(castfun_of_sastfun) in
   let cast_types = List.map types ~f:(casttype_of_sasttype) in
+  let decls = [] in
   let main_expr = (Sast.Block(texprs @ [(Sast.LitInt(0),Ast.Int)]),Ast.Int) in
-  cast_incls, cast_types, castfun_of_sastfun (Sast.FunDef("main",[],main_expr))::cast_fundefs
+  cast_incls, decls, cast_types, castfun_of_sastfun (Sast.FunDef("main",[],main_expr))::cast_fundefs
 
   
