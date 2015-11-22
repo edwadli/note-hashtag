@@ -22,13 +22,13 @@ let rec has_cycle_rec nodes (self, children) seen =
         (List.map children
           ~f:(fun child -> 
             match List.find nodes ~f:(fun (t,_) -> t = child) with
-              | None -> false
+              | None -> has_cycle (List.filter nodes ~f:(fun (n,_) -> not (List.mem !seen n)))
               | Some(head) -> has_cycle_rec nodes head seen
           )
         )
         ~init:(false) ~f:(||)
 
-let has_cycle nodes = match nodes with
+and has_cycle nodes = match nodes with
   | [] -> false
   | head::_ -> has_cycle_rec nodes head (ref [])
 
