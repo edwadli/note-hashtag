@@ -1,8 +1,8 @@
 
 open Ast
 
-type variable_name = VarName of Ast.var_reference
-type new_variable_name = NewVarName of string
+type variable_name = Ast.var_reference
+type new_variable_name = string
 type function_name =
   | NhFunction of string
   (* Header file name, namespace, C++ function name *)
@@ -24,9 +24,9 @@ type expr_detail =
   | Conditional of expr_typed * expr_typed * expr_typed
   | For of new_variable_name * expr_typed * expr_typed
   | Throw of expr_typed * expr_typed
-  | InitAssign of new_variable_name * expr_typed
+  | Init of new_variable_name * expr_typed
   | Assign of variable_name * expr_typed
-  | StructInit of type_name * expr_typed list
+  | Struct of type_name * ((string * expr_typed) list)
 
 and expr_typed = expr_detail * Ast.t
 

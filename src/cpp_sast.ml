@@ -20,7 +20,7 @@ let rec castx_of_sastx texpr =
     | Sast.Uniop(op, expr)
         -> ignore op; ignore expr; failwith "Uniop cast_sast not implemented"
 
-    | Sast.VarRef(varname) -> let Sast.VarName(names) = varname in Cast.VarRef(names)
+    | Sast.VarRef(names) -> Cast.VarRef(names)
 
     | Sast.FunApply(fname, exprs) ->
         let (ns, fn) = match fname with
@@ -51,14 +51,15 @@ let rec castx_of_sastx texpr =
     | Sast.Throw(lexpr,rexpr)
         -> ignore lexpr; ignore rexpr; failwith "Throw cast_sast not implemented"
 
-    | Sast.InitAssign(varname, expr)
-        -> ignore varname; ignore expr; failwith "InitAssign cast_sast not implemented"
+    | Sast.Init(name, expr) ->
+        let (_,t) = expr in Cast.DeclAssign((t, name), castx_of_sastx expr)
 
-    | Sast.Assign(varname, expr)
-        -> ignore varname; ignore expr; failwith "Assign cast_sast not implemented"
+    | Sast.Assign(varname, expr) -> Cast.Assign(varname, castx_of_sastx expr)
 
-    | Sast.StructInit(tname, exprs)
-        -> ignore tname; ignore exprs; failwith "StructInit cast_sast not implemented"
+    | Sast.Struct(typename, fields) ->
+      let fields = List.sort fields ~cmp:(fun (ln,_) (rn,_) -> compare ln rn) in
+      let args = List.map fields ~f:(fun (_,expr) -> castx_of_sastx expr) in
+      Cast.Call(Cast.Struct(typename), args)
 
 
 let castfun_of_sastfun fundef =
@@ -72,9 +73,18 @@ let castfun_of_sastfun fundef =
     body = [ Cast.Return (castx_of_sastx texpr) ];
   }
 
-let casttype_of_sasttype typedef =
-  ignore typedef; failwith "cast_of_sast typedef not implemented yet"
+let casttype_of_sasttype (Sast.TDefault(name, fields)) =
+  let fields = List.sort fields ~cmp:(fun (ln,_) (rn,_) -> compare ln rn) in
+  let sargs = List.map fields ~f:(fun (n, (_,t)) -> (t,n)) in
+  {
+    sname = name;
+    sargs = sargs;
+  }
   
+let cast_signatures fundefs =
+  (List.map fundefs ~f:(fun (Sast.FunDef(n,args,(_,tret))) ->
+    let decls = List.map args ~f:(fun (s,t)->(t,s)) in
+    Cast.SigFunc(n,tret,decls)))
 
 let cast_inclus incls =
   let defaults = ["iostream"; "string"; "vector"] in
@@ -85,7 +95,9 @@ let cast_of_sast (incls, fundefs, texprs, types) =
   let cast_incls = cast_inclus incls in
   let cast_fundefs = List.map fundefs ~f:(castfun_of_sastfun) in
   let cast_types = List.map types ~f:(casttype_of_sasttype) in
+  let signatures = cast_signatures fundefs in
+  let globals = [] in
   let main_expr = (Sast.Block(texprs @ [(Sast.LitInt(0),Ast.Int)]),Ast.Int) in
-  cast_incls, cast_types, castfun_of_sastfun (Sast.FunDef("main",[],main_expr))::cast_fundefs
+  cast_incls, signatures, globals, cast_types, castfun_of_sastfun (Sast.FunDef("main",[],main_expr))::cast_fundefs
 
   

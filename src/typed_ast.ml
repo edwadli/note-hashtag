@@ -15,6 +15,23 @@ type environment = {
   types: Sast.tdefault list;
 }
 
+let rec has_cycle_rec nodes (self, children) seen =
+  match List.find !seen ~f:(fun n -> n = self) with
+    | Some(_) -> true
+    | None -> seen := self :: !seen; List.fold_left
+        (List.map children
+          ~f:(fun child -> 
+            match List.find nodes ~f:(fun (t,_) -> t = child) with
+              | None -> has_cycle (List.filter nodes ~f:(fun (n,_) -> not (List.mem !seen n)))
+              | Some(head) -> has_cycle_rec nodes head seen
+          )
+        )
+        ~init:(false) ~f:(||)
+
+and has_cycle nodes = match nodes with
+  | [] -> false
+  | head::_ -> has_cycle_rec nodes head (ref [])
+
 let rec find_field types t access_list =
   (* make sure we are accessing a Type() *)
   let tname = match t with
@@ -211,24 +228,38 @@ let rec sast_expr env tfuns_ref = function
       (* Function name doesn't exist *)
       else failwith ("There is no function named " ^ name)
   
-  | Block(exprs) ->
-    let texprs = List.map exprs ~f:(fun expr -> sast_expr env tfuns_ref expr) in
-    begin
-      match texprs with
-      | [] -> LitUnit, Unit
-      | _ ->
-        let tlast = match List.last texprs with Some(_, t) -> t | None -> Ast.Unit in
-        Block(texprs), tlast
+  | Ast.Block(exprs) ->
+    let (texprs,_) = List.rev (List.fold_left exprs ~init:([],env)
+      ~f:(fun (texprs, env) expr ->
+        (* propagate any env changes within block (due to new var initialization) *)
+        let env =
+          match texprs with
+            | [] -> env
+            | head::_ -> begin match head with
+                | Sast.Init(name, (_, t)), _ ->
+                    let new_vars = (name, t) :: env.scope.variables in
+                    let new_scope = { parent=env.scope.parent; variables=new_vars } in
+                    { scope=new_scope; functions=env.functions;
+                      extern_functions=env.extern_functions; types=env.types; }
+                | _ -> env
+              end
+        in let texpr = sast_expr env tfuns_ref expr in
+        (texpr :: texprs, env)
+      ))
+    in
+    begin match List.last texprs with
+      | Some(_, t) -> Block(texprs), t
+      | None -> LitUnit, Ast.Unit
     end
     
-  | VarRef(names) -> begin match names with
+  | Ast.VarRef(names) -> begin match names with
     [] -> failwith "Internal error: VarRef(string list) had empty string list"
     | name :: fields -> let (_,t) = try find_variable env.scope name
                           with Not_found -> failwith ("Var "^name^" referenced before initalization.")
                         in begin match fields with
-                          [] -> VarRef(VarName(names)), t
+                          [] -> VarRef(names), t
                           | _ -> let (_,(_,t)) = find_field env.types t fields
-                                  in VarRef(VarName(names)), t
+                                  in VarRef(names), t
                           end
     end
 
@@ -251,11 +282,71 @@ let rec sast_expr env tfuns_ref = function
   | Throw(retval, msg) ->
     ignore (retval, msg); failwith "Type checking not implemented for Throw"
   
-  | Assign(varref, value) ->
-    ignore (varref, value); failwith "Type checking not implemented for Assign"
+  | Assign(names, expr) ->
+      let (value, tvalue) = sast_expr env tfuns_ref expr in
+      begin match names with
+        | [] -> failwith "Internal error: Assign(names, _) had empty string list"
+        | name :: fields -> try begin
+                            let (_,t) = find_variable env.scope name in
+                            match fields with
+                              | [] -> if t = tvalue
+                                        then Assign(names, (value, tvalue)), Ast.Unit
+                                        else failwith ("cannot assign "^Ast.string_of_type tvalue^
+                                          " to var of type "^Ast.string_of_type t) 
+                              | _ -> let (_,(_,t)) = find_field env.types t fields in
+                                      if t = tvalue
+                                        then Assign(names, (value, tvalue)), Ast.Unit
+                                      else failwith ("cannot assign "^Ast.string_of_type tvalue^
+                                          " to field of type "^Ast.string_of_type t)
+                            end with Not_found -> match fields with
+                              | [] -> Init(name, (value, tvalue)), Ast.Unit
+                              | _ -> failwith ("Cannot assign to fields of uninitialized var "^name)
+      end
   
   | StructInit(typename, init_list) ->
-    ignore (typename, init_list); failwith "Type checking not implemented for StructInit"
+      let TDefault(_, defaults) = match List.find env.types ~f:(fun (TDefault(n,_)) -> typename = n) with
+        | Some(x) -> x
+        | None -> failwith ("type "^typename^" not found")
+      in
+      let fields = List.map defaults ~f:(fun (n,(_,t)) -> (n,t)) in
+      let sexprs = List.map init_list ~f:(sast_expr env tfuns_ref) in
+      let varname = function
+        | Init(name,(_,t)),_
+            when begin match List.find fields ~f:(fun (n,_) -> n = name) with
+              | Some((_,tfield)) when tfield = t -> true
+              | _ -> false
+            end
+            -> name
+        | Assign(name::tail,(_,t)),_
+            when List.length tail = 0 && begin match List.find fields ~f:(fun (n,_) -> n = name) with
+              | Some((_,tfield)) when tfield = t -> true
+              | _ -> false
+            end
+            -> name
+        | _ -> failwith ("Only assignments of fields are allowed in type init of "^typename)
+      in
+      if List.contains_dup sexprs
+        ~compare:(fun lsexpr rsexpr ->
+          let ln = varname lsexpr and rn = varname rsexpr in
+          compare ln rn
+        )
+        then failwith ("cannot assign fields multiple times in type init of "^typename)
+      else let init_exprs = List.fold_left defaults ~init:[]
+        ~f:(fun init_exprs (name, expr) ->
+          (* grab default if not explicitly initalized *)
+          let field_expr = function
+            | Init(_,expr),_ -> expr
+            | Assign(_,expr),_ -> expr
+            | _ -> failwith ("Internal error: non init/assign sexpr found in type init")
+          in
+          match List.find sexprs ~f:(fun sexpr -> name = varname sexpr) with
+            | Some(x) -> (name, field_expr x) :: init_exprs
+            | None -> (name, expr) :: init_exprs
+        )
+      in
+      Struct(typename, init_exprs), Ast.Type(typename)
+
+
 
 and check_function_type tparams expr tfuns_ref env = 
   let env' = {
@@ -266,10 +357,36 @@ and check_function_type tparams expr tfuns_ref env =
   } in
   sast_expr env' tfuns_ref expr
 
-and typed_typedefs typedefs =
-  (* TODO: actually return list of Sast.tdefault *)
-  ignore (typedefs); []
-(* Mutually recursive types NO!!!!!!!!!!! *)
+and typed_typedefs env tfuns_ref typedefs =
+  let tdefaults = List.map typedefs
+    ~f:(fun (Ast.TypeDef(name, exprs)) ->
+      let sexprs = List.map exprs ~f:(sast_expr env tfuns_ref) in
+      let fields = List.map sexprs
+        ~f:(fun sexpr ->
+          match sexpr with
+            | Init(name, expr),_ -> (name, expr)
+            | Assign(name::tail, expr),_ when List.length tail = 0 -> (name, expr)
+            | _ -> failwith ("Only initialization of fields are allowed in type decl of "^name)
+        )
+      in
+      if List.contains_dup fields
+        ~compare:(fun (ln,_) (rn,_) -> compare ln rn)
+        then failwith ("Cannot init fields multiple times in type decl of "^name)
+      else TDefault(name, fields)
+    )
+  in
+  (* Remove repeats ... hope the user knows what he was doing... *)
+  let tdefaults = List.dedup tdefaults
+    ~compare:(fun (TDefault(ln,_)) (TDefault(rn,_)) -> compare ln rn)
+  in
+  (* Build dependency graph *)
+  let type_deps = List.map tdefaults
+    ~f:(fun (TDefault(name, defaults)) ->
+      let fields = List.map defaults ~f:(fun (_,(_,t)) -> t) in (Ast.Type(name), fields)
+    )
+  in
+  if has_cycle type_deps then failwith ("No mutually recursive types allowed")
+  else tdefaults
 
 and typed_externs externfuns env_types =
   List.fold_left externfuns ~init:[]
@@ -278,7 +395,7 @@ and typed_externs externfuns env_types =
       (* Find out whether the user-defined types, if any, are valid *)
       if List.for_all (ret_type :: arg_types) ~f:(function
         | Ast.Array(Ast.Type(name)) | Ast.Type(name) ->
-          List.exists env_types ~f:(fun (type_name, _) -> type_name = name)
+          List.exists env_types ~f:(fun (TDefault(type_name, _)) -> type_name = name)
         | _ -> true (* built-in types are always allowed *)
       )
       then
@@ -293,18 +410,24 @@ and typed_externs externfuns env_types =
 let sast_of_ast (fundefs, externs, exprs, typedefs) = 
   (* temporarily ignore includes -> NO GLOBALS YET *)
   let globals = {variables=[]; parent=None} in
-  (* temporarily ignore typedefs *)
-  let tdefaults = typed_typedefs typedefs in
   (* make sure fundefs are unique *)
-  let externs = typed_externs externs tdefaults in
   let nfundefs = check_unique_functions fundefs externs in
+  (* temporary env for evaluating tdefaults *)
+  let temp_env = {
+    scope = { variables=[]; parent=Some(globals) };
+    functions = nfundefs;
+    extern_functions = externs;
+    types = [];
+  } in
+  let tfuns_ref = ref [] in
+  let tdefaults = typed_typedefs temp_env tfuns_ref typedefs in
+  let externs = typed_externs externs tdefaults in
   let env = {
     scope = { variables=[]; parent=Some(globals) };
     functions = nfundefs;
     extern_functions = externs;
     types = tdefaults;
   } in
-  let tfuns_ref = ref [] in
-  let sexprs = List.map exprs ~f:(sast_expr env tfuns_ref) in
+  let sexpr = sast_expr env tfuns_ref (Ast.Block(exprs)) in
   let cpp_includes = List.dedup (List.map externs ~f:(fun (ExternFunDecl(header, _, _, _, _, _)) -> header)) in
-  cpp_includes, !tfuns_ref, sexprs, env.types
+  cpp_includes, !tfuns_ref, [sexpr], env.types
