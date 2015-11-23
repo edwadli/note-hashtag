@@ -229,8 +229,8 @@ let rec sast_expr env tfuns_ref = function
       else failwith ("There is no function named " ^ name)
   
   | Ast.Block(exprs) ->
-    let texprs = List.rev (List.fold_left exprs ~init:[]
-      ~f:(fun texprs expr ->
+    let (texprs,_) = List.rev (List.fold_left exprs ~init:([],env)
+      ~f:(fun (texprs, env) expr ->
         (* propagate any env changes within block (due to new var initialization) *)
         let env =
           match texprs with
@@ -244,7 +244,7 @@ let rec sast_expr env tfuns_ref = function
                 | _ -> env
               end
         in let texpr = sast_expr env tfuns_ref expr in
-        texpr :: texprs
+        (texpr :: texprs, env)
       ))
     in
     begin match List.last texprs with

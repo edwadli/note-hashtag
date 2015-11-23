@@ -81,8 +81,7 @@ let casttype_of_sasttype (Sast.TDefault(name, fields)) =
     sargs = sargs;
   }
   
-let cast_signatures types fundefs =
-  (List.map types ~f:(fun (Sast.TDefault(n,_)) -> Cast.SigStruct(n))) @
+let cast_signatures fundefs =
   (List.map fundefs ~f:(fun (Sast.FunDef(n,args,(_,tret))) ->
     let decls = List.map args ~f:(fun (s,t)->(t,s)) in
     Cast.SigFunc(n,tret,decls)))
@@ -96,7 +95,7 @@ let cast_of_sast (incls, fundefs, texprs, types) =
   let cast_incls = cast_inclus incls in
   let cast_fundefs = List.map fundefs ~f:(castfun_of_sastfun) in
   let cast_types = List.map types ~f:(casttype_of_sasttype) in
-  let signatures = cast_signatures types fundefs in
+  let signatures = cast_signatures fundefs in
   let globals = [] in
   let main_expr = (Sast.Block(texprs @ [(Sast.LitInt(0),Ast.Int)]),Ast.Int) in
   cast_incls, signatures, globals, cast_types, castfun_of_sastfun (Sast.FunDef("main",[],main_expr))::cast_fundefs
