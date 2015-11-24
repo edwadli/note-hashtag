@@ -67,7 +67,7 @@ let ns = "::"
 
 let rec string_of_type t =
   match t with
-  | Unit -> "unit"
+  | Unit -> "unit_t"
   | Int -> "int64_t"
   | Float -> "double"
   | String -> "std" ^ ns ^ "string"
@@ -120,8 +120,13 @@ and string_of_stmt = function
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
 
 let string_of_fdecl fdecl =
-  string_of_type fdecl.treturn ^ " " ^ fdecl.fnamespace ^ ns ^ fdecl.fname ^ "(" ^
-  String.concat ~sep:", " (List.map fdecl.fargs ~f:(fun (t, name) -> string_of_type t ^ " " ^ name)) ^ ")\n{\n" ^
+  (* Return type *)
+  (if fdecl.fname <> "main" then string_of_type fdecl.treturn else "int") ^ " " ^
+  (* Namespace :: name *)
+  (if String.is_empty fdecl.fnamespace then fdecl.fname else fdecl.fnamespace ^ ns ^ fdecl.fname) ^
+  (* Arguments *)
+  "(" ^ String.concat ~sep:", " (List.map fdecl.fargs ~f:(fun (t, name) -> string_of_type t ^ " " ^ name)) ^ ")\n{\n" ^
+  (* Body statements *)
     String.concat (List.map fdecl.body ~f:string_of_stmt) ^
   "}\n"
 

@@ -3,12 +3,12 @@
 #include <string>
 #include <vector>
 
-typedef int64_t unit;
-const unit LIT_UNIT = 0;
+typedef int unit_t;
+const unit_t LIT_UNIT = 0;
 
 namespace nh_support
 {
-  void print_string(std::string);
+  unit_t print_string(std::string output);
   
   int64_t int_of_float(double n);
   double float_of_int(int64_t n);
