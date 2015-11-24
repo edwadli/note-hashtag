@@ -1,0 +1,40 @@
+if true then (
+  Print "Pass 1"
+  Print "\n"
+) else (
+  PrintEndline "Fail 1"
+)
+
+if false
+then
+(
+  PrintEndline "Fail 2"
+)
+else
+(
+  Print "Pass 2"
+  Print "\n"
+)
+
+if
+
+true
+
+then
+
+(
+
+  Print "Pass 3"
+
+  Print "\n"
+
+)
+
+else
+
+(
+
+  PrintEndline "Fail 3"
+
+)
+
