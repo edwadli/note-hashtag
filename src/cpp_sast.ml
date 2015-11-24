@@ -125,5 +125,3 @@ let cast_of_sast (incls, fundefs, texprs, types) =
   let globals = [] in
   let main_expr = (Sast.Block(texprs @ [(Sast.LitInt(0),Ast.Int)]),Ast.Int) in
   cast_incls, signatures, globals, cast_types, castfun_of_sastfun (Sast.FunDef("main",[],main_expr))::cast_fundefs
-
-  
