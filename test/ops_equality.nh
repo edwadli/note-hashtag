@@ -1,0 +1,2 @@
+if 42 == 42 then PrintEndline "42 == 42" else PrintEndline "42 != 42"
+be PrintEndline "-42 != 42" unless -42 == 42 inwhichcase PrintEndline "-42 == 42"
