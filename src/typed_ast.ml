@@ -117,7 +117,9 @@ let chord_of sexpr =
     | _ -> failwith "This expression is not chordable"
   end, Ast.Type("chord")
 
-let rec sast_expr env tfuns_ref = function
+let rec sast_expr env tfuns_ref e =
+  let sast_expr_env = sast_expr env tfuns_ref in
+  match e with
   | Ast.LitBool(x) -> Sast.LitBool(x), Ast.Bool
   | Ast.LitInt(x) -> Sast.LitInt(x), Ast.Int
   | Ast.LitFloat(x) -> Sast.LitFloat(x), Ast.Float
@@ -296,7 +298,15 @@ let rec sast_expr env tfuns_ref = function
     ignore exprs; failwith "Type checking not implemented for ArrMusic"
   
   | Conditional(condition, case_true, case_false) ->
-    ignore (condition, case_true, case_false); failwith "Type checking not implemented for Conditional"
+      let (condition, condition_t) = sast_expr_env condition in
+      if condition_t <> Ast.Bool then
+        failwith (sprintf "Condition must be a bool expression (%s found)" (Ast.string_of_type condition_t)) else
+      let (case_true, case_true_t) = sast_expr_env case_true
+      and (case_false, case_false_t) = sast_expr_env case_false in
+      if case_true_t <> case_false_t then
+        failwith (sprintf "Both expressions in a conditional must have the same type (%s and %s found)"
+          (Ast.string_of_type case_true_t) (Ast.string_of_type case_false_t)) else
+      Sast.Conditional( (condition, condition_t), (case_true, case_true_t), (case_false, case_false_t) ), case_true_t
   
   | For(loop_var_name, items, body) ->
     ignore (loop_var_name, items, body); failwith "Type checking not implemented for For"

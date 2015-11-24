@@ -1,4 +1,3 @@
-
 open Core.Std
 open Ast
 open Sast
@@ -68,8 +67,22 @@ let rec castx_of_sastx texpr =
                 List.map body ~f:(fun expr -> Cast.Expr(castx_of_sastx expr)) end), [])
         end
 
-    | Sast.Conditional(bexpr,texpr,fexpr)
-        -> ignore bexpr; ignore texpr; ignore fexpr; failwith "Conditional cast_sast not implemented"
+    | Sast.Conditional(condition, case_true, case_false) ->
+        let condition = castx_of_sastx condition in
+        (* Save the type before we throw it away *)
+        let (_, ret_t) = case_true in
+        (* Throw the expression into a block if it's not already a block *)
+        let wrap_nonblock sexpr =
+          match sexpr with
+          | Sast.Block(_), _ -> sexpr
+          | _, t -> Sast.Block([ sexpr ]), t
+        in
+        let case_true = castx_of_sastx (wrap_nonblock case_true)
+        and case_false = castx_of_sastx (wrap_nonblock case_false) in
+        (* Create if statement *)
+        let if_stmt = Cast.If(condition, Cast.Return(case_true), Cast.Return(case_false)) in
+        (* No need for Cast.Block because castx_of_sastx wraps each case in a block in a lambda *)
+        Cast.Call(Cast.LambdaRefCap([], ret_t, [ if_stmt ]), [])
 
     | Sast.For(varname, rexpr, dexpr)
         -> ignore varname; ignore rexpr; ignore dexpr; failwith "For cast_sast not implemented"

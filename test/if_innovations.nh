@@ -1,0 +1,6 @@
+be PrintEndline "This revolutionary new language construct" unless false inwhichcase PrintEndline "Fail 1"
+be (
+  PrintEndline "is great for keeping programmers on their toes"
+) unless false inwhichcase (
+  PrintEndline "Fail 2"
+)

@@ -1,0 +1,8 @@
+PrintEndline (if true then "camels" else "even-toed ungulates")
+PrintEndline (
+  if true then (
+    "hunter2"
+  ) else (
+    "*******"
+  )
+)

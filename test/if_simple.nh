@@ -1,0 +1,2 @@
+if true then PrintEndline "it works" else PrintEndline "you suck"
+PrintEndline "this should print too"

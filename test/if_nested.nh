@@ -1,0 +1,15 @@
+if true then (
+  if true then
+    PrintEndline "Pass 1"
+  else
+    PrintEndline "Fail 1 (inner else)"
+)
+else PrintEndline "Fail 1 (outer else)"
+
+if false then PrintEndline "Fail 2 (outer if)"
+else (
+  if false then
+    PrintEndline "Fail 2 (inner if)"
+  else
+    PrintEndline "Pass 2"
+)
