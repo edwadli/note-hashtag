@@ -58,9 +58,13 @@ let command =
         try
           do_compile infile_path outfile_path show_ast show_il;
         (* Catch any unhandled exceptions to suppress the nasty-looking message *)
-        with Failure(msg) -> Log.error "%s" msg; Log.debug "call stack:\n%s" (Printexc.get_backtrace ()); exit 1
+        with
+        | Scanner.Lexing_error(msg) -> Log.error "Lexing error: %s" msg; exit 1
+        | Parsing.Parse_error -> Log.error "Syntax error"; exit 2
+        | Failure(msg) | Sys_error(msg) ->
+            Log.error "%s" msg; Log.debug "call stack:\n%s" (Printexc.get_backtrace ()); exit 3
     )
 
 let _ =
-  Command.run ~version:(Version.release ()) ~build_info:(Version.build ()) command;
-  Log.info "scanner and parser ran without crashing";
+  try Command.run ~version:(Version.release ()) ~build_info:(Version.build ()) command;
+  with Sys_error(msg) -> Log.error "Argument error: %s" msg; exit 4

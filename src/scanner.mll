@@ -1,4 +1,10 @@
-{ open Parser }
+{
+  open Core.Std
+  
+  open Parser
+  
+  exception Lexing_error of string
+}
 
 let lowercase = ['a'-'z']
 let uppercase = ['A'-'Z']
@@ -63,10 +69,10 @@ rule token = parse
 | "throw" { THROW }
 | "type" { TYPE }
 | "extern" { EXTERN }
-| digit+ as lit { LIT_INT(int_of_string lit) }
-| ((hasint | hasfrac) hasexp?) | (digit+ hasexp) as lit { LIT_FLOAT(float_of_string lit) }
+| digit+ as lit { LIT_INT(Int.of_string lit) }
+| ((hasint | hasfrac) hasexp?) | (digit+ hasexp) as lit { LIT_FLOAT(Float.of_string lit) }
 (* matches only outer quotes *)
-| '"' (('\\' '"'| [^'"'])* as str) '"' { LIT_STR(Scanf.unescaped(str)) }
+| '"' (('\\' '"'| [^'"'])* as str) '"' { LIT_STR(Scanf.unescaped str) }
 | (lowercase | '_') (letter | digit | '_')* as lit { ID_VAR(lit) }
 | uppercase (letter | digit | '_')* as lit { ID_FUN(lit) }
 | '(' { LPAREN }
@@ -80,6 +86,7 @@ rule token = parse
 | '$' { BLING }
 | "init" | "beget" | "bringintobeing" { INIT }
 | eof { EOF }
+| _ as c { raise (Lexing_error("Unknown token '" ^ Char.to_string c ^ "'")) }
 
 and comment_oneline = parse
 | (newline | eof) { token lexbuf } (* End of single line comment *)
@@ -88,5 +95,5 @@ and comment_oneline = parse
 and comment_multiline depth = parse
 | "/*" { comment_multiline (depth + 1) lexbuf }
 | "*/" { if depth = 0 then token lexbuf else comment_multiline (depth - 1) lexbuf }
-| eof { print_endline "You have a /* without a matching */"; raise End_of_file }
+| eof { raise (Lexing_error("You have a '/*' without a matching '*/'")) }
 | _ { comment_multiline depth lexbuf }
