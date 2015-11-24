@@ -38,8 +38,13 @@ let rec castx_of_sastx texpr =
         end
 
 
-    | Sast.Uniop(op, expr)
-        -> ignore op; ignore expr; failwith "Uniop cast_sast not implemented"
+    | Sast.Uniop(op, expr) ->
+        begin match op with
+          | Ast.Not -> Cast.Uniop(Cast.Not, castx_of_sastx expr)
+          | Ast.Neg -> Cast.Uniop(Cast.Neg, castx_of_sastx expr)
+          | _ -> failwith
+              "Internal error: uniop flat and sharp should have been converted to Call NhFunction in ast2sast"
+        end
 
     | Sast.VarRef(names) -> Cast.VarRef(names)
 

@@ -38,7 +38,8 @@ type track = {
 fun ChordOfPitch pitch = init chord { pitches = [pitch] }
 fun PitchOfInt i = init pitch { rank = i }
 fun AddPitchOctave pitch octaves = ( pitch$octave = pitch$octave + octaves; pitch )
-
+fun FlatPitch pitch = ( pitch$offset = pitch$offset - 1; pitch )
+fun SharpPitch pitch = ( pitch$offset = pitch$offset + 1; pitch )
 fun Rest = init chord
 
 fun ConcatTracks t1 t2 = {

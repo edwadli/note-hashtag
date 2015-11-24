@@ -183,7 +183,19 @@ let rec sast_expr env tfuns_ref = function
       
       | Ast.Sharp | Ast.Flat when t = Ast.Int || t = Ast.Type("pitch")
         -> Sast.Uniop(op, exprt), Ast.Type("pitch")
-      |Ast.Sharp | Ast.Flat -> failwith "This operator is only defined for int or pitch"
+
+      | Ast.Sharp -> let tpitch = Ast.Type("pitch") in
+          let exprt = match t with
+            | Ast.Int -> Sast.FunApply(NhFunction("PitchOfInt"), [exprt]), tpitch
+            | Ast.Type("pitch") -> exprt
+            | _ -> failwith "sharp is only defined for int or pitch"
+          in Sast.FunApply(NhFunction("SharpPitch"), [exprt]), tpitch
+      | Ast.Flat -> let tpitch = Ast.Type("pitch") in
+          let exprt = match t with
+            | Ast.Int -> Sast.FunApply(NhFunction("PitchOfInt"), [exprt]), tpitch
+            | Ast.Type("pitch") -> exprt
+            | _ -> failwith "flat is only defined for int or pitch"
+          in Sast.FunApply(NhFunction("FlatPitch"), [exprt]), tpitch
     end
   
   | Ast.FunApply(name, arg_exprs) ->
