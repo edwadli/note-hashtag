@@ -1,5 +1,10 @@
 extern "support.hpp" "nh_support" "print_string" fun Print string -> unit
 
+fun PrintEndline str = (
+  Print str
+  Print "\n"
+)
+
 extern "support.hpp" "nh_support" "int_of_float" fun IntOfFloat float -> int
 extern "support.hpp" "std" "to_string" fun StringOfFloat float -> string
 
