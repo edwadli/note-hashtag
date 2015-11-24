@@ -127,21 +127,30 @@ let rec sast_expr env tfuns_ref = function
     let rexprt = sast_expr env tfuns_ref rexpr in
     let (_, lt) = lexprt in
     let (_, rt) = rexprt in
+    let opfailwith constraint_str =
+      failwith (sprintf "Operator %s is only defined for %s (%s, %s found)"
+        (Ast.string_of_op op) constraint_str (Ast.string_of_type lt) (Ast.string_of_type rt))
+    in
     begin match op with
-      | Ast.Add | Ast.Sub | Ast.Mul | Ast.Div
-      | Ast.Lt | Ast.Lte when (lt = rt && (lt = Ast.Float || lt = Ast.Int)) -> Sast.Binop(lexprt,op,rexprt), lt
-      | Ast.Add | Ast.Sub | Ast.Mul | Ast.Div
-      | Ast.Lt | Ast.Lte ->
-        failwith "This operation is only defined for float and int"
+      | Ast.Add | Ast.Sub | Ast.Mul | Ast.Div ->
+          if lt = rt && (lt = Ast.Float || lt = Ast.Int) then Sast.Binop(lexprt, op, rexprt), lt
+          else opfailwith "float or int"
       
-      | Ast.Mod when (lt = rt && lt = Ast.Int) -> Sast.Binop(lexprt,op,rexprt), lt
-      | Ast.Mod -> failwith "This operation is only defined for int"
+      | Ast.Mod ->
+          if lt = rt && lt = Ast.Int then Sast.Binop(lexprt,op,rexprt), lt
+          else opfailwith "int"
 
-      | Ast.Eq | Ast.Neq when lt = rt -> Sast.Binop(lexprt,op,rexprt), lt
-      | Ast.Eq | Ast.Neq -> failwith "left and right side expressions must be of same type"
+      | Ast.Eq | Ast.Neq ->
+          if lt = rt then Sast.Binop(lexprt,op,rexprt), Ast.Bool
+          else opfailwith "operands of the same type"
       
-      | Ast.And | Ast.Or when (lt = rt && lt = Ast.Bool) -> Sast.Binop(lexprt,op,rexprt), lt
-      | Ast.And | Ast.Or -> failwith "This operation is only defined for bool"
+      | Ast.Lt | Ast.Lte ->
+          if lt = rt && (lt = Ast.Float || lt = Ast.Int) then Sast.Binop(lexprt, op, rexprt), Ast.Bool
+          else opfailwith "float or int"
+      
+      | Ast.And | Ast.Or ->
+          if lt = rt && lt = Ast.Bool then Sast.Binop(lexprt,op,rexprt), Ast.Bool
+          else opfailwith "bool"
 
       | Ast.Concat -> begin match lt, rt with
         (* also allow tracks to be concatted *)
