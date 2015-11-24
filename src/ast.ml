@@ -37,7 +37,7 @@ type expr =
   | Block of expr list
   | Conditional of expr * expr * expr
   | For of string * expr * expr
-  | Throw of expr * expr
+  | Throw of expr
   | Assign of var_reference * expr
   | StructInit of string * expr list
 
@@ -102,7 +102,7 @@ let rec string_of_expr e =
   | ArrIdx (x, y) -> String.concat " " [ x; ".("; string_of_expr y; ")" ]
   | Arr(x) -> String.concat " " [ "["; string_of_exp_list x; "]" ]
   | ArrMusic(x) -> String.concat " " [ "{"; string_of_exp_list x; "}" ]
-  | Throw(x, y) -> String.concat " " ["Throw"; string_of_expr x; string_of_expr y]
+  | Throw(x) -> String.concat " " ["Throw"; string_of_expr x]
 and string_of_exp_list l =
   match l with
   | [] -> ""

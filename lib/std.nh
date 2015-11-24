@@ -9,11 +9,48 @@ extern "support.hpp" "std" "to_string" fun StringOfInt int -> string
 extern "support.hpp" "std" "pow" fun Pow float float -> float
 
 
-type chord = { pitches = [] }
+type key_signature = {
+	scale = { 261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88 }
+}
 
-fun ChordOfPitch p = init chord { pitches = [p] }
+type time_signature = {
+	upper = 4
+	lower = 4
+}
+
+type pitch = {
+	rank = 1
+	octave = 0
+	offset = 0
+}
+
+type chord = {
+	pitches = pitch[]
+}
+
+type track = {
+	key_signature = init key_signature
+	time_signature = init time_signature
+	chords = chord[]
+	durations = float[]
+}
+
+fun ChordOfPitch pitch = init chord { pitches = [pitch] }
+fun PitchOfInt i = init pitch { rank = i }
+fun AddPitchOctave pitch octaves = ( pitch$octave = pitch$octave + octaves; pitch )
 
 fun Rest = init chord
+
+fun ConcatTracks t1 t2 = {
+	if t1$key_signature == t2$key_signature &&
+			t1$time_signature == t2$time_signature
+	then (
+		t1$chords = t1$chords . t2$chords
+		t1$durations = t1$durations . t2$durations
+		t1
+	)
+	else throw "Cannot concat tracks with different key or time signature"
+}
 
 fun PrintEndline str = (
   Print str
@@ -21,8 +58,6 @@ fun PrintEndline str = (
 )
 
 /*
-
-include std_basic
 
 key_signature = init key_signature
 time_signature = init time_signature

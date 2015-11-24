@@ -110,7 +110,8 @@ let chord_of sexpr =
   begin match sexpr with
     (* use function in standard library on chordable (chord, pitch, int) exprs *)
     | (_, Ast.Int) -> Sast.FunApply(Sast.NhFunction("ChordOfPitch"),
-        [ Sast.Binop(sexpr,Ast.Octave,(Sast.LitInt(0), Ast.Int)), Ast.Type("pitch") ])
+        [ Sast.FunApply(Sast.NhFunction("PitchOfInt"), [(Sast.LitInt(0),Ast.Int)]),
+          Ast.Type("pitch") ])
     | (_, Ast.Type("pitch")) -> Sast.FunApply(Sast.NhFunction("ChordOfPitch"), [sexpr])
     | (expr, Ast.Type("chord")) -> expr
     | _ -> failwith "This expression is not chordable"
@@ -144,7 +145,7 @@ let rec sast_expr env tfuns_ref = function
 
       | Ast.Concat -> begin match lt, rt with
         (* also allow tracks to be concatted *)
-        | Ast.Type("track"), Ast.Type("track") -> Sast.Binop(lexprt,op,rexprt), lt
+        | Ast.Type("track"), Ast.Type("track") -> Sast.FunApply(NhFunction("ConcatTracks"),[lexprt;rexprt]), lt
         | Ast.Array(l), Ast.Array(r) when l = r -> Sast.Binop(lexprt,op,rexprt), lt
         | _ -> failwith "Concat is only for defined for same typed arrays and tracks" end
 
@@ -152,10 +153,14 @@ let rec sast_expr env tfuns_ref = function
           (* guarantee that chord binop is between two chords *)
           Sast.Binop(chord_of lexprt, op, chord_of rexprt), Ast.Type("chord")
 
-      | Ast.Octave -> begin match lt, rt with
-        | Ast.Type("pitch"), Ast.Int
-        | Ast.Int, Ast.Int -> Sast.Binop(lexprt,op,rexprt), Ast.Type("pitch")
-        | _ -> failwith "Ocatve is only defined for [pitch int] and int" end
+      | Ast.Octave ->
+          let lexprt = match lt with
+            | Ast.Type("pitch") -> lexprt
+            | Ast.Int -> Sast.FunApply(NhFunction("PitchOfInt"), [lexprt]), Ast.Type("pitch")
+            | _ -> failwith "octave only defined for pitch or int on left side"
+          in if rt = Ast.Int
+            then Sast.FunApply(NhFunction("AddPitchOctave"), [lexprt;rexprt]), Ast.Type("pitch")
+            else failwith "octave only defined for int on right side"
 
       | Ast.Zip ->
           if (lt = Ast.Float || lt = Ast.Array(Ast.Float))
@@ -275,8 +280,8 @@ let rec sast_expr env tfuns_ref = function
   | For(loop_var_name, items, body) ->
     ignore (loop_var_name, items, body); failwith "Type checking not implemented for For"
   
-  | Throw(retval, msg) ->
-    ignore (retval, msg); failwith "Type checking not implemented for Throw"
+  | Throw(msg) ->
+    ignore msg; failwith "Type checking not implemented for Throw"
   
   | Assign(names, expr) ->
       let (value, tvalue) = sast_expr env tfuns_ref expr in

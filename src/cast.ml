@@ -2,7 +2,7 @@ open Core.Std
 
 open Ast
 
-type binary_operator = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq
+type binary_operator = Add | Sub | Mult | Div | Mod | Equal | Neq | Less | Leq | And | Or
 type unary_operator = Not | Neg
 
 type decl = Ast.t * string
@@ -91,7 +91,7 @@ let rec string_of_expr = function
       (match o with
       | Add -> "+" | Sub -> "-" | Mult -> "*" | Div -> "/"
       | Equal -> "==" | Neq -> "!="
-      | Less -> "<" | Leq -> "<=" | Greater -> ">" | Geq -> ">=") ^ " " ^
+      | Less -> "<" | Leq -> "<=" | Mod -> "%" | And -> "&&" | Or -> "||") ^ " " ^
       string_of_expr e2
   | Uniop(o, e) -> (match o with Not -> "!" | Neg -> "-") ^ string_of_expr e
   | Assign(v, e) -> string_of_expr (VarRef(v)) ^ " = " ^ string_of_expr e

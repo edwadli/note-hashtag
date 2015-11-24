@@ -143,7 +143,7 @@ expr:
 | expr CONCAT expr { Binop($1, Concat, $3) }
 | ID_VAR DOT_LPAREN expr RPAREN { ArrIdx($1, $3) }
 | control { $1 }
-| THROW non_apply non_apply { Throw($2, $3) }
+| THROW non_apply { Throw($2) }
 
 control:
 | IF sep_expr_sep THEN sep_expr_sep ELSE sep_star expr { Conditional($2,$4,$7) }
