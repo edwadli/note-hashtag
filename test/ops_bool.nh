@@ -1,0 +1,4 @@
+if true || false then PrintEndline "Or :)" else PrintEndline "Or :("
+be PrintEndline "And :)" unless true && false inwhichcase PrintEndline "And :("
+if !false then PrintEndline "Not :)" else PrintEndline "Not :("
+if !!true then PrintEndline "Double Not :)" else PrintEndline "Double Not :("

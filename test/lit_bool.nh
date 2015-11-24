@@ -1,0 +1,2 @@
+if true then PrintEndline "Hello" else PrintEndline "World"
+if false then PrintEndline "Hello" else PrintEndline "World"
