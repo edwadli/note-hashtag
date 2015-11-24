@@ -8,55 +8,73 @@ extern "support.hpp" "std" "to_string" fun StringOfInt int -> string
 
 extern "support.hpp" "std" "pow" fun Pow float float -> float
 
+/*
 
 type key_signature = {
-	scale = { 261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88 }
+  scale = { 261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88 }
 }
 
 type time_signature = {
-	upper = 4
-	lower = 4
+  upper = 4
+  lower = 4
 }
 
 type pitch = {
-	rank = 1
-	octave = 0
-	offset = 0
+  rank = 1
+  octave = 0
+  offset = 0
 }
 
 type chord = {
-	pitches = pitch[]
+  pitches = pitch[]
 }
 
 type track = {
-	key_signature = init key_signature
-	time_signature = init time_signature
-	chords = chord[]
-	durations = float[]
+  key_signature = init key_signature
+  time_signature = init time_signature
+  chords = chord[]
+  durations = float[]
 }
 
+fun IsMember l x = (
+  b = false
+  for item in l
+    do b = b || (item == x)
+  b
+)
 fun ChordOfPitch pitch = init chord { pitches = [pitch] }
 fun PitchOfInt i = init pitch { rank = i }
 fun AddPitchOctave pitch octaves = ( pitch$octave = pitch$octave + octaves; pitch )
 fun FlatPitch pitch = ( pitch$offset = pitch$offset - 1; pitch )
 fun SharpPitch pitch = ( pitch$offset = pitch$offset + 1; pitch )
+fun ChordOfChords c1 c2 = (
+  c = chord[]
+  for pitch in c1$pitches . c2$pitches
+    do if IsMember c pitch then () else (c = c . [pitch]; ())
+  c
+)
+
 fun Rest = init chord
 
 fun ConcatTracks t1 t2 = {
-	if t1$key_signature == t2$key_signature &&
-			t1$time_signature == t2$time_signature
-	then (
-		t1$chords = t1$chords . t2$chords
-		t1$durations = t1$durations . t2$durations
-		t1
-	)
-	else throw "Cannot concat tracks with different key or time signature"
+  if t1$key_signature == t2$key_signature &&
+      t1$time_signature == t2$time_signature
+  then (
+    t1$chords = t1$chords . t2$chords
+    t1$durations = t1$durations . t2$durations
+    t1
+  )
+  else throw "Cannot concat tracks with different key or time signature"
 }
 
 fun PrintEndline str = (
   Print str
   Print "\n"
 )
+
+*/
+
+
 
 /*
 
@@ -66,45 +84,45 @@ tempo = 120
 
 
 fun Scale pitch_start pitch_end = (
-	// TODO: interpolate between pitches
+  // TODO: interpolate between pitches
 )
 
 
 fun Arpeggio chord = (
-	// TODO: unpack chord into music array
+  // TODO: unpack chord into music array
 )
 
 
 fun Rhythm track = (
-	// TODO: get rhythm from track
+  // TODO: get rhythm from track
 )
 
 
 fun Chords track = (
-	// TODO: get chords from track
+  // TODO: get chords from track
 )
 
 
 // TODO: unlimited args option
 fun Parallel *tracks = (
-	// TODO: return song object with tracks aligned in parallel
+  // TODO: return song object with tracks aligned in parallel
 )
 
 
 fun Sequential *tracks = (
-	// TODO: return song object with tracks aligned sequentially
+  // TODO: return song object with tracks aligned sequentially
 )
 
 fun Length track = (
-	// TODO: return length of track in terms of duration
+  // TODO: return length of track in terms of duration
 )
 
 fun Extend length track = (
-	// TODO: repeat track for up to length duration
+  // TODO: repeat track for up to length duration
 )
 
 fun StartWith track base_track = (
-	
+  
 )
 
 fun EndWith track base_track = (

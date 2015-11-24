@@ -151,7 +151,7 @@ let rec sast_expr env tfuns_ref = function
 
       | Ast.Chord ->
           (* guarantee that chord binop is between two chords *)
-          Sast.Binop(chord_of lexprt, op, chord_of rexprt), Ast.Type("chord")
+          Sast.FunApply(NhFunction("ChordOfChords"),[chord_of lexprt; chord_of rexprt]), Ast.Type("chord")
 
       | Ast.Octave ->
           let lexprt = match lt with
