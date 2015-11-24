@@ -64,7 +64,7 @@ fun ConcatTracks t1 t2 = {
     t1$durations = t1$durations . t2$durations
     t1
   )
-  else throw "Cannot concat tracks with different key or time signature"
+  else t1 //throw "Cannot concat tracks with different key or time signature"
 }
 
 fun PrintEndline str = (
