@@ -150,8 +150,8 @@ let string_of_incl incl =
   | IncludeQuote(path) -> "#include \"" ^ path ^ "\""
 
 let string_of_program (incls, signatures, decls, structs, funcs) =
-  String.concat ~sep:"\n" (List.map incls ~f:string_of_incl) ^
-  String.concat ~sep:";\n" (List.map signatures ~f:string_of_signature) ^
-  String.concat ~sep:"\n" (List.map decls ~f:(fun decl -> string_of_stmt (Expr(Decl(decl))))) ^ "\n" ^
-  String.concat ~sep:"\n" (List.map structs ~f:string_of_sdecl) ^
-  String.concat ~sep:"\n" (List.map funcs ~f:string_of_fdecl)
+  String.concat (List.map incls ~f:(fun incl -> string_of_incl incl ^ "\n")) ^
+  String.concat (List.map signatures ~f:(fun signature -> string_of_signature signature ^ ";\n")) ^
+  String.concat (List.map decls ~f:(fun decl -> string_of_stmt (Expr(Decl(decl))) ^ "\n" )) ^
+  String.concat (List.map structs ~f:(fun sdecl -> string_of_sdecl sdecl ^ "\n")) ^
+  String.concat (List.map funcs ~f:(fun fdecl -> string_of_fdecl fdecl ^ "\n"))
