@@ -58,7 +58,7 @@ let rec string_of_type t =
   | Unit -> "unit"
   | Int -> "int"
   | Float -> "float"
-  | String -> "bool"
+  | String -> "string"
   | Bool -> "bool"
   | Type(name) -> name
   | Array(t) -> string_of_type t ^ "{}"
