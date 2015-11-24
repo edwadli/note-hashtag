@@ -8,6 +8,13 @@ extern "support.hpp" "std" "to_string" fun StringOfInt int -> string
 
 extern "support.hpp" "std" "pow" fun Pow float float -> float
 
+
+type chord = { pitches = [] }
+
+fun ChordOfPitch p = init chord { pitches = [p] }
+
+fun Rest = init chord
+
 fun PrintEndline str = (
   Print str
   Print "\n"

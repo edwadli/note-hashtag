@@ -106,6 +106,16 @@ let check_unique_functions fundefs externs =
       else nfundef :: defs
   )
 
+let chord_of sexpr =
+  begin match sexpr with
+    (* use function in standard library on chordable (chord, pitch, int) exprs *)
+    | (_, Ast.Int) -> Sast.FunApply(Sast.NhFunction("ChordOfPitch"),
+        [ Sast.Binop(sexpr,Ast.Octave,(Sast.LitInt(0), Ast.Int)), Ast.Type("pitch") ])
+    | (_, Ast.Type("pitch")) -> Sast.FunApply(Sast.NhFunction("ChordOfPitch"), [sexpr])
+    | (expr, Ast.Type("chord")) -> expr
+    | _ -> failwith "This expression is not chordable"
+  end, Ast.Type("chord")
+
 let rec sast_expr env tfuns_ref = function
   | Ast.LitBool(x) -> Sast.LitBool(x), Ast.Bool
   | Ast.LitInt(x) -> Sast.LitInt(x), Ast.Int
@@ -133,43 +143,28 @@ let rec sast_expr env tfuns_ref = function
       | Ast.And | Ast.Or -> failwith "This operation is only defined for bool"
 
       | Ast.Concat -> begin match lt, rt with
-        (* disallow chords to be concatted *)
-        | Ast.Array(l), Ast.Array(r)
-          when l = r && l <> Ast.Type("pitch") ->
-          Sast.Binop(lexprt,op,rexprt), lt
-        (* note that track is a type, not array *)
-        | Ast.Type("track"), Ast.Type("track")
-          -> Sast.Binop(lexprt,op,rexprt), lt
-        | _ -> failwith "This operation is only defined for same nonprimitive types" end
-      | Ast.Chord -> begin match lt, rt with
-        (* chordOp can be with pitch or chord or int *)
-        | Ast.Array(Ast.Type("pitch")), Ast.Array(Ast.Type("pitch"))
-        | Ast.Type("pitch"), Ast.Array(Ast.Type("pitch"))
-        | Ast.Array(Ast.Type("pitch")), Ast.Type("pitch")
-        | Ast.Type("pitch"), Ast.Type("pitch")
-        | Ast.Int, Ast.Array(Ast.Type("pitch"))
-        | Ast.Array(Ast.Type("pitch")), Ast.Int
-        | Ast.Int, Ast.Type("pitch")
-        | Ast.Type("pitch"), Ast.Int
-        | Ast.Int, Ast.Int
-          -> Sast.Binop(lexprt,op,rexprt), Ast.Array(Ast.Type("pitch"))
-        | _ -> failwith "This operation is only defined for pitch, chord, or int" end
+        (* also allow tracks to be concatted *)
+        | Ast.Type("track"), Ast.Type("track") -> Sast.Binop(lexprt,op,rexprt), lt
+        | Ast.Array(l), Ast.Array(r) when l = r -> Sast.Binop(lexprt,op,rexprt), lt
+        | _ -> failwith "Concat is only for defined for same typed arrays and tracks" end
+
+      | Ast.Chord ->
+          (* guarantee that chord binop is between two chords *)
+          Sast.Binop(chord_of lexprt, op, chord_of rexprt), Ast.Type("chord")
+
       | Ast.Octave -> begin match lt, rt with
         | Ast.Type("pitch"), Ast.Int
         | Ast.Int, Ast.Int -> Sast.Binop(lexprt,op,rexprt), Ast.Type("pitch")
-        | _ -> failwith "This operation is only defined for [pitch int] and int" end
-      | Ast.Zip -> begin match lt, rt with
-        (* zip works with music arr, chord, pitch, or int/float *)
-        | Ast.Float, Ast.Int
-        | Ast.Float, Ast.Type("pitch")
-        | Ast.Float, Ast.Array(Ast.Type("pitch"))
-        | Ast.Float, Ast.Array(Ast.Array(Ast.Type("pitch")))
-        | Ast.Array(Ast.Float), Ast.Int
-        | Ast.Array(Ast.Float), Ast.Type("pitch")
-        | Ast.Array(Ast.Float), Ast.Array(Ast.Type("pitch"))
-        | Ast.Array(Ast.Float), Ast.Array(Ast.Array(Ast.Type("pitch")))
-          -> Sast.Binop(lexprt,op,rexprt), Ast.Type("track")
-        | _ -> failwith "Incorrect types for zip" end
+        | _ -> failwith "Ocatve is only defined for [pitch int] and int" end
+
+      | Ast.Zip ->
+          if (lt = Ast.Float || lt = Ast.Array(Ast.Float))
+            then let rexprt = match rt with
+                (* either chord or array of chord is valid for zip *)
+                | Ast.Array(Ast.Type("chord")) -> rexprt
+                | _ -> chord_of rexprt
+              in Sast.Binop(lexprt,op,rexprt), Ast.Type("track")
+            else failwith "left side expression of zip must of float or array of float"
     end
   | Ast.Uniop(op, expr) ->
     let exprt = sast_expr env tfuns_ref expr in
@@ -229,7 +224,7 @@ let rec sast_expr env tfuns_ref = function
       else failwith ("There is no function named " ^ name)
   
   | Ast.Block(exprs) ->
-    let (texprs,_) = List.rev (List.fold_left exprs ~init:([],env)
+    let (texprs,_) = List.fold_left exprs ~init:([],env)
       ~f:(fun (texprs, env) expr ->
         (* propagate any env changes within block (due to new var initialization) *)
         let env =
@@ -245,8 +240,9 @@ let rec sast_expr env tfuns_ref = function
               end
         in let texpr = sast_expr env tfuns_ref expr in
         (texpr :: texprs, env)
-      ))
+      )
     in
+    let texprs = List.rev texprs in
     begin match List.last texprs with
       | Some(_, t) -> Block(texprs), t
       | None -> LitUnit, Ast.Unit
