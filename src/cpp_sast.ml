@@ -14,11 +14,37 @@ let rec castx_of_sastx texpr =
     | Sast.LitStr(x) -> Cast.LitStr(x)
     | Sast.LitUnit -> Cast.LitUnit
 
-    | Sast.Binop(lexpr, op, rexpr)
-        -> ignore lexpr; ignore op; ignore rexpr; failwith "Binop cast_sast not implemented"
+    | Sast.Binop(lexpr, op, rexpr) ->
+        begin match op with
+          | Ast.Zip -> failwith "Internal error: binop zip should have been converted to Call NhFunction in ast2sast"
+          | Ast.Concat ->
+              Cast.Call(Cast.Function("nh_support","concat"),[castx_of_sastx lexpr; castx_of_sastx rexpr])
+          | Ast.Chord -> failwith "Internal error: binop chord should have been converted to Call NhFunction in ast2sast"
+          | Ast.Octave -> failwith "Internal error: binop octave should have been converted to Call NhFunction in ast2sast"
+          | _ as cop -> let op = begin match cop with
+            | Ast.Add -> Cast.Add
+            | Ast.Sub -> Cast.Sub
+            | Ast.Mul -> Cast.Mult
+            | Ast.Div -> Cast.Div
+            | Ast.Mod -> Cast.Mod
+            | Ast.Eq -> Cast.Equal
+            | Ast.Neq -> Cast.Neq
+            | Ast.Lt -> Cast.Less
+            | Ast.Lte -> Cast.Leq
+            | Ast.And -> Cast.And
+            | Ast.Or -> Cast.Or
+            | _ -> failwith "Internal error: failed to match all possible binops in sast2cast"
+          end in Cast.Binop(castx_of_sastx lexpr, op, castx_of_sastx rexpr)
+        end
 
-    | Sast.Uniop(op, expr)
-        -> ignore op; ignore expr; failwith "Uniop cast_sast not implemented"
+
+    | Sast.Uniop(op, expr) ->
+        begin match op with
+          | Ast.Not -> Cast.Uniop(Cast.Not, castx_of_sastx expr)
+          | Ast.Neg -> Cast.Uniop(Cast.Neg, castx_of_sastx expr)
+          | _ -> failwith
+              "Internal error: uniop flat and sharp should have been converted to Call NhFunction in ast2sast"
+        end
 
     | Sast.VarRef(names) -> Cast.VarRef(names)
 
