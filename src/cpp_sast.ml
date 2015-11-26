@@ -10,7 +10,8 @@ let rec castx_of_sastx texpr =
     | Sast.LitBool(x) -> Cast.LitBool(x)
     | Sast.LitInt(x) -> Cast.LitInt(x)
     | Sast.LitFloat(x) -> Cast.LitFloat(x)
-    | Sast.LitStr(x) -> Cast.LitStr(x)
+    (* Comparison of string literals in C++ is undefined (you are actually comparing the two char* values) *)
+    | Sast.LitStr(x) -> Cast.Call(Function("std", "string"), [ Cast.LitStr(x) ])
     | Sast.LitUnit -> Cast.LitUnit
 
     | Sast.Binop(lexpr, op, rexpr) ->
