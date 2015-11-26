@@ -91,7 +91,7 @@ rule token = parse
 
 and comment_oneline = parse
 | (newline | eof) { token lexbuf } (* End of single line comment *)
-| _ eof { comment_oneline lexbuf }
+| _ { comment_oneline lexbuf }
 
 and comment_multiline depth = parse
 | "/*" { comment_multiline (depth + 1) lexbuf }

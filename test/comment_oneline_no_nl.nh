@@ -1,0 +1,4 @@
+Print "hi\n"
+// WARNING: Be careful when editing this file in vim, etc. You must remove the newline after the last line (invisible in
+// some editors).
+// comment with no newline after it

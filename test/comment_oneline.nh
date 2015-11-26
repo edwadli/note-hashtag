@@ -1,0 +1,4 @@
+Print "should print\n"
+// PrintEndline "shouldn't print"
+//comment with no space after slashes
+Print "this too\n"
