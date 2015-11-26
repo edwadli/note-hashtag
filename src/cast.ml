@@ -87,12 +87,13 @@ let rec string_of_expr = function
   | VarRef(names) -> String.concat ~sep:"." names
   | Idx(name, e) -> string_of_expr (VarRef(name)) ^ "[" ^ string_of_expr e ^ "]"
   | Binop(e1, o, e2) ->
-      string_of_expr e1 ^ " " ^
-      (match o with
-      | Add -> "+" | Sub -> "-" | Mult -> "*" | Div -> "/"
-      | Equal -> "==" | Neq -> "!="
-      | Less -> "<" | Leq -> "<=" | Mod -> "%" | And -> "&&" | Or -> "||") ^ " " ^
-      string_of_expr e2
+      let op_str =
+        match o with
+        | Add -> "+" | Sub -> "-" | Mult -> "*" | Div -> "/"
+        | Equal -> "==" | Neq -> "!="
+        | Less -> "<" | Leq -> "<=" | Mod -> "%" | And -> "&&" | Or -> "||"
+      in
+      sprintf "(%s) %s (%s)" (string_of_expr e1) op_str (string_of_expr e2)
   | Uniop(o, e) -> (match o with Not -> "!" | Neg -> "-") ^ string_of_expr e
   | Assign(v, e) -> string_of_expr (VarRef(v)) ^ " = " ^ string_of_expr e
   | Call(callexpr, args) -> string_of_callable callexpr ^ "(" ^
