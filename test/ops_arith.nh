@@ -1,0 +1,10 @@
+PrintEndline (StringOfInt (1 + 1))
+PrintEndline (StringOfInt (4 - 2))
+PrintEndline (StringOfInt (6 * 7))
+PrintEndline (StringOfInt (5 / 2))
+PrintEndline (StringOfInt (5 % 2))
+
+PrintEndline (StringOfFloat (1.0 + 1.0))
+PrintEndline (StringOfFloat (4.0 - 2.0))
+PrintEndline (StringOfFloat (6.0 * 7.0))
+PrintEndline (StringOfFloat (5.0 / 2.0))
