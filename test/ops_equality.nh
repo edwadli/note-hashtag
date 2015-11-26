@@ -1,2 +1,6 @@
 if 42 == 42 then PrintEndline "42 == 42" else PrintEndline "42 != 42"
 be PrintEndline "-42 != 42" unless -42 == 42 inwhichcase PrintEndline "-42 == 42"
+if true == true then PrintEndline "world will not end today" else PrintEndline "world may end soon"
+if false != true then PrintEndline "all ok" else PrintEndline "felt a disturbance in the force"
+if "foo" == "foo" then PrintEndline "strings gonna string" else PrintEndline "strings :("
+if "foo" != "Foo" then PrintEndline "string neq OK" else PrintEndline "strings :(("
