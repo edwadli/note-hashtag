@@ -421,7 +421,20 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
       end
   
   | For(loop_var_name, items, body) ->
-    ignore (loop_var_name, items, body); failwith "Type checking not implemented for For"
+      let (items, items_t) = sast_expr_env items in
+      let loop_var_t =
+        match items_t with
+        | Ast.Array(t) -> t
+        | _ -> failwith (sprintf "You can only loop through an array (%s found)" (Ast.string_of_type items_t))
+      in
+      let env' = {
+        scope = { variables = [ (loop_var_name, loop_var_t, Immutable) ]; parent = Some(env.scope) };
+        functions = env.functions;
+        extern_functions = env.extern_functions;
+        types = env.types;
+      } in
+      let (body, body_t) = sast_expr env' tfuns_ref body in
+      Sast.For((loop_var_name, loop_var_t), (items, items_t), (body, body_t)), body_t
   
   | Throw(msg_expr) -> let (_,t) = sast_expr_env msg_expr in
       if t <> Ast.String then failwith "throw expects an expression of type string"

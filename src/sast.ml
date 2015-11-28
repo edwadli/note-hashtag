@@ -23,7 +23,7 @@ type expr_detail =
   | Arr of (expr_typed list) * Ast.t
   | Block of expr_typed list
   | Conditional of expr_typed * expr_typed * expr_typed
-  | For of new_variable_name * expr_typed * expr_typed
+  | For of (new_variable_name * Ast.t) * expr_typed * expr_typed
   | Exit of int
   | Init of new_variable_name * expr_typed * Ast.mutability
   | Assign of variable_name * expr_typed

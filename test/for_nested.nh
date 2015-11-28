@@ -1,0 +1,9 @@
+for n in { "a: " "b: " "c: " } do (
+  Print n
+  for n in { 1 2 3 } do (
+    Print (StringOfInt n)
+  )
+  Print "\n"
+)
+
+for n in { 10 100 } do for m in { 1 2 3 } do PrintEndline (StringOfInt (n * m))

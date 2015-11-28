@@ -86,12 +86,12 @@ fun ConcatTracks t1 t2 = (
   else (throw "Cannot concat tracks with different key or time signature"; t1)
 )
 
+/*
 
 key_signature = init key_signature
 time_signature = init time_signature
 tempo = 120
 
-/*
 
 
 fun Scale pitch_start pitch_end = (

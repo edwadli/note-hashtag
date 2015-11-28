@@ -5,6 +5,7 @@ open Cast
 
 
 let rec castx_of_sastx texpr =
+  let unit_ret = Cast.Return(Cast.LitUnit) in
   let (expr, t) = texpr in
   match expr with
     | Sast.LitBool(x) -> Cast.LitBool(x)
@@ -70,9 +71,8 @@ let rec castx_of_sastx texpr =
           | ret_expr :: body ->
               (* cannot return assignments; pad with lit unit *)
               let (ret_expr,body) = 
-                let unit_ret = (Sast.LitUnit,Ast.Unit) in
                 match ret_expr with
-                  | Sast.Init(_, _, _),_ -> unit_ret, ret_expr::body
+                  | Sast.Init(_, _, _),_ -> (Sast.LitUnit, Ast.Unit), ret_expr::body
                   | _ -> ret_expr, body
               in
               Cast.Call(Cast.LambdaRefCap([], t, List.rev begin
@@ -97,11 +97,11 @@ let rec castx_of_sastx texpr =
         (* No need for Cast.Block because castx_of_sastx wraps each case in a block in a lambda *)
         Cast.Call(Cast.LambdaRefCap([], ret_t, [ if_stmt ]), [])
 
-    | Sast.For(varname, rexpr, dexpr)
-        -> ignore varname; ignore rexpr; ignore dexpr; failwith "For cast_sast not implemented"
+    | Sast.For((var_name, var_t), rexpr, dexpr) ->
+        let for_stmt = Cast.ForRange((var_t, var_name), castx_of_sastx rexpr, Cast.Expr(castx_of_sastx dexpr)) in
+        Cast.Call(Cast.LambdaRefCap([], Ast.Unit, [ for_stmt; unit_ret ]), [])
 
     | Sast.Exit(code) ->
-        let unit_ret = Cast.Expr(castx_of_sastx (Sast.LitUnit,Ast.Unit)) in
         let cast_exit = Cast.Call(Cast.Function("","exit"),[Cast.LitInt(code)]) in
         Cast.Call(Cast.LambdaRefCap([], Ast.Unit, [Cast.Expr(cast_exit); unit_ret]), [])
 

@@ -1,0 +1,8 @@
+for n in { "3" "2" "1" } do (
+  Print "poo "
+  PrintEndline n
+)
+for i in { 1 (1 + 1) (1 + 1 + 1) } do (
+  Print "poo "
+  PrintEndline (StringOfInt i)
+)
