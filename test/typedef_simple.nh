@@ -1,0 +1,7 @@
+
+type my_type = {
+  a = 5
+}
+
+x = init my_type
+Print (StringOfInt x$a)

@@ -1,0 +1,5 @@
+
+type hi_hello = {
+  x = 5
+}
+

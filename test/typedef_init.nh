@@ -1,0 +1,7 @@
+
+type override_init = {
+  asdf = "hi"
+}
+
+x = init override_init { asdf = "hello" }
+Print x$asdf

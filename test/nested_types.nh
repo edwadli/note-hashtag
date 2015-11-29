@@ -1,0 +1,12 @@
+
+type inside = {
+  a = "in here!"
+}
+
+type outside = {
+  a = init inside
+}
+
+inception = init outside
+
+Print inception$a$a

@@ -63,7 +63,15 @@ let rec castx_of_sastx texpr =
     | Sast.Block(exprs) ->
         begin match List.rev exprs with
           | [] -> failwith "Internal Error: Sast.Block found to be empty when converting to cast"
-          | ret_expr :: body -> Cast.Call(Cast.LambdaRefCap([], t, List.rev begin
+          | ret_expr :: body ->
+              (* cannot return assignments; pad with lit unit *)
+              let (ret_expr,body) = 
+                let unit_ret = (Sast.LitUnit,Ast.Unit) in
+                match ret_expr with
+                  | Sast.Init(_,_),_ -> unit_ret, ret_expr::body
+                  | _ -> ret_expr, body
+              in
+              Cast.Call(Cast.LambdaRefCap([], t, List.rev begin
                 Cast.Return(castx_of_sastx ret_expr) ::
                 List.map body ~f:(fun expr -> Cast.Expr(castx_of_sastx expr)) end), [])
         end
@@ -80,7 +88,11 @@ let rec castx_of_sastx texpr =
     | Sast.Init(name, expr) ->
         let (_,t) = expr in Cast.DeclAssign((t, name), castx_of_sastx expr)
 
-    | Sast.Assign(varname, expr) -> Cast.Assign(varname, castx_of_sastx expr)
+    | Sast.Assign(varname, expr) -> Cast.Call(
+        (* assign and then return unit *)
+        Cast.LambdaRefCap([], Ast.Unit,
+          [Cast.Expr(Cast.Assign(varname, castx_of_sastx expr));
+          Cast.Return(Cast.LitUnit)]),[])
 
     | Sast.Struct(typename, fields) ->
       let fields = List.sort fields ~cmp:(fun (ln,_) (rn,_) -> compare ln rn) in
@@ -96,7 +108,7 @@ let castfun_of_sastfun fundef =
     fname = fname;
     fargs = List.map fargs ~f:(fun (s,t) -> (t,s));
     treturn = return_type;
-    body = [ Cast.Return (castx_of_sastx texpr) ];
+    body = [ Cast.Return (castx_of_sastx (Sast.Block([texpr]),return_type)) ];
   }
 
 let casttype_of_sasttype (Sast.TDefault(name, fields)) =
@@ -117,6 +129,50 @@ let cast_inclus incls =
   List.map defaults ~f:(fun s -> Cast.IncludeAngleBrack(s)) @
   List.map incls ~f:(fun s -> Cast.IncludeQuote(s))
 
+let rec verify_no_assign_expr = function
+  | Cast.DeclAssign(_,_) -> failwith "Cannot initialize a variable in this context"
+  | Cast.Assign(_,_) -> failwith "Cannot assign to a variable in this context"
+  | _ as expr -> verify_expr expr
+
+and verify_expr = function
+  (* traverse down a level of the ast *)
+  | Cast.DeclAssign(_,expr) | Cast.Assign(_,expr) | Cast.Idx(_,expr)
+  | Cast.Uniop(_,expr) ->
+      verify_no_assign_expr expr
+  | Cast.Binop(lexpr,_,rexpr) -> ignore(verify_no_assign_expr lexpr); verify_no_assign_expr rexpr
+  | Cast.Call(callable,exprs) -> ignore(List.map exprs ~f:verify_no_assign_expr);
+      begin match callable with
+        | Cast.LambdaRefCap(_,_,stmts) -> ignore(List.map stmts ~f:verify_no_init_stmt)
+        | Cast.Method(_) | Cast.Function(_,_) | Cast.Struct(_) -> ()
+      end
+  | Cast.LitUnit | Cast.LitBool(_) | Cast.LitInt(_) | Cast.LitFloat(_) | Cast.LitStr(_)
+  | Cast.InitList(_) | Cast.Decl(_) | Cast.VarRef(_) | Noexpr -> ()
+
+and verify_no_init_stmt = function
+  | Cast.Block(stmts) -> ignore(List.map stmts ~f:verify_no_init_stmt)
+  | Cast.Expr(expr) -> ignore(verify_expr expr)
+  | Cast.Return(expr) -> ignore(verify_expr expr)
+  | Cast.If(expr, lstmt, rstmt) -> 
+      ignore(verify_expr expr); ignore(verify_no_init_stmt lstmt);
+      ignore(verify_no_init_stmt rstmt)
+  | Cast.For(lexpr, mexpr, rexpr, stmt) ->
+      ignore(verify_expr lexpr); ignore(verify_expr mexpr);
+      ignore(verify_expr rexpr); ignore(verify_no_init_stmt stmt)
+  | Cast.While(expr, stmt) -> ignore(verify_expr expr); ignore (verify_no_init_stmt stmt)
+  | Cast.ForRange(_, expr, stmt) -> ignore(verify_expr expr); ignore(verify_no_init_stmt stmt)
+
+let rec verify_no_init funs = 
+  ignore begin
+    match funs with
+      | [] -> ()
+      | head::tail -> begin ignore(verify_no_init tail);
+          ignore(
+            let { fnamespace=_;fname=_;fargs=_;treturn=_; body=body } = head in
+            List.map body ~f:verify_no_init_stmt
+          )
+        end
+  end; funs
+
 let cast_of_sast (incls, fundefs, texprs, types) =
   let cast_incls = cast_inclus incls in
   let cast_fundefs = List.map fundefs ~f:(castfun_of_sastfun) in
@@ -124,4 +180,6 @@ let cast_of_sast (incls, fundefs, texprs, types) =
   let signatures = cast_signatures fundefs in
   let globals = [] in
   let main_expr = (Sast.Block(texprs @ [(Sast.LitInt(0),Ast.Int)]),Ast.Int) in
-  cast_incls, signatures, globals, cast_types, castfun_of_sastfun (Sast.FunDef("main",[],main_expr))::cast_fundefs
+  let all_funs = castfun_of_sastfun (Sast.FunDef("main",[],main_expr))::cast_fundefs in
+  let verified_funs = verify_no_init all_funs in
+  cast_incls, signatures, globals, cast_types, verified_funs

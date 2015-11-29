@@ -92,7 +92,7 @@ program_body_list:
   { (fun (fdefs, externs, exprs, structdefs) -> (fdefs, externs, exprs @ [ $3 ], structdefs)) $1 }
 
 struct_declaration:
-| TYPE ID_VAR EQ LBRACE sep_star ass_list sep_star RBRACE { TypeDef($2, List.rev $6) }
+| TYPE ID_VAR ASSIGN LBRACE sep_star ass_list sep_star RBRACE { TypeDef($2, List.rev $6) }
 
 fun_def:
 | FUN ID_FUN id_var_list ASSIGN expr { FunDef($2, $3, $5) }
@@ -151,7 +151,7 @@ control:
 | BE sep_expr_sep UNLESS sep_expr_sep INWHICHCASE sep_star expr { Conditional($4,$7,$2) }
 | FOR sep_star ID_VAR sep_star IN sep_expr_sep DO sep_star expr { For($3,$6,$9) }
 | INIT ID_VAR { StructInit($2, []) }
-| INIT ID_VAR LBRACE ass_list RBRACE { StructInit($2, List.rev $4) }
+| INIT ID_VAR LBRACE sep_star ass_list sep_star RBRACE { StructInit($2, List.rev $5) }
 
 id_var_list:
 | /* nothing */ { [] }
