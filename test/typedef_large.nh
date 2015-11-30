@@ -1,0 +1,10 @@
+
+type big = {
+  afdf = "hi"
+  fdfd = "bye"
+}
+
+x = init big { afdf = "hello"; fdfd = "goodbye" }
+Print x$afdf
+Print "\n"
+Print x$fdfd

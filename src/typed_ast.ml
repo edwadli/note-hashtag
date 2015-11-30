@@ -371,8 +371,9 @@ and check_function_type tparams expr tfuns_ref env =
   sast_expr env' tfuns_ref expr
 
 and typed_typedefs env tfuns_ref typedefs =
-  let tdefaults = List.map typedefs
-    ~f:(fun (Ast.TypeDef(name, exprs)) ->
+  (* Assuming the users have defined the types in the correct order *)
+  let (tdefaults, _) = List.fold_left typedefs ~init:([],env)
+    ~f:(fun (tdefaults, env) (Ast.TypeDef(name, exprs)) ->
       let sexprs = List.map exprs ~f:(sast_expr env tfuns_ref) in
       let fields = List.map sexprs
         ~f:(fun sexpr ->
@@ -385,7 +386,16 @@ and typed_typedefs env tfuns_ref typedefs =
       if List.contains_dup fields
         ~compare:(fun (ln,_) (rn,_) -> compare ln rn)
         then failwith ("Cannot init fields multiple times in type decl of "^name)
-      else TDefault(name, fields)
+      else
+      let tdefaults = TDefault(name, fields)::tdefaults in
+      let env = 
+        {
+          scope = env.scope;
+          functions = env.functions;
+          extern_functions = env.extern_functions;
+          types = tdefaults;
+        }
+      in tdefaults, env
     )
   in
   (* Remove repeats ... hope the user knows what he was doing... *)

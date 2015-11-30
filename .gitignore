@@ -15,6 +15,7 @@ parser.mli
 #C++
 *.o
 core
+a.out
 
 #Audio files
 *.wav

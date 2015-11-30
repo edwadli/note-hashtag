@@ -1,0 +1,9 @@
+
+type my_type = {
+  a = "hi"
+}
+
+
+x = init my_type
+
+Print x$a
