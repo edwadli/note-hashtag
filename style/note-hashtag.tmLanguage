@@ -30,15 +30,21 @@
 			<key>comment</key>
 			<string>Language literals</string>
 			<key>match</key>
-			<string>\b(true|false|~)\b</string>
+			<string>(\b(true|false|~)\b)|(\(\s*\))</string>
 			<key>name</key>
 			<string>constant.language.nh</string>
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>({|}|\[|\]|\(|\))</string>
+			<string>\b(q|quarter|h|half|w|whole|t|triplet)\b</string>
 			<key>name</key>
 			<string>support.constant.nh</string>
+		</dict>
+		<dict>
+			<key>match</key>
+			<string>\b(key_signature)\b</string>
+			<key>name</key>
+			<string>variable.language.nh</string>
 		</dict>
 		<dict>
 			<key>match</key>
@@ -126,7 +132,7 @@
 			<key>match</key>
 			<string>\b[A-Z][A-Za-z0-9_]*\b</string>
 			<key>name</key>
-			<string>variable.other.nh</string>
+			<string>entity.name.function.nh</string>
 		</dict>
 		<dict>
 			<key>match</key>

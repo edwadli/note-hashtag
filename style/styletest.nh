@@ -47,7 +47,7 @@ hib
 5,6 3,4@4,2 2,1 $ $ asdf$efe
 {}
 [2 3 4]
-()
+() (   )
 pitch[]
 chord[]
 track{}
@@ -55,3 +55,5 @@ song{}
 true
 false
 _myName
+q quarter h half w whole t triplet
+key_signature
