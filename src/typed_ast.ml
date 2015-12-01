@@ -7,7 +7,7 @@ exception Cant_infer_type of string
 (* environment *)
 type symbol_table = {
   parent: symbol_table option;
-  variables: (string * Ast.t) list;
+  variables: (string * Ast.t * Ast.mutability) list;
 }
 
 type environment = {
@@ -66,13 +66,19 @@ let replace_add_fun l item =
     ~f:(fun (Sast.FunDef(n, tps, (_, _))) -> name <> n || tparams <> tps)
 
 let rec find_variable (scope: symbol_table) name =
-  match List.find scope.variables ~f:(fun (s, _) -> s = name) with
+  match List.find scope.variables ~f:(fun (s, _, _) -> s = name) with
   | None -> begin
     match scope.parent with
       | Some(parent) -> find_variable parent name
       | None -> raise Not_found
     end
   | Some(x) -> x
+
+let find_ref_type env name fields =
+  (* Find the variable called name *)
+  let (_, t, _) = find_variable env.scope name in
+  (* Call find_field if we're accessing a field of a user-defined type *)
+  if fields <> [] then (let (_, (_, t)) = find_field env.types t fields in t) else t
 
 let find_seen_function functions name tparams =
   List.find functions ~f:(fun (n,tps) -> name=n && tps=tparams)
@@ -304,8 +310,8 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
           match texprs with
             | [] -> env
             | head::_ -> begin match head with
-                | Sast.Init(name, (_, t)), _ ->
-                    let new_vars = (name, t) :: env.scope.variables in
+                | Sast.Init(name, (_, t), mutability), _ ->
+                    let new_vars = (name, t, mutability) :: env.scope.variables in
                     let new_scope = { parent=env.scope.parent; variables=new_vars } in
                     { scope=new_scope; functions=env.functions;
                       extern_functions=env.extern_functions; types=env.types; }
@@ -321,16 +327,13 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
       | None -> LitUnit, Ast.Unit
     end
     
-  | Ast.VarRef(names) -> begin match names with
-    [] -> failwith "Internal error: VarRef(string list) had empty string list"
-    | name :: fields -> let (_,t) = try find_variable env.scope name
-                          with Not_found -> failwith ("Var "^name^" referenced before initalization.")
-                        in begin match fields with
-                          [] -> VarRef(names), t
-                          | _ -> let (_,(_,t)) = find_field env.types t fields
-                                  in VarRef(names), t
-                          end
-    end
+  | Ast.VarRef(names) ->
+      begin match names with
+      | [] -> failwith "Internal error: VarRef(string list) had empty string list"
+      | name :: fields ->
+          try Sast.VarRef(names), find_ref_type env name fields
+          with Not_found -> failwith (sprintf "%s referenced before initalization" (Ast.string_of_expr (VarRef(names))))
+      end
 
   
   | ArrIdx(name, idx) ->
@@ -393,28 +396,31 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
   | Throw(msg) ->
     ignore msg; failwith "Type checking not implemented for Throw"
   
-  | Assign(names, expr) ->
+  | Ast.Assign(names, expr, mutability) ->
+      (* Type-check RHS of the assignment *)
       let (value, tvalue) = sast_expr_env expr in
-      begin match names with
-        | [] -> failwith "Internal error: Assign(names, _) had empty string list"
-        | name :: fields -> try begin
-                            let (_,t) = find_variable env.scope name in
-                            match fields with
-                              | [] -> if t = tvalue
-                                        then Assign(names, (value, tvalue)), Ast.Unit
-                                        else failwith ("cannot assign "^Ast.string_of_type tvalue^
-                                          " to var of type "^Ast.string_of_type t) 
-                              | _ -> let (_,(_,t)) = find_field env.types t fields in
-                                      if t = tvalue
-                                        then Assign(names, (value, tvalue)), Ast.Unit
-                                      else failwith ("cannot assign "^Ast.string_of_type tvalue^
-                                          " to field of type "^Ast.string_of_type t)
-                            end with Not_found -> match fields with
-                              | [] -> Init(name, (value, tvalue)), Ast.Unit
-                              | _ -> failwith ("Cannot assign to fields of uninitialized var "^name)
+      begin
+        match names with
+        (* No variable name *)
+        | [] -> failwith "Internal error: Assign(names, _, _) had empty string list"
+        | name :: fields ->
+            try
+              (* Check that variable is mutable *)
+              let (_, _, mutability) = find_variable env.scope name in
+              if mutability = Immutable then failwith (sprintf "cannot assign to immutable %s" name) else
+              (* Check that types match *)
+              let t = find_ref_type env name fields in
+              if t <> tvalue then failwith (sprintf "cannot assign type %s to %s (type %s)"
+                (Ast.string_of_type tvalue) (Ast.string_of_expr (VarRef(names))) (Ast.string_of_type t)) else
+              (* Passed all checks! *)
+              Sast.Assign(names, (value, tvalue)), Ast.Unit
+            with Not_found ->
+              match fields with
+              | [] -> Init(name, (value, tvalue), mutability), Ast.Unit
+              | _ -> failwith ("Cannot assign to fields of uninitialized var " ^ (Ast.string_of_expr (VarRef(names))))
       end
   
-  | StructInit(typename, init_list) ->
+  | Ast.StructInit(typename, init_list) ->
       let TDefault(_, defaults) = match List.find env.types ~f:(fun (TDefault(n,_)) -> typename = n) with
         | Some(x) -> x
         | None -> failwith ("type "^typename^" not found")
@@ -422,7 +428,7 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
       let fields = List.map defaults ~f:(fun (n,(_,t)) -> (n,t)) in
       let sexprs = List.map init_list ~f:(sast_expr_env) in
       let varname = function
-        | Init(name,(_,t)),_
+        | Sast.Init(name, (_, t), _), _
             when begin match List.find fields ~f:(fun (n,_) -> n = name) with
               | Some((_,tfield)) when tfield = t -> true
               | _ -> false
@@ -446,8 +452,8 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
         ~f:(fun init_exprs (name, expr) ->
           (* grab default if not explicitly initalized *)
           let field_expr = function
-            | Init(_,expr),_ -> expr
-            | Assign(_,expr),_ -> expr
+            | Init(_, expr, _), _ -> expr
+            | Assign(_, expr), _ -> expr
             | _ -> failwith ("Internal error: non init/assign sexpr found in type init")
           in
           match List.find sexprs ~f:(fun sexpr -> name = varname sexpr) with
@@ -460,9 +466,10 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
 
 
 and check_function_type tparams expr tfuns_ref env seen_funs force = 
+  let tparams' = List.map tparams ~f:(fun (name, t) -> (name, t, Ast.Mutable)) in
   let env' = {
     (* allow global scope *)
-    scope = { variables = tparams; parent = Some(get_top_scope env.scope) };
+    scope = { variables = tparams'; parent = Some(get_top_scope env.scope) };
     functions = env.functions;
     extern_functions = env.extern_functions;
     types = env.types;
@@ -477,7 +484,7 @@ and typed_typedefs env tfuns_ref typedefs =
       let fields = List.map sexprs
         ~f:(fun sexpr ->
           match sexpr with
-            | Init(name, expr),_ -> (name, expr)
+            | Init(name, expr, _), _ -> (name, expr)
             | Assign(name::tail, expr),_ when List.length tail = 0 -> (name, expr)
             | _ -> failwith ("Only initialization of fields are allowed in type decl of "^name)
         )

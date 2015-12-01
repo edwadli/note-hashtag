@@ -70,6 +70,7 @@ rule token = parse
 | "type" { TYPE }
 | "init" | "beget" | "bringintobeing" { INIT }
 | "extern" { EXTERN }
+| "const" { CONST }
 (* Regex conflicts are resolved by order! Place all keywords above this or ID_VAR will eat them up. *)
 | digit+ as lit { LIT_INT(Int.of_string lit) }
 | ((hasint | hasfrac) hasexp?) | (digit+ hasexp) as lit { LIT_FLOAT(Float.of_string lit) }

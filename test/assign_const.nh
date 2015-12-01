@@ -1,0 +1,5 @@
+x = 0
+x = 42
+PrintEndline (StringOfInt x)
+const y = 10
+PrintEndline (StringOfInt y)

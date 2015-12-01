@@ -12,7 +12,7 @@
 %token SHARP FLAT COLON OCTAVE
 /* Note: "a = b = 3" is valid; 3 is assigned to b, and the value of that */
 /* expression is assigned to a. */
-%token ASSIGN
+%token ASSIGN CONST
 %token TILDE
 %token IF THEN ELSE BE UNLESS INWHICHCASE FOR IN DO
 %token TYPE
@@ -96,7 +96,7 @@ program_body_list:
   { (fun (fdefs, externs, exprs, structdefs) -> (fdefs, externs, exprs @ [ $3 ], structdefs)) $1 }
 
 struct_declaration:
-| TYPE ID_VAR ASSIGN LBRACE sep_star ass_list sep_star RBRACE { TypeDef($2, List.rev $6) }
+| TYPE ID_VAR ASSIGN LBRACE sep_star asn_list sep_star RBRACE { TypeDef($2, List.rev $6) }
 
 fun_def:
 | FUN ID_FUN id_var_list ASSIGN expr { FunDef($2, $3, $5) }
@@ -144,7 +144,7 @@ expr:
 | OCTAVE non_apply non_apply {Binop($2, Octave, $3)}
 | expr COLON expr {Binop($1, Zip, $3)}
 | expr COMMA expr {Binop($1, Chord, $3)}
-| assignment { $1 }
+| asn_toplevel { $1 }
 | expr CONCAT expr { Binop($1, Concat, $3) }
 | ID_VAR DOT_LPAREN expr RPAREN { ArrIdx($1, $3) }
 | control { $1 }
@@ -155,7 +155,7 @@ control:
 | BE sep_expr_sep UNLESS sep_expr_sep INWHICHCASE sep_star expr { Conditional($4,$7,$2) }
 | FOR sep_star ID_VAR sep_star IN sep_expr_sep DO sep_star expr { For($3,$6,$9) }
 | INIT ID_VAR { StructInit($2, []) }
-| INIT ID_VAR LBRACE sep_star ass_list sep_star RBRACE { StructInit($2, List.rev $5) }
+| INIT ID_VAR LBRACE sep_star asn_list sep_star RBRACE { StructInit($2, List.rev $5) }
 
 id_var_list:
 | /* nothing */ { [] }
@@ -222,9 +222,14 @@ var_ref:
 | ID_VAR { [ $1 ] }
 | ID_VAR BLING var_ref { $1 :: $3 }
 
-assignment:
-| var_ref ASSIGN expr { Assign($1, $3) }
+asn_toplevel:
+| asn { $1 }
+/* ID_VAR because you can't do `const a$b = 10` */
+| CONST ID_VAR ASSIGN expr { Assign([ $2 ], $4, Immutable) }
 
-ass_list:
-| assignment { [ $1 ] }
-| ass_list sep_plus assignment { $3 :: $1 }
+asn:
+| var_ref ASSIGN expr { Assign($1, $3, Mutable) }
+
+asn_list:
+| asn { [ $1 ] }
+| asn_list sep_plus asn { $3 :: $1 }

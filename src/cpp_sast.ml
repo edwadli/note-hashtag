@@ -68,7 +68,7 @@ let rec castx_of_sastx texpr =
               let (ret_expr,body) = 
                 let unit_ret = (Sast.LitUnit,Ast.Unit) in
                 match ret_expr with
-                  | Sast.Init(_,_),_ -> unit_ret, ret_expr::body
+                  | Sast.Init(_, _, _),_ -> unit_ret, ret_expr::body
                   | _ -> ret_expr, body
               in
               Cast.Call(Cast.LambdaRefCap([], t, List.rev begin
@@ -99,7 +99,7 @@ let rec castx_of_sastx texpr =
     | Sast.Throw(lexpr,rexpr)
         -> ignore lexpr; ignore rexpr; failwith "Throw cast_sast not implemented"
 
-    | Sast.Init(name, expr) ->
+    | Sast.Init(name, expr, _) ->
         let (_,t) = expr in Cast.DeclAssign((t, name), castx_of_sastx expr)
 
     | Sast.Assign(varname, expr) -> Cast.Call(
