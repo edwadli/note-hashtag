@@ -35,9 +35,9 @@ type expr =
   | LitStr of string
   | VarRef of var_reference
   | FunApply of string * expr list
-  | ArrIdx of string * expr
-  | Arr of expr list
-  | ArrMusic of expr list
+  | ArrIdx of var_reference * expr
+  | Arr of expr list * t option
+  | ArrMusic of expr list * t option
   | Block of expr list
   | Conditional of expr * expr * expr
   | For of string * expr * expr
@@ -66,6 +66,11 @@ let rec string_of_type t =
   | Bool -> "bool"
   | Type(name) -> name
   | Array(t) -> string_of_type t ^ "{}"
+
+let string_of_type_op t =
+  match t with
+  |Some t -> string_of_type t
+  |None -> "None"
 
 let string_of_op o =
   match o with
@@ -105,9 +110,9 @@ let rec string_of_expr e =
         (if mutability = Immutable then "let" else "var") (string_of_expr (VarRef(name))) (string_of_expr expr)
   | StructInit(x, y) -> String.concat ~sep:" " [ x; string_of_exp_list y ]
   | FunApply(x, y) -> String.concat ~sep:" " [ x; "("; string_of_exp_list y; ")" ]
-  | ArrIdx (x, y) -> String.concat ~sep:" " [ x; ".("; string_of_expr y; ")" ]
-  | Arr(x) -> String.concat ~sep:" " [ "["; string_of_exp_list x; "]" ]
-  | ArrMusic(x) -> String.concat ~sep:" " [ "{"; string_of_exp_list x; "}" ]
+  | ArrIdx (x, y) -> String.concat ~sep:" " [ string_of_expr (VarRef(x)); ".("; string_of_expr y; ")" ]
+  | Arr(x, t) -> String.concat ~sep:" " [ "["; string_of_exp_list x; "], "; string_of_type_op t ]
+  | ArrMusic(x, t) -> String.concat ~sep:" " [ "{"; string_of_exp_list x; "}, "; string_of_type_op t ]
   | Throw(x) -> String.concat ~sep:" " ["Throw"; string_of_expr x]
 and string_of_exp_list l =
   match l with

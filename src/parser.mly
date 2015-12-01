@@ -52,6 +52,10 @@
 %right prec_unary_minus
 %left SHARP FLAT
 
+/* Var Precedence */
+%left ID_VAR
+%right LBRACK LBRACE
+
 %start program
 %type <Ast.program> program
 
@@ -146,7 +150,7 @@ expr:
 | expr COMMA expr {Binop($1, Chord, $3)}
 | asn_toplevel { $1 }
 | expr CONCAT expr { Binop($1, Concat, $3) }
-| ID_VAR DOT_LPAREN expr RPAREN { ArrIdx($1, $3) }
+| var_ref DOT_LPAREN expr RPAREN { ArrIdx($1, $3) }
 | control { $1 }
 | THROW non_apply { Throw($2) }
 
@@ -161,9 +165,9 @@ id_var_list:
 | /* nothing */ { [] }
 | ID_VAR id_var_list { $1 :: $2 }
 
-stmt_list:
-| /* nothing */ { [] }
-| stmt_list non_apply { $2 :: $1 }
+stmt_list_plus:
+| non_apply { [$1] }
+| stmt_list_plus non_apply { $2 :: $1 }
 
 apply:
 | ID_FUN args_list { FunApply($1, $2) }
@@ -173,11 +177,23 @@ args_list:
 | non_apply args_list { $1 :: $2 }
 
 non_apply:
-| LPAREN block RPAREN { $2 } /* we get unit () notation for free (see block) */
-| LBRACK stmt_list RBRACK { Arr(List.rev $2) }
-| LBRACE stmt_list RBRACE { ArrMusic(List.rev $2) }
-| lit { $1 }
 | var_ref { VarRef($1) }
+| LPAREN block RPAREN { $2 } /* we get unit () notation for free (see block) */
+| LBRACK stmt_list_plus RBRACK { Arr((List.rev $2), None) }
+| LBRACE stmt_list_plus RBRACE { ArrMusic((List.rev $2), None) }
+| lit { $1 }
+| empty_list  { $1 }
+
+empty_list:
+| TYPE_UNIT  LBRACK RBRACK { Arr([], Some(Unit)) }
+| TYPE_BOOL  LBRACK RBRACK { Arr([], Some(Bool)) }
+| TYPE_INT   LBRACK RBRACK { Arr([], Some(Int)) }
+| TYPE_FLOAT LBRACK RBRACK { Arr([], Some(Float)) }
+| TYPE_STR   LBRACK RBRACK { Arr([], Some(String)) }
+| ID_VAR     LBRACK RBRACK { Arr([], Some(Type($1)))}
+| TYPE_INT   LBRACE RBRACE { ArrMusic([], Some(Type("pitch"))) }
+| TYPE_FLOAT LBRACE RBRACE { ArrMusic([], Some(Float)) }
+| ID_VAR     LBRACE RBRACE { ArrMusic([], Some(Type($1)))}
 
 sep_expr_sep:
 | sep_star expr sep_star { $2 }
