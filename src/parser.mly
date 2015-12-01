@@ -5,7 +5,7 @@
 %}
 
 %token SEP
-%token LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE DOT_LPAREN CONCAT COMMA
+%token LPAREN RPAREN BRACKS BRACES LBRACK RBRACK LBRACE RBRACE DOT_LPAREN CONCAT COMMA
 %token PLUS MINUS TIMES DIVIDE MOD
 %token EQ NEQ LT LTE GT GTE
 %token NOT AND OR
@@ -146,7 +146,7 @@ expr:
 | expr COMMA expr {Binop($1, Chord, $3)}
 | asn_toplevel { $1 }
 | expr CONCAT expr { Binop($1, Concat, $3) }
-| ID_VAR DOT_LPAREN expr RPAREN { ArrIdx($1, $3) }
+| var_ref DOT_LPAREN expr RPAREN { ArrIdx($1, $3) }
 | control { $1 }
 | THROW non_apply { Throw($2) }
 
@@ -161,9 +161,9 @@ id_var_list:
 | /* nothing */ { [] }
 | ID_VAR id_var_list { $1 :: $2 }
 
-stmt_list:
-| /* nothing */ { [] }
-| stmt_list non_apply { $2 :: $1 }
+stmt_list_plus:
+| non_apply { [$1] }
+| stmt_list_plus non_apply { $2 :: $1 }
 
 apply:
 | ID_FUN args_list { FunApply($1, $2) }
@@ -173,11 +173,29 @@ args_list:
 | non_apply args_list { $1 :: $2 }
 
 non_apply:
-| LPAREN block RPAREN { $2 } /* we get unit () notation for free (see block) */
-| LBRACK stmt_list RBRACK { Arr(List.rev $2) }
-| LBRACE stmt_list RBRACE { ArrMusic(List.rev $2) }
-| lit { $1 }
 | var_ref { VarRef($1) }
+| LPAREN block RPAREN { $2 } /* we get unit () notation for free (see block) */
+| LBRACE stmt_list_plus RBRACE { Arr((List.rev $2), None) }
+| LBRACK stmt_list_plus RBRACK { ArrMusic((List.rev $2)) }
+| lit { $1 }
+| empty_list  { $1 }
+
+empty_list:
+| typename   braces_list  { let rec create_array typ = match typ with 
+                              |Array(t) -> Array(create_array t)
+                              |_ -> $1
+                            in
+                              Arr([], Some(create_array $2)) }
+| ID_VAR     braces_list  { let rec create_array typ = match typ with 
+                              |Array(t) -> Array(create_array t)
+                              |_ -> Type($1)
+                            in
+                              Arr([], Some(create_array $2))} 
+
+braces_list:
+|braces_list BRACES { (fun f -> Array(f)) $1 } 
+|BRACES             { Unit }
+
 
 sep_expr_sep:
 | sep_star expr sep_star { $2 }

@@ -80,6 +80,8 @@ rule token = parse
 | uppercase (letter | digit | '_')* as lit { ID_FUN(lit) }
 | '(' { LPAREN }
 | ')' { RPAREN }
+| '['(whitespace|newline)*']'{ BRACKS }
+| '{'(whitespace|newline)*'}'{ BRACES }
 | '[' { LBRACK }
 | ']' { RBRACK }
 | '{' { LBRACE }

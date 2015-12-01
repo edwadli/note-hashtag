@@ -1,0 +1,5 @@
+x = [1.0 2.0 3.0 4.0]
+PrintEndline(StringOfFloat(x.(0)))
+PrintEndline(StringOfFloat(x.(1)))
+PrintEndline(StringOfFloat(x.(2)))
+PrintEndline(StringOfFloat(x.(3)))

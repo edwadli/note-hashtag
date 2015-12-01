@@ -1,0 +1,4 @@
+x = {1 2 3}
+PrintEndline(StringOfInt(x.(0)))
+PrintEndline(StringOfInt(x.(1)))
+PrintEndline(StringOfInt(x.(2)))
