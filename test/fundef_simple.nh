@@ -1,0 +1,5 @@
+
+fun Hello x = x
+
+PrintEndline (Hello "what")
+PrintEndline (StringOfInt (Hello 1))

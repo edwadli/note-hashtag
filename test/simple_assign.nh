@@ -1,7 +1,7 @@
 
-x = 5
+x = "x"
 y = 10
 
-Print (StringOfInt x)
+Print x
 Print "\n"
 Print (StringOfInt y)
