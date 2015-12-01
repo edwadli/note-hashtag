@@ -1,4 +1,8 @@
-%{ open Ast %}
+%{
+  open Core.Std
+  
+  open Ast
+%}
 
 %token SEP
 %token LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE DOT_LPAREN CONCAT COMMA
