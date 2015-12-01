@@ -1,0 +1,16 @@
+
+type first = {
+  f = "hello"
+}
+
+type second = {
+  s = init first
+}
+
+type third = {
+  t = init second
+}
+
+x = init third
+
+Print x$t$s$f

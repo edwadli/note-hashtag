@@ -1,0 +1,5 @@
+
+fun Factorial x = if x > 1 then x * Factorial (x-1) else 1
+
+x = Factorial 3
+Print (StringOfInt x)

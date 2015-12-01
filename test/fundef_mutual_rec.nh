@@ -1,0 +1,11 @@
+
+fun First x = (
+  Print (StringOfInt x)
+  if x > 1 then (Print "s"; Second x; "not") else "done"
+)
+
+fun Second x = (
+  Print (First (x-1))
+)
+
+Print (First 5)
