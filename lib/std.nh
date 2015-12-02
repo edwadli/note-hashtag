@@ -41,6 +41,12 @@ type track = {
   durations = float[]
 }
 
+fun Size l = (
+  i = 0
+  for item in l do i = i + 1
+  i
+)
+
 fun IsMember l x = (
   b = false
   for item in l

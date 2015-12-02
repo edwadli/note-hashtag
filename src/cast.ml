@@ -59,6 +59,7 @@ type incl =
 
 type signature =
   | SigFunc of string * Ast.t * decl list
+  | SigStruct of string
 
 type program = incl list * signature list * decl list * struct_decl list * func_decl list
 
@@ -140,6 +141,8 @@ let string_of_sdecl sdecl =
     " {}" ^ "\n};\n"
 
 let string_of_signature = function
+  | SigStruct(name) ->
+      "struct " ^ name
   | SigFunc(name, tret, decls) ->
       string_of_type tret ^ " " ^ name ^ "(" ^
       String.concat ~sep:", " (List.map decls ~f:(fun (t,_) -> string_of_type t)) ^
