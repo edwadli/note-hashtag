@@ -1,0 +1,9 @@
+
+top = "top"
+
+fun Hello x = (
+  Print x
+  Print top
+)
+
+Hello "u"

@@ -530,13 +530,11 @@ and typed_externs externfuns env_types =
 
 (* Note that includes have been processed and merged into exprs by this point *)
 let sast_of_ast (fundefs, externs, exprs, typedefs) = 
-  (* temporarily ignore includes -> NO GLOBALS YET *)
-  let globals = {variables=[]; parent=None} in
   (* make sure fundefs are unique *)
   let nfundefs = check_unique_functions fundefs externs in
   (* temporary env for evaluating tdefaults *)
   let temp_env = {
-    scope = { variables=[]; parent=Some(globals) };
+    scope = { variables=[]; parent=None };
     functions = nfundefs;
     extern_functions = externs;
     types = [];
@@ -545,7 +543,7 @@ let sast_of_ast (fundefs, externs, exprs, typedefs) =
   let tdefaults = typed_typedefs temp_env tfuns_ref typedefs in
   let externs = typed_externs externs tdefaults in
   let env = {
-    scope = { variables=[]; parent=Some(globals) };
+    scope = { variables=[]; parent=None };
     functions = nfundefs;
     extern_functions = externs;
     types = tdefaults;

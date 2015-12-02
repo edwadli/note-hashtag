@@ -29,8 +29,24 @@ let rec noinclu incls_ref (incls, fdefs, externs, exprs, tdefs) =
       (next_fdefs@fdefs, next_externs@externs, next_exprs@exprs, next_tdefs@tdefs, incls_ref)
     )
 
+let rec verify_no_fun_ast ast =
+  let verify_all exprs =
+    List.iter exprs ~f:verify_no_fun_ast
+  in match ast with
+    | FunApply(_,_) -> failwith "Function found"
+    | LitBool(_) | LitFloat(_) | LitInt(_) | LitStr(_) | VarRef(_) -> ()
+    | Binop(lexpr,_,rexpr) | For(_,lexpr,rexpr) -> verify_all [lexpr; rexpr]
+    | Uniop(_,expr) | ArrIdx(_,expr) | Throw(expr) | Assign(_,expr) -> verify_all [expr]
+    | Conditional(bexpr,texpr,fexpr) -> verify_all [bexpr; texpr; fexpr]
+    | Arr(exprs) | ArrMusic(exprs) | Block(exprs) | StructInit(_,exprs) -> verify_all exprs
+
 let noinclu_ast name =
   (* keep track of already included files *)
   let incls_ref = ref [] in
   let (new_fdefs, new_externs, new_exprs, new_tdefs, _) = noinclu incls_ref ([Some("../lib/std.nh"); name],[],[],[],[]) in
+  (* ensure there are no function calls in typedefs *)
+  List.iter new_tdefs ~f:(fun (TypeDef(name,exprs)) ->
+    try List.iter exprs ~f:verify_no_fun_ast
+    with Failure(_) -> failwith ("Function call found in typedef "^name)
+  );
   (new_fdefs, new_externs, new_exprs, new_tdefs)

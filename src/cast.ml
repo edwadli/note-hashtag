@@ -135,14 +135,17 @@ let string_of_fdecl fdecl =
 let string_of_sdecl sdecl = 
   "struct " ^ sdecl.sname ^ " {\n" ^
     String.concat ~sep:"\n" (List.map sdecl.sargs ~f:(fun decl -> string_of_stmt (Expr(Decl(decl))))) ^
+    (* constructor *)
     "\n" ^ sdecl.sname ^ "(" ^
     String.concat ~sep:", " (List.map sdecl.sargs ~f:(fun decl -> string_of_expr (Decl(decl)))) ^
     ") : " ^ String.concat ~sep:", " (List.map sdecl.sargs ~f:(fun (_,n) -> n^"("^n^")")) ^
-    " {}" ^ "\n};\n"
+    " {}" ^ "\n"^
+    (* empty constructor for temporary global initialization *)
+    sdecl.sname ^ "(){}"
+    ^"};\n"
 
 let string_of_signature = function
-  | SigStruct(name) ->
-      "struct " ^ name
+  | SigStruct(name) -> "struct " ^ name
   | SigFunc(name, tret, decls) ->
       string_of_type tret ^ " " ^ name ^ "(" ^
       String.concat ~sep:", " (List.map decls ~f:(fun (t,_) -> string_of_type t)) ^
@@ -156,6 +159,6 @@ let string_of_incl incl =
 let string_of_program (incls, signatures, decls, structs, funcs) =
   String.concat (List.map incls ~f:(fun incl -> string_of_incl incl ^ "\n")) ^
   String.concat (List.map signatures ~f:(fun signature -> string_of_signature signature ^ ";\n")) ^
-  String.concat (List.map decls ~f:(fun decl -> string_of_stmt (Expr(Decl(decl))) ^ "\n" )) ^
   String.concat (List.map structs ~f:(fun sdecl -> string_of_sdecl sdecl ^ "\n")) ^
+  String.concat (List.map decls ~f:(fun decl -> string_of_stmt (Expr(Decl(decl))) ^ "\n" )) ^
   String.concat (List.map funcs ~f:(fun fdecl -> string_of_fdecl fdecl ^ "\n"))

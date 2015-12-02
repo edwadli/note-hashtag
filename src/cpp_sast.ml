@@ -187,6 +187,19 @@ let rec verify_no_init funs =
         end
   end; funs
 
+let strip_top_level = function
+  | [(Sast.Block(texprs),t)] -> let (texprs,globals) = List.fold_left texprs ~init:([],[])
+      (* change all top level inits to assignments *)
+      ~f:(fun (texprs, globals) texpr ->
+        match texpr with
+          | Sast.Init(name,(expr,t)),tunit ->
+            (Sast.Assign([name],(expr,t)),tunit)::texprs, (t,name)::globals
+          | _ -> texpr::texprs, globals
+      )
+      in ([Sast.Block(List.rev texprs),t], globals)
+  | [(Sast.LitUnit,Ast.Unit)] as texprs -> texprs,[]
+  | _ -> failwith "Internal Error: could not extract globals because top level was not Block"
+
 let cast_of_sast (incls, fundefs, texprs, types) =
   let cast_incls = cast_inclus incls in
   let cast_fundefs = List.map fundefs ~f:(castfun_of_sastfun) in
@@ -194,7 +207,7 @@ let cast_of_sast (incls, fundefs, texprs, types) =
   let ssignatures = List.map cast_types
     ~f:(fun {sname=n; sargs=_} -> Cast.SigStruct(n)) in
   let fsignatures = cast_signatures fundefs in
-  let globals = [] in
+  let (texprs, globals) = strip_top_level texprs in
   let main_expr = (Sast.Block(texprs @ [(Sast.LitInt(0),Ast.Int)]),Ast.Int) in
   let all_funs = castfun_of_sastfun (Sast.FunDef("main",[],main_expr))::cast_fundefs in
   let verified_funs = verify_no_init all_funs in
