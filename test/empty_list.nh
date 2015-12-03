@@ -1,0 +1,4 @@
+x = int{}
+y = float{}
+z = string{}
+a = unit{}

@@ -65,8 +65,6 @@ let replace_add_fun l item =
   l := item :: List.filter !l
     ~f:(fun (Sast.FunDef(n, tps, (_, _))) -> name <> n || tparams <> tps)
 
-
-
 let check_list_type same_type_list first_t_val =
   (* check if all values in list have same type *)
   let same_type = List.for_all same_type_list ~f:(fun x -> x = first_t_val) in
@@ -75,21 +73,34 @@ let check_list_type same_type_list first_t_val =
   else
     failwith("Types in Arr don't match t_option value")
 
-let rec convert_music_list expr_list = match expr_list with
-  |[] -> []
-  |(expr, t) :: rest -> (match t with
-    |Ast.Type("pitch") -> (expr, t) :: convert_music_list rest
-    |Ast.Int -> (Sast.Binop((expr, t),Ast.Octave,(Sast.LitInt(0), Ast.Type("Int"))),
-                 Ast.Type("pitch")) :: convert_music_list rest
-    |Ast.Array(Ast.Type("pitch")) -> (expr, t) :: convert_music_list rest
-    |_ -> failwith("Type in ArrMusic must be int, pitch or chord")
-    )
-
 let return_list_type exprt =
   let same_type_list = List.map exprt ~f:(fun(_, t) -> t) in
   let first_t_val = List.hd_exn same_type_list in
   check_list_type same_type_list first_t_val;
   first_t_val (* to return the first type *)
+
+let verify_list exprt = 
+  if (List.length exprt = 0) then
+    failwith("Empty list does not have type")
+  else begin
+    let first_t_val = return_list_type exprt in (match first_t_val with
+    |Ast.Type("pitch") -> Sast.Arr(exprt, Ast.Type("pitch")), Ast.Type("chord")
+    |_ -> Sast.Arr(exprt, first_t_val), Ast.Array(first_t_val) ) 
+  end
+
+let verify_list_empty orig_t_val exprt = 
+  match exprt with
+  | [] -> Sast.Arr(exprt, orig_t_val), Ast.Array(orig_t_val)
+  | _ ->
+    let first_t_val = return_list_type exprt in
+    if(orig_t_val = first_t_val) then
+      Sast.Arr(exprt, orig_t_val), Ast.Array(orig_t_val)
+    else begin
+      if orig_t_val = Ast.Type("pitch") then
+        Sast.Arr(exprt, Ast.Type("pitch")), Ast.Type("chord")
+      else
+        failwith("Types in Arr don't match t_option value")
+      end
 
 let rec find_variable (scope: symbol_table) name =
   match List.find scope.variables ~f:(fun (s, _, _) -> s = name) with
@@ -157,6 +168,17 @@ let chord_of sexpr =
     | (expr, Ast.Type("chord")) -> expr
     | _ -> failwith "This expression is not chordable"
   end, Ast.Type("chord")
+
+let rec convert_music_list exprt typ = (match typ with
+  |Ast.Float ->  let same_type_list = List.map exprt ~f:(fun(_, t) -> t) in
+                 ignore(check_list_type same_type_list typ);
+                 exprt
+  |_ -> (match exprt with
+    | [] -> []
+    | (expr, t) :: rest -> try (chord_of (expr, t)) :: (convert_music_list rest typ)
+        with Failure(_) -> failwith("ArrMusic expects type of pitch, int or chord") 
+    )
+ )
 
 let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
   let sast_expr_env = sast_expr ~seen_funs:seen_funs env tfuns_ref in
@@ -485,46 +507,27 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
   | Ast.Arr(expr_list, t_op) ->
       (* check if t_op is None or Sum *)
       begin match t_op with
-      | None -> begin
-        (if (List.length expr_list = 0) then
-          failwith("Empty list does not have type")
-        else begin (
-          let exprt = List.map expr_list ~f:(sast_expr env tfuns_ref) in
-          let first_t_val = return_list_type exprt in
-          Sast.Arr(exprt, first_t_val), Ast.Array(first_t_val) ) (* if the array is empty and type is empty *)
-        end)
-      end
+      | None -> 
+        let exprt = List.map expr_list ~f:(sast_expr_env) in
+        verify_list exprt
       (* t_op actually exists *)
       | Some v ->
         (* Assign t_val to t_op value in Arr *)
         let orig_t_val = v in
-        let exprt = List.map expr_list ~f:(sast_expr env tfuns_ref) in
-        match exprt with
-        | [] -> Sast.Arr(exprt, orig_t_val), Ast.Array(orig_t_val)
-        | _ ->
-          let first_t_val = return_list_type exprt in
-          if(orig_t_val = first_t_val) then
-            Sast.Arr(exprt, orig_t_val), Ast.Array(orig_t_val)
-          else
-            failwith("Types in Arr don't match t_option value")
+        let exprt = List.map expr_list ~f:(sast_expr_env) in
+        verify_list_empty orig_t_val exprt
       end
 
   | Ast.ArrMusic(expr_list, t_op) ->
       begin match t_op with
-      | None -> begin
-        if (List.length expr_list = 0) then
-          failwith("Empty list does not have type")
-        else begin (
-          (* must determine t_op from expr_list *)
-          let exprt = List.map expr_list ~f:(sast_expr env tfuns_ref) in
-          let first_t_val = return_list_type exprt in
-          if (first_t_val = Ast.Float) then
-            Sast.Arr(exprt, first_t_val), Ast.Array(first_t_val)
-          else  (* must be a pitch/chord array *)
-            let music_list = convert_music_list(exprt) in
-              Sast.Arr(music_list, Ast.Type("pitch")), Ast.Type("chord"))
-        end
-      end
+      | None ->
+          let exprt = List.map expr_list ~f:(sast_expr_env) in
+          if (List.length exprt = 0) then
+            failwith("Empty list does not have type")
+          else 
+            let (_, first_t_val) = List.hd_exn exprt in
+            let music_list = convert_music_list exprt first_t_val in
+            verify_list music_list
       | Some v ->
         let orig_t_val =
           if v <> Ast.Float then
@@ -532,22 +535,15 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
           else
             Ast.Float
         in
-        let exprt = List.map expr_list ~f:(sast_expr env tfuns_ref) in
-        match exprt with
-        | [] -> Sast.Arr(exprt, orig_t_val), Ast.Array(orig_t_val)
-        | _ ->
-          let first_t_val = return_list_type exprt in
-          if orig_t_val = Ast.Float then
-            Sast.Arr(exprt, first_t_val), Ast.Array(first_t_val)
-          else
-            let music_list = convert_music_list(exprt) in
-            Sast.Arr(music_list, Ast.Type("pitch")), Ast.Type("chord")
+        let exprt = List.map expr_list ~f:(sast_expr_env) in
+        let music_list = convert_music_list exprt orig_t_val in
+        verify_list_empty orig_t_val music_list
     end
 
   |Ast.ArrIdx(id_var, expr) ->
     let (exp, t) = sast_expr env tfuns_ref expr in
-      if(t <> Ast.Int) then
-        failwith("Array Index must be an integer")
+      if t <> Ast.Int then
+        failwith(sprintf "Array Index must be an integer (%s found)" (Ast.string_of_type t))
       else
         let (_, t_v) = sast_expr env tfuns_ref (Ast.VarRef(id_var)) in
         match t_v with

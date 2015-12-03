@@ -55,11 +55,11 @@ let rec castx_of_sastx texpr =
         in Cast.Call(Cast.Function(ns, fn), List.map exprs ~f:(castx_of_sastx))
 
     | Sast.ArrIdx(varname, expr)
-      -> Cast.ArrIdx(varname, castx_of_sastx expr)
+      -> Cast.Idx(varname, castx_of_sastx expr)
 
     | Sast.Arr(exprs, ast_t) ->
         ignore ast_t;
-        Cast.Arr(List.map exprs ~f:(castx_of_sastx))
+        Cast.InitList(List.map exprs ~f:(castx_of_sastx))
 
     | Sast.Block(exprs) ->
         begin match List.rev exprs with
@@ -153,7 +153,7 @@ let rec verify_no_assign_expr = function
 
 and verify_expr = function
   (* traverse down a level of the ast *)
-  | Cast.DeclAssign(_,expr) | Cast.Assign(_,expr) | Cast.ArrIdx(_,expr)
+  | Cast.DeclAssign(_,expr) | Cast.Assign(_,expr) | Cast.Idx(_,expr)
   | Cast.Uniop(_,expr) ->
       verify_no_assign_expr expr
   | Cast.Binop(lexpr,_,rexpr) -> ignore(verify_no_assign_expr lexpr); verify_no_assign_expr rexpr

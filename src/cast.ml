@@ -18,8 +18,7 @@ type expr =
   | Decl of decl
   | DeclAssign of decl * expr
   | VarRef of var_reference
-  | ArrIdx of var_reference * expr
-  | Arr of expr list
+  | Idx of var_reference * expr
   | Binop of expr * binary_operator * expr
   | Uniop of unary_operator * expr
   | Assign of var_reference * expr
@@ -87,8 +86,7 @@ let rec string_of_expr = function
   | Decl(t, name) -> string_of_type t ^ " " ^ name
   | DeclAssign((t, name), e) -> string_of_type t ^ " " ^ name ^ " = " ^ string_of_expr e
   | VarRef(names) -> String.concat ~sep:"." names
-  | ArrIdx(name, e) -> string_of_expr (VarRef(name)) ^ "[" ^ string_of_expr e ^ "]"
-  | Arr(exprs) -> "[ " ^ String.concat ~sep: " " (List.map exprs ~f:string_of_expr) ^ "]"
+  | Idx(name, e) -> string_of_expr (VarRef(name)) ^ "[" ^ string_of_expr e ^ "]"
   | Binop(e1, o, e2) ->
       let op_str =
         match o with

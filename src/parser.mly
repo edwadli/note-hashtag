@@ -5,7 +5,7 @@
 %}
 
 %token SEP
-%token LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE DOT_LPAREN CONCAT COMMA
+%token LPAREN RPAREN BRACKS BRACES LBRACK RBRACK LBRACE RBRACE DOT_LPAREN CONCAT COMMA
 %token PLUS MINUS TIMES DIVIDE MOD
 %token EQ NEQ LT LTE GT GTE
 %token NOT AND OR
@@ -51,10 +51,6 @@
 %nonassoc NOT
 %right prec_unary_minus
 %left SHARP FLAT
-
-/* Var Precedence */
-%left ID_VAR
-%right LBRACK LBRACE
 
 %start program
 %type <Ast.program> program
@@ -179,21 +175,30 @@ args_list:
 non_apply:
 | var_ref { VarRef($1) }
 | LPAREN block RPAREN { $2 } /* we get unit () notation for free (see block) */
-| LBRACK stmt_list_plus RBRACK { Arr((List.rev $2), None) }
-| LBRACE stmt_list_plus RBRACE { ArrMusic((List.rev $2), None) }
+| LBRACE stmt_list_plus RBRACE { Arr((List.rev $2), None) }
+| LBRACK stmt_list_plus RBRACK { ArrMusic((List.rev $2), None) }
 | lit { $1 }
 | empty_list  { $1 }
 
 empty_list:
-| TYPE_UNIT  LBRACK RBRACK { Arr([], Some(Unit)) }
-| TYPE_BOOL  LBRACK RBRACK { Arr([], Some(Bool)) }
-| TYPE_INT   LBRACK RBRACK { Arr([], Some(Int)) }
-| TYPE_FLOAT LBRACK RBRACK { Arr([], Some(Float)) }
-| TYPE_STR   LBRACK RBRACK { Arr([], Some(String)) }
-| ID_VAR     LBRACK RBRACK { Arr([], Some(Type($1)))}
-| TYPE_INT   LBRACE RBRACE { ArrMusic([], Some(Type("pitch"))) }
-| TYPE_FLOAT LBRACE RBRACE { ArrMusic([], Some(Float)) }
-| ID_VAR     LBRACE RBRACE { ArrMusic([], Some(Type($1)))}
+| typename   braces_list  { let rec create_array typ = match typ with 
+                              |Array(t) -> Array(create_array t)
+                              |_ -> $1
+                            in
+                              Arr([], Some(create_array $2)) }
+| ID_VAR     braces_list  { let rec create_array typ = match typ with 
+                              |Array(t) -> Array(create_array t)
+                              |_ -> Type($1)
+                            in
+                              Arr([], Some(create_array $2))} 
+| TYPE_INT   BRACKS       { ArrMusic([], Some(Type("pitch"))) }
+| TYPE_FLOAT BRACKS       { ArrMusic([], Some(Float)) }
+| ID_VAR     BRACKS       { ArrMusic([], Some(Type($1)))}
+
+braces_list:
+|braces_list BRACES { (fun f -> Array(f)) $1 } 
+|BRACES             { Unit }
+
 
 sep_expr_sep:
 | sep_star expr sep_star { $2 }
