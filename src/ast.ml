@@ -111,8 +111,8 @@ let rec string_of_expr e =
   | StructInit(x, y) -> String.concat ~sep:" " [ x; string_of_exp_list y ]
   | FunApply(x, y) -> String.concat ~sep:" " [ x; "("; string_of_exp_list y; ")" ]
   | ArrIdx (x, y) -> String.concat ~sep:" " [ string_of_expr (VarRef(x)); ".("; string_of_expr y; ")" ]
-  | Arr(x, t) -> String.concat ~sep:" " [ "["; string_of_exp_list x; "], "; string_of_type_op t ]
-  | ArrMusic(x, t) -> String.concat ~sep:" " [ "{"; string_of_exp_list x; "}, "; string_of_type_op t ]
+  | Arr(x, t) -> String.concat ~sep:" " [ "{"; string_of_exp_list x; "}, "; string_of_type_op t ]
+  | ArrMusic(x, t) -> String.concat ~sep:" " [ "["; string_of_exp_list x; "], "; string_of_type_op t ]
   | Throw(x) -> String.concat ~sep:" " ["Throw"; string_of_expr x]
 and string_of_exp_list l =
   match l with

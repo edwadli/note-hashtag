@@ -191,9 +191,6 @@ empty_list:
                               |_ -> Type($1)
                             in
                               Arr([], Some(create_array $2))} 
-| TYPE_INT   BRACKS       { ArrMusic([], Some(Type("pitch"))) }
-| TYPE_FLOAT BRACKS       { ArrMusic([], Some(Float)) }
-| ID_VAR     BRACKS       { ArrMusic([], Some(Type($1)))}
 
 braces_list:
 |braces_list BRACES { (fun f -> Array(f)) $1 } 
