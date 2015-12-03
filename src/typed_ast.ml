@@ -390,8 +390,10 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
   | For(loop_var_name, items, body) ->
     ignore (loop_var_name, items, body); failwith "Type checking not implemented for For"
   
-  | Throw(msg) ->
-    ignore msg; failwith "Type checking not implemented for Throw"
+  | Throw(msg_expr) -> let (expr,t) = sast_expr_env msg_expr in
+      if t <> Ast.String then failwith "throw expects an expression of type string"
+      else let msg = sast_expr_env (Ast.FunApply("PrintEndline",[msg_expr])) in
+      Sast.Block([msg; (Sast.Exit(1), Ast.Unit)]), Ast.Unit
   
   | Assign(names, expr) ->
       let (value, tvalue) = sast_expr_env expr in

@@ -96,8 +96,9 @@ let rec castx_of_sastx texpr =
     | Sast.For(varname, rexpr, dexpr)
         -> ignore varname; ignore rexpr; ignore dexpr; failwith "For cast_sast not implemented"
 
-    | Sast.Throw(lexpr,rexpr)
-        -> ignore lexpr; ignore rexpr; failwith "Throw cast_sast not implemented"
+    | Sast.Exit(code) ->
+        let unit_ret = Cast.Expr(castx_of_sastx (Sast.LitUnit,Ast.Unit)) in
+        Cast.Call(Cast.LambdaRefCap([], Ast.Unit, [Cast.Expr(Cast.Exit(code)); unit_ret]), [])
 
     | Sast.Init(name, expr) ->
         let (_,t) = expr in Cast.DeclAssign((t, name), castx_of_sastx expr)
@@ -159,7 +160,7 @@ and verify_expr = function
         | Cast.LambdaRefCap(_,_,stmts) -> ignore(List.map stmts ~f:verify_no_init_stmt)
         | Cast.Method(_) | Cast.Function(_,_) | Cast.Struct(_) -> ()
       end
-  | Cast.LitUnit | Cast.LitBool(_) | Cast.LitInt(_) | Cast.LitFloat(_) | Cast.LitStr(_)
+  | Cast.LitUnit | Cast.Exit(_) | Cast.LitBool(_) | Cast.LitInt(_) | Cast.LitFloat(_) | Cast.LitStr(_)
   | Cast.InitList(_) | Cast.Decl(_) | Cast.VarRef(_) | Noexpr -> ()
 
 and verify_no_init_stmt = function

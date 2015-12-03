@@ -24,7 +24,7 @@ type expr_detail =
   | Block of expr_typed list
   | Conditional of expr_typed * expr_typed * expr_typed
   | For of new_variable_name * expr_typed * expr_typed
-  | Throw of expr_typed
+  | Exit of int
   | Init of new_variable_name * expr_typed
   | Assign of variable_name * expr_typed
   | Struct of type_name * ((string * expr_typed) list)
