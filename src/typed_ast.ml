@@ -133,7 +133,7 @@ let chord_of sexpr =
   end, Ast.Type("chord")
 
 let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
-  let sast_expr_env = sast_expr ~seen_funs:seen_funs env tfuns_ref in
+  let sast_expr_env = sast_expr ~seen_funs:seen_funs ~force:force env tfuns_ref in
   match e with
   | Ast.LitBool(x) -> Sast.LitBool(x), Ast.Bool
   | Ast.LitInt(x) -> Sast.LitInt(x), Ast.Int
@@ -171,7 +171,8 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
 
       | Ast.Concat -> begin match lt, rt with
         (* also allow tracks to be concatted *)
-        | Ast.Type("track"), Ast.Type("track") -> Sast.FunApply(NhFunction("ConcatTracks"),[lexprt;rexprt]), lt
+        | Ast.Type("track"), Ast.Type("track") -> 
+            sast_expr_env (Ast.FunApply("ConcatTracks", [lexpr;rexpr]))
         | Ast.Array(l), Ast.Array(r) when l = r -> Sast.Binop(lexprt,op,rexprt), lt
         | _ -> failwith "Concat is only for defined for same typed arrays and tracks" end
 
@@ -180,12 +181,12 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
           Sast.FunApply(NhFunction("ChordOfChords"),[chord_of lexprt; chord_of rexprt]), Ast.Type("chord")
 
       | Ast.Octave ->
-          let lexprt = match lt with
-            | Ast.Type("pitch") -> lexprt
-            | Ast.Int -> Sast.FunApply(NhFunction("PitchOfInt"), [lexprt]), Ast.Type("pitch")
+          let lexpr = match lt with
+            | Ast.Type("pitch") -> lexpr
+            | Ast.Int -> Ast.FunApply("PitchOfInt", [lexpr])
             | _ -> failwith "octave only defined for pitch or int on left side"
           in if rt = Ast.Int
-            then Sast.FunApply(NhFunction("AddPitchOctave"), [lexprt;rexprt]), Ast.Type("pitch")
+            then sast_expr_env (Ast.FunApply("AddPitchOctave", [lexpr;rexpr]))
             else failwith "octave only defined for int on right side"
 
       | Ast.Zip ->
@@ -211,17 +212,17 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
         -> Sast.Uniop(op, exprt), Ast.Type("pitch")
 
       | Ast.Sharp -> let tpitch = Ast.Type("pitch") in
-          let exprt = match t with
-            | Ast.Int -> Sast.FunApply(NhFunction("PitchOfInt"), [exprt]), tpitch
-            | Ast.Type("pitch") -> exprt
+          let expr = match t with
+            | Ast.Int -> Ast.FunApply("PitchOfInt", [expr])
+            | Ast.Type("pitch") -> expr
             | _ -> failwith "sharp is only defined for int or pitch"
-          in Sast.FunApply(NhFunction("SharpPitch"), [exprt]), tpitch
+          in sast_expr_env (Ast.FunApply("SharpPitch", [expr]))
       | Ast.Flat -> let tpitch = Ast.Type("pitch") in
-          let exprt = match t with
-            | Ast.Int -> Sast.FunApply(NhFunction("PitchOfInt"), [exprt]), tpitch
-            | Ast.Type("pitch") -> exprt
+          let expr = match t with
+            | Ast.Int -> Ast.FunApply("PitchOfInt", [expr])
+            | Ast.Type("pitch") -> expr
             | _ -> failwith "flat is only defined for int or pitch"
-          in Sast.FunApply(NhFunction("FlatPitch"), [exprt]), tpitch
+          in sast_expr_env (Ast.FunApply("FlatPitch", [expr]))
     end
   
   | Ast.FunApply(name, arg_exprs) ->

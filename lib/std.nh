@@ -41,6 +41,10 @@ type track = {
   durations = float[]
 }
 
+type song = {
+
+}
+
 fun Size l = (
   i = 0
   for item in l do i = i + 1
@@ -75,7 +79,7 @@ fun ConcatTracks t1 t2 = {
     t1$durations = t1$durations . t2$durations
     t1
   )
-  else t1 //throw "Cannot concat tracks with different key or time signature"
+  else throw "Cannot concat tracks with different key or time signature"
 }
 
 fun PrintEndline str = (
@@ -104,7 +108,7 @@ fun Arpeggio chord = (
 )
 
 
-fun Rhythm track = (
+fun Rhythms track = (
   // TODO: get rhythm from track
 )
 
@@ -114,13 +118,12 @@ fun Chords track = (
 )
 
 
-// TODO: unlimited args option
-fun Parallel *tracks = (
+fun Parallel tracks = (
   // TODO: return song object with tracks aligned in parallel
 )
 
 
-fun Sequential *tracks = (
+fun Sequential tracks = (
   // TODO: return song object with tracks aligned sequentially
 )
 
