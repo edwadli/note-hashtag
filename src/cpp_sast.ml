@@ -96,8 +96,10 @@ let rec castx_of_sastx texpr =
     | Sast.For(varname, rexpr, dexpr)
         -> ignore varname; ignore rexpr; ignore dexpr; failwith "For cast_sast not implemented"
 
-    | Sast.Throw(lexpr,rexpr)
-        -> ignore lexpr; ignore rexpr; failwith "Throw cast_sast not implemented"
+    | Sast.Exit(code) ->
+        let unit_ret = Cast.Expr(castx_of_sastx (Sast.LitUnit,Ast.Unit)) in
+        let cast_exit = Cast.Call(Cast.Function("","exit"),[Cast.LitInt(code)]) in
+        Cast.Call(Cast.LambdaRefCap([], Ast.Unit, [Cast.Expr(cast_exit); unit_ret]), [])
 
     | Sast.Init(name, expr) ->
         let (_,t) = expr in Cast.DeclAssign((t, name), castx_of_sastx expr)

@@ -1,0 +1,2 @@
+
+if true then Print "yay" else throw "boo"
