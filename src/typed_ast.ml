@@ -530,8 +530,24 @@ and typed_externs externfuns env_types =
       else failwith ("Invalid type in external function declaration:\n" ^ Ast.string_of_extern item)
     )
 
+let rec verify_no_fun_ast ast =
+  let verify_all exprs =
+    List.iter exprs ~f:verify_no_fun_ast
+  in match ast with
+    | Ast.FunApply(_,_) -> failwith "Function found"
+    | LitBool(_) | LitFloat(_) | LitInt(_) | LitStr(_) | VarRef(_) -> ()
+    | Binop(lexpr,_,rexpr) | For(_,lexpr,rexpr) -> verify_all [lexpr; rexpr]
+    | Uniop(_,expr) | ArrIdx(_,expr) | Throw(expr) | Assign(_,expr) -> verify_all [expr]
+    | Conditional(bexpr,texpr,fexpr) -> verify_all [bexpr; texpr; fexpr]
+    | Arr(exprs) | ArrMusic(exprs) | Block(exprs) | StructInit(_,exprs) -> verify_all exprs
+
 (* Note that includes have been processed and merged into exprs by this point *)
-let sast_of_ast (fundefs, externs, exprs, typedefs) = 
+let sast_of_ast (fundefs, externs, exprs, typedefs) =
+  (* ensure there are no function calls in typedefs *)
+  List.iter typedefs ~f:(fun (Ast.TypeDef(name,exprs)) ->
+    try List.iter exprs ~f:verify_no_fun_ast
+    with Failure(_) -> failwith ("Function call found in typedef "^name)
+  );
   (* make sure fundefs are unique *)
   let nfundefs = check_unique_functions fundefs externs in
   (* temporary env for evaluating tdefaults *)

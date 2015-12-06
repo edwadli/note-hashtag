@@ -208,8 +208,8 @@ let cast_of_sast (incls, fundefs, texprs, types) =
   let ssignatures = List.map cast_types
     ~f:(fun {sname=n; sargs=_} -> Cast.SigStruct(n)) in
   let fsignatures = cast_signatures fundefs in
-  let (texprs, globals) = strip_top_level texprs in
-  let main_expr = (Sast.Block(texprs @ [(Sast.LitInt(0),Ast.Int)]),Ast.Int) in
+  let (sexprs, globals) = strip_top_level texprs in
+  let main_expr = (Sast.Block(sexprs @ [(Sast.LitInt(0),Ast.Int)]),Ast.Int) in
   let all_funs = castfun_of_sastfun (Sast.FunDef("main",[],main_expr))::cast_fundefs in
   let verified_funs = verify_no_init all_funs in
   cast_incls, ssignatures@fsignatures, globals, cast_types, verified_funs
