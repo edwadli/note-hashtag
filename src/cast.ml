@@ -74,7 +74,10 @@ let rec string_of_type t =
   | String -> "std" ^ ns ^ "string"
   | Bool -> "bool"
   | Type(type_name) -> type_name
-  | Array(t) -> "std" ^ ns ^ "vector<" ^ string_of_type t ^ ">"
+  | Array(t) ->  let start = match t with
+      |Ast.Type(_) -> "struct "
+      |_ -> "" in
+      "std" ^ ns ^ "vector<" ^ start ^ string_of_type t ^ ">"
 
 let rec string_of_expr = function
   | LitUnit -> "LIT_UNIT"

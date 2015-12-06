@@ -58,7 +58,10 @@ let rec castx_of_sastx texpr =
       -> Cast.Idx(varname, castx_of_sastx expr)
 
     | Sast.Arr(exprs, ast_t) ->
-        let template_type = "vector<" ^ Cast.string_of_type(ast_t) ^ ">" in
+        let start = match ast_t with
+        |Ast.Type(_) -> "struct "
+        |_ -> "" in
+        let template_type = "vector<" ^ start ^ Cast.string_of_type(ast_t) ^ ">" in
         Cast.Call(Function("std", template_type), [Cast.InitList(List.map exprs ~f:(castx_of_sastx) )])
 
     | Sast.Block(exprs) ->
