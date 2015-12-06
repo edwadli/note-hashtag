@@ -1,0 +1,18 @@
+
+x = [1 2 3 4]
+
+y = x.(0)
+z = y$pitches.(0)
+Print (StringOfInt(z$rank))
+
+y = x.(1)
+z = y$pitches.(0)
+Print (StringOfInt(z$rank))
+
+y = x.(2)
+z = y$pitches.(0)
+Print (StringOfInt(z$rank))
+
+y = x.(3)
+z = y$pitches.(0)
+Print (StringOfInt(z$rank))
