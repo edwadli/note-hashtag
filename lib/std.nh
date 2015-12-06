@@ -44,13 +44,16 @@ type track = {
   time_sig = init time_signature
   chords = chord{}
   durations = float{}
+  // currently we can only assign a single volume to the track
+  // of dynamics control we lack
+  // yes, it's a simplicity hack
+  // but i'd like to hit the sack
+  volume = 1.0
 }
 
 type song = {
   tracks = track{}{}
-  // currently we can only assign a single volume to each track
-  // of dynamics control we lack
-  volumes = float{}{}
+  volumes = float{}
 }
 
 
