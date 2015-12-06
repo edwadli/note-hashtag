@@ -24,6 +24,8 @@ type unary_operator =
 
 type var_reference = string list
 
+type mutability = Mutable | Immutable
+
 type expr =
   | Binop of expr * binary_operator * expr
   | Uniop of unary_operator * expr
@@ -40,7 +42,7 @@ type expr =
   | Conditional of expr * expr * expr
   | For of string * expr * expr
   | Throw of expr
-  | Assign of var_reference * expr
+  | Assign of var_reference * expr * mutability
   | StructInit of string * expr list
 
 type fundef =
@@ -98,7 +100,9 @@ let rec string_of_expr e =
   | LitFloat(x) -> Float.to_string x
   | LitStr(x) -> x
   | VarRef(x) -> String.concat ~sep:"$" x
-  | Assign(x, y) -> String.concat ~sep:" " [ "("; string_of_expr (VarRef(x)); "="; string_of_expr y; ")" ]
+  | Assign(name, expr, mutability) ->
+      sprintf "( %s %s = %s )"
+        (if mutability = Immutable then "let" else "var") (string_of_expr (VarRef(name))) (string_of_expr expr)
   | StructInit(x, y) -> String.concat ~sep:" " [ x; string_of_exp_list y ]
   | FunApply(x, y) -> String.concat ~sep:" " [ x; "("; string_of_exp_list y; ")" ]
   | ArrIdx (x, y) -> String.concat ~sep:" " [ x; ".("; string_of_expr y; ")" ]

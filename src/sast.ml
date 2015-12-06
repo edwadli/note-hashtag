@@ -25,7 +25,7 @@ type expr_detail =
   | Conditional of expr_typed * expr_typed * expr_typed
   | For of new_variable_name * expr_typed * expr_typed
   | Exit of int
-  | Init of new_variable_name * expr_typed
+  | Init of new_variable_name * expr_typed * Ast.mutability
   | Assign of variable_name * expr_typed
   | Struct of type_name * ((string * expr_typed) list)
 
