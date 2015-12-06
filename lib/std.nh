@@ -46,6 +46,12 @@ type track = {
   durations = float{}
 }
 
+type song = {
+  tracks = track{}{}
+  // currently we can only assign a single volume to each track
+  volumes = float{}{}
+}
+
 /*
 fun Size l = (
   i = 0
@@ -68,7 +74,7 @@ fun SharpPitch pitch = ( pitch$offset = pitch$offset + 1; pitch )
 fun ChordOfChords c1 c2 = (
   c = chord{}
   for pitch in c1$pitches . c2$pitches
-    do if IsMember c pitch then () else (c = c . {pitch}; ())
+    do if IsMember c pitch then () else c = c . {pitch}
   c
 )
 */
@@ -87,8 +93,8 @@ fun ConcatTracks t1 t2 = (
 )
 
 
-key_signature = init key_signature
-time_signature = init time_signature
+key_sig = init key_signature
+time_sig = init time_signature
 tempo = 120
 
 /*
