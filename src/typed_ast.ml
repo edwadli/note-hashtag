@@ -84,7 +84,7 @@ let verify_list exprt =
     failwith("Empty list does not have type")
   else begin
     let first_t_val = return_list_type exprt in (match first_t_val with
-    |Ast.Type("pitch") -> Sast.Arr(exprt, Ast.Type("pitch")), Ast.Type("chord")
+    |Ast.Type("pitch") -> Sast.Arr(exprt, Ast.Type("pitch")), Ast.Array(Ast.Type("pitch"))
     |_ -> Sast.Arr(exprt, first_t_val), Ast.Array(first_t_val) ) 
   end
 
@@ -97,7 +97,7 @@ let verify_list_empty orig_t_val exprt =
       Sast.Arr(exprt, orig_t_val), Ast.Array(orig_t_val)
     else begin
       if orig_t_val = Ast.Type("pitch") then
-        Sast.Arr(exprt, Ast.Type("pitch")), Ast.Type("chord")
+        Sast.Arr(exprt, Ast.Type("pitch")), Ast.Array(Ast.Type("pitch"))
       else
         failwith("Types in Arr don't match t_option value")
       end

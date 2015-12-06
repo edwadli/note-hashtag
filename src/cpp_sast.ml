@@ -58,7 +58,7 @@ let rec castx_of_sastx texpr =
       -> Cast.Idx(varname, castx_of_sastx expr)
 
     | Sast.Arr(exprs, ast_t) ->
-        let template_type = "vector<" ^ string_of_type(ast_t) ^ ">" in
+        let template_type = "vector<" ^ Cast.string_of_type(ast_t) ^ ">" in
         Cast.Call(Function("std", template_type), [Cast.InitList(List.map exprs ~f:(castx_of_sastx) )])
 
     | Sast.Block(exprs) ->
@@ -115,15 +115,6 @@ let rec castx_of_sastx texpr =
       let fields = List.sort fields ~cmp:(fun (ln,_) (rn,_) -> compare ln rn) in
       let args = List.map fields ~f:(fun (_,expr) -> castx_of_sastx expr) in
       Cast.Call(Cast.Struct(typename), args)
-
-let string_of_type t = match t with
-  | Unit -> "unit"
-  | Int -> "int64_t"
-  | Float -> "float"
-  | String -> "string"
-  | Bool -> "bool"
-  | Type(name) -> name
-  | Array(t) -> "vector<" ^ string_of_type t ^ ">"
 
 let castfun_of_sastfun fundef =
   let Sast.FunDef(fname, fargs, texpr) = fundef in
