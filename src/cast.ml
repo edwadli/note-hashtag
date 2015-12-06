@@ -23,7 +23,6 @@ type expr =
   | Uniop of unary_operator * expr
   | Assign of var_reference * expr
   | Call of callable * expr list
-  | Exit of int
   | Noexpr
 
 and stmt =
@@ -100,7 +99,6 @@ let rec string_of_expr = function
   | Assign(v, e) -> string_of_expr (VarRef(v)) ^ " = " ^ string_of_expr e
   | Call(callexpr, args) -> string_of_callable callexpr ^ "(" ^
       String.concat ~sep:", " (List.map args ~f:string_of_expr) ^ ")"
-  | Exit(code) -> "exit(" ^ Int.to_string code ^ ")"
   | Noexpr -> ""
 
 and string_of_callable = function
