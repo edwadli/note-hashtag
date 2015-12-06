@@ -37,7 +37,7 @@ type expr =
   | FunApply of string * expr list
   | ArrIdx of var_reference * expr
   | Arr of expr list * t option
-  | ArrMusic of expr list * t option
+  | ArrMusic of expr list 
   | Block of expr list
   | Conditional of expr * expr * expr
   | For of string * expr * expr
@@ -112,7 +112,7 @@ let rec string_of_expr e =
   | FunApply(x, y) -> String.concat ~sep:" " [ x; "("; string_of_exp_list y; ")" ]
   | ArrIdx (x, y) -> String.concat ~sep:" " [ string_of_expr (VarRef(x)); ".("; string_of_expr y; ")" ]
   | Arr(x, t) -> String.concat ~sep:" " [ "{"; string_of_exp_list x; "}, "; string_of_type_op t ]
-  | ArrMusic(x, t) -> String.concat ~sep:" " [ "["; string_of_exp_list x; "], "; string_of_type_op t ]
+  | ArrMusic(x) -> String.concat ~sep:" " [ "["; string_of_exp_list x; "]"]
   | Throw(x) -> String.concat ~sep:" " ["Throw"; string_of_expr x]
 and string_of_exp_list l =
   match l with

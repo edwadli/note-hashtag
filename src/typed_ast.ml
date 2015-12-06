@@ -79,14 +79,12 @@ let return_list_type exprt =
   check_list_type same_type_list first_t_val;
   first_t_val (* to return the first type *)
 
-let verify_list exprt = 
-  if (List.length exprt = 0) then
-    failwith("Empty list does not have type")
-  else begin
-    let first_t_val = return_list_type exprt in (match first_t_val with
-    |Ast.Type("pitch") -> Sast.Arr(exprt, Ast.Type("pitch")), Ast.Array(Ast.Type("pitch"))
-    |_ -> Sast.Arr(exprt, first_t_val), Ast.Array(first_t_val) ) 
-  end
+let verify_list t exprt = 
+  let same_type = List.for_all exprt ~f:(fun (_, x) -> x = t) in
+  if(same_type) then
+    Sast.Arr(exprt, t), Ast.Array(t) 
+  else
+    failwith("Types in Arr don't match, expected: " ^ Ast.string_of_type(t))
 
 let verify_list_empty orig_t_val exprt = 
   match exprt with
@@ -158,27 +156,22 @@ let check_unique_functions fundefs externs =
       else nfundef :: defs
   )
 
-let chord_of sexpr =
-  begin match sexpr with
+let chord_of expr t =
+  begin match t with
     (* use function in standard library on chordable (chord, pitch, int) exprs *)
-    | (_, Ast.Int) -> Sast.FunApply(Sast.NhFunction("ChordOfPitch"),
-        [ Sast.FunApply(Sast.NhFunction("PitchOfInt"), [(Sast.LitInt(0),Ast.Int)]),
-          Ast.Type("pitch") ])
-    | (_, Ast.Type("pitch")) -> Sast.FunApply(Sast.NhFunction("ChordOfPitch"), [sexpr])
-    | (expr, Ast.Type("chord")) -> expr
+    | Ast.Int -> Ast.FunApply("ChordOfPitch",
+        [Ast.FunApply("PitchOfInt", [expr])])
+    | Ast.Type("pitch") -> Ast.FunApply("ChordOfPitch", [expr])
+    | Ast.Type("chord") -> expr
     | _ -> failwith "This expression is not chordable"
-  end, Ast.Type("chord")
+  end
 
-let rec convert_music_list exprt typ = (match typ with
-  |Ast.Float ->  let same_type_list = List.map exprt ~f:(fun(_, t) -> t) in
-                 ignore(check_list_type same_type_list typ);
-                 exprt
-  |_ -> (match exprt with
+let rec convert_music_list zipped =
+  match zipped with
     | [] -> []
-    | (expr, t) :: rest -> try (chord_of (expr, t)) :: (convert_music_list rest typ)
+    | (expr, (_, t)) :: rest -> try (chord_of expr t) :: (convert_music_list rest)
         with Failure(_) -> failwith("ArrMusic expects type of pitch, int or chord") 
-    )
- )
+ 
 
 let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
   let sast_expr_env = sast_expr ~seen_funs:seen_funs env tfuns_ref in
@@ -225,7 +218,7 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
 
       | Ast.Chord ->
           (* guarantee that chord binop is between two chords *)
-          Sast.FunApply(NhFunction("ChordOfChords"),[chord_of lexprt; chord_of rexprt]), Ast.Type("chord")
+          sast_expr_env (Ast.FunApply("ChordOfChords", [chord_of lexpr lt; chord_of rexpr rt]))
 
       | Ast.Octave ->
           let lexprt = match lt with
@@ -241,7 +234,7 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
             then let rexprt = match rt with
                 (* either chord or array of chord is valid for zip *)
                 | Ast.Array(Ast.Type("chord")) -> rexprt
-                | _ -> chord_of rexprt
+                | _ -> sast_expr_env (chord_of rexpr rt)
               in Sast.Binop(lexprt,op,rexprt), Ast.Type("track")
             else failwith "left side expression of zip must of float or array of float"
     end
@@ -373,16 +366,13 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
       | None -> LitUnit, Ast.Unit
     end
     
-  | Ast.VarRef(names) -> begin match names with
-    [] -> failwith "Internal error: VarRef(string list) had empty string list"
-    | name :: fields -> let (_,t) = try find_variable env.scope name
-                          with Not_found -> failwith ("Var "^name^" referenced before initalization.")
-                        in begin match fields with
-                          [] -> VarRef(names), t
-                          | _ -> let (_,(_,t)) = find_field env.types t fields
-                                  in VarRef(names), t
-                          end
-    end
+  | Ast.VarRef(names) ->
+      begin match names with
+      | [] -> failwith "Internal error: VarRef(string list) had empty string list"
+      | name :: fields ->
+          try Sast.VarRef(names), find_ref_type env name fields
+          with Not_found -> failwith (sprintf "%s referenced before initalization" (Ast.string_of_expr (VarRef(names))))
+      end
   
   | Conditional(condition, case_true, case_false) ->
       let (condition, condition_t) = sast_expr_env condition in
@@ -506,39 +496,35 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
 
   | Ast.Arr(expr_list, t_op) ->
       (* check if t_op is None or Sum *)
-      begin match t_op with
-      | None -> 
-        let exprt = List.map expr_list ~f:(sast_expr_env) in
-        verify_list exprt
-      (* t_op actually exists *)
-      | Some v ->
-        (* Assign t_val to t_op value in Arr *)
-        let orig_t_val = v in
-        let exprt = List.map expr_list ~f:(sast_expr_env) in
-        verify_list_empty orig_t_val exprt
+      let exprt = List.map expr_list ~f:(sast_expr_env) in
+      begin match exprt with
+      |(_, t) :: _ -> verify_list t exprt
+      |[] -> begin match t_op with  
+        | None -> failwith("Empty list does not have type")
+        (* t_op actually exists *)
+        | Some v ->
+          (* Assign t_val to t_op value in Arr *)
+          let orig_t_val = v in
+          verify_list_empty orig_t_val exprt
+        end
       end
 
-  | Ast.ArrMusic(expr_list, t_op) ->
-      begin match t_op with
-      | None ->
-          let exprt = List.map expr_list ~f:(sast_expr_env) in
-          if (List.length exprt = 0) then
-            failwith("Empty list does not have type")
-          else 
-            let (_, first_t_val) = List.hd_exn exprt in
-            let music_list = convert_music_list exprt first_t_val in
-            verify_list music_list
-      | Some v ->
-        let orig_t_val =
-          if v <> Ast.Float then
-            Ast.Type("chord")
-          else
-            Ast.Float
-        in
-        let exprt = List.map expr_list ~f:(sast_expr_env) in
-        let music_list = convert_music_list exprt orig_t_val in
-        verify_list_empty orig_t_val music_list
-    end
+  | Ast.ArrMusic(expr_list) ->
+      let exprt = List.map expr_list ~f:(sast_expr_env) in
+      begin match exprt with 
+      |[] -> failwith("Empty list does not have type")
+      |(_, first_t_val):: _ -> begin
+          match first_t_val with
+          |Ast.Float -> verify_list first_t_val exprt
+          |_ -> let zipped_expr_sexpr = match List.zip expr_list exprt with
+              |None -> failwith("Internal Error: Number of expressions don't match in zipped")
+              |Some(x) -> x
+            in
+            let music_list = convert_music_list zipped_expr_sexpr in
+            let typed_music_list = List.map music_list ~f:(sast_expr_env) in
+            verify_list (Ast.Type("chord")) typed_music_list
+        end
+      end
 
   |Ast.ArrIdx(id_var, expr) ->
     let (exp, t) = sast_expr env tfuns_ref expr in
@@ -629,7 +615,7 @@ let rec verify_no_fun_ast ast =
     | Binop(lexpr,_,rexpr) | For(_,lexpr,rexpr) -> verify_all [lexpr; rexpr]
     | Uniop(_,expr) | ArrIdx(_,expr) | Throw(expr) | Assign(_,expr,_) -> verify_all [expr]
     | Conditional(bexpr,texpr,fexpr) -> verify_all [bexpr; texpr; fexpr]
-    | Arr(exprs) | ArrMusic(exprs) | Block(exprs) | StructInit(_,exprs) -> verify_all exprs
+    | Arr(exprs,_) | ArrMusic(exprs) | Block(exprs) | StructInit(_,exprs) -> verify_all exprs
 
 (* Note that includes have been processed and merged into exprs by this point *)
 let sast_of_ast (fundefs, externs, exprs, typedefs) =

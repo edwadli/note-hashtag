@@ -176,7 +176,7 @@ non_apply:
 | var_ref { VarRef($1) }
 | LPAREN block RPAREN { $2 } /* we get unit () notation for free (see block) */
 | LBRACE stmt_list_plus RBRACE { Arr((List.rev $2), None) }
-| LBRACK stmt_list_plus RBRACK { ArrMusic((List.rev $2), None) }
+| LBRACK stmt_list_plus RBRACK { ArrMusic((List.rev $2)) }
 | lit { $1 }
 | empty_list  { $1 }
 

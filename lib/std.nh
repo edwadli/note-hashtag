@@ -34,8 +34,11 @@ type chord = {
   pitches = pitch{}
 }
 
-/*
+fun ChordOfPitch pitch = init chord { pitches = {pitch} }
+fun PitchOfInt i = init pitch { rank = i }
+fun AddPitchOctave pitch octaves = ( pitch$octave = pitch$octave + octaves; pitch )
 
+/*
 type track = {
   key_signature = init key_signature
   time_signature = init time_signature
@@ -55,9 +58,6 @@ fun IsMember l x = (
     do b = b || (item == x)
   b
 )
-fun ChordOfPitch pitch = init chord { pitches = [pitch] }
-fun PitchOfInt i = init pitch { rank = i }
-fun AddPitchOctave pitch octaves = ( pitch$octave = pitch$octave + octaves; pitch )
 fun FlatPitch pitch = ( pitch$offset = pitch$offset - 1; pitch )
 fun SharpPitch pitch = ( pitch$offset = pitch$offset + 1; pitch )
 fun ChordOfChords c1 c2 = (
@@ -79,8 +79,6 @@ fun ConcatTracks t1 t2 = {
   )
   else t1 //throw "Cannot concat tracks with different key or time signature"
 }
-
-
 */
 
 /*
