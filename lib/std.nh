@@ -49,10 +49,11 @@ type track = {
 type song = {
   tracks = track{}{}
   // currently we can only assign a single volume to each track
+  // of dynamics control we lack
   volumes = float{}{}
 }
 
-/*
+
 fun Size l = (
   i = 0
   for item in l do i = i + 1
@@ -60,24 +61,21 @@ fun Size l = (
 )
 
 fun IsMember l x = (
-  b = false
-  for item in l
-    do b = b || (item == x)
-  b
+  mem = false
+  for item in l do mem = (mem || (item == x))
+  mem
 )
-*/
+
 
 fun FlatPitch pitch = ( pitch$offset = pitch$offset - 1; pitch )
 fun SharpPitch pitch = ( pitch$offset = pitch$offset + 1; pitch )
 
-/*
 fun ChordOfChords c1 c2 = (
   c = chord{}
   for pitch in c1$pitches . c2$pitches
     do if IsMember c pitch then () else c = c . {pitch}
   c
 )
-*/
 
 fun Rest = init chord
 
@@ -92,13 +90,11 @@ fun ConcatTracks t1 t2 = (
   else (throw "Cannot concat tracks with different key or time signature"; t1)
 )
 
-/*
-
 key_sig = init key_signature
 time_sig = init time_signature
 tempo = 120
 
-
+/*
 
 fun Scale pitch_start pitch_end = (
   // TODO: interpolate between pitches
