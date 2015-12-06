@@ -98,7 +98,8 @@ let rec castx_of_sastx texpr =
 
     | Sast.Exit(code) ->
         let unit_ret = Cast.Expr(castx_of_sastx (Sast.LitUnit,Ast.Unit)) in
-        Cast.Call(Cast.LambdaRefCap([], Ast.Unit, [Cast.Expr(Cast.Exit(code)); unit_ret]), [])
+        let cast_exit = Cast.Call(Cast.Function("","exit"),[Cast.LitInt(code)]) in
+        Cast.Call(Cast.LambdaRefCap([], Ast.Unit, [Cast.Expr(cast_exit); unit_ret]), [])
 
     | Sast.Init(name, expr, _) ->
         let (_,t) = expr in Cast.DeclAssign((t, name), castx_of_sastx expr)
@@ -160,7 +161,7 @@ and verify_expr = function
         | Cast.LambdaRefCap(_,_,stmts) -> ignore(List.map stmts ~f:verify_no_init_stmt)
         | Cast.Method(_) | Cast.Function(_,_) | Cast.Struct(_) -> ()
       end
-  | Cast.LitUnit | Cast.Exit(_) | Cast.LitBool(_) | Cast.LitInt(_) | Cast.LitFloat(_) | Cast.LitStr(_)
+  | Cast.LitUnit | Cast.LitBool(_) | Cast.LitInt(_) | Cast.LitFloat(_) | Cast.LitStr(_)
   | Cast.InitList(_) | Cast.Decl(_) | Cast.VarRef(_) | Noexpr -> ()
 
 and verify_no_init_stmt = function
