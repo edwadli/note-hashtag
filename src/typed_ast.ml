@@ -250,13 +250,13 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
       
       | Ast.Sharp | Ast.Flat when t = Ast.Int || t = Ast.Type("pitch")
         -> Sast.Uniop(op, exprt), Ast.Type("pitch")
-      | Ast.Sharp -> let tpitch = Ast.Type("pitch") in
+      | Ast.Sharp ->
           let expr = match t with
             | Ast.Int -> Ast.FunApply("PitchOfInt", [expr])
             | Ast.Type("pitch") -> expr
             | _ -> failwith "sharp is only defined for int or pitch"
           in sast_expr_env (Ast.FunApply("SharpPitch", [expr]))
-      | Ast.Flat -> let tpitch = Ast.Type("pitch") in
+      | Ast.Flat ->
           let expr = match t with
             | Ast.Int -> Ast.FunApply("PitchOfInt", [expr])
             | Ast.Type("pitch") -> expr
