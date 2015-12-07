@@ -181,21 +181,12 @@ non_apply:
 | empty_list  { $1 }
 
 empty_list:
-| typename   braces_list  { let rec create_array typ = match typ with 
-                              |Array(t) -> Array(create_array t)
-                              |_ -> $1
-                            in
-                              Arr([], Some(create_array $2)) }
-| ID_VAR     braces_list  { let rec create_array typ = match typ with 
-                              |Array(t) -> Array(create_array t)
-                              |_ -> Type($1)
-                            in
-                              Arr([], Some(create_array $2))} 
+| typename   braces_list  { Arr( [], Some($2 $1)) }
+| ID_VAR     braces_list  { Arr( [], Some($2 (Type($1))))} 
 
-braces_list:
-|braces_list BRACES { (fun f -> Array(f)) $1 } 
-|BRACES             { Unit }
-
+braces_list: /* We might've gotten a little too excited about Church numerals... */
+| braces_list BRACES { (fun f t -> Array(f t)) $1 }
+| BRACES             { (fun t -> t) }
 
 sep_expr_sep:
 | sep_star expr sep_star { $2 }
