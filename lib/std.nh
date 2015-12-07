@@ -13,6 +13,9 @@ extern "support.hpp" "std" "to_string" fun StringOfInt int -> string
 
 extern "support.hpp" "std" "pow" fun Pow float float -> float
 
+extern "support.hpp" "nh_support" "shuffle" fun ShuffleInts int{} -> int{}
+extern "support.hpp" "nh_support" "shuffle" fun ShuffleFloats float{} -> float{}
+
 type key_signature = {
   scale = { 261.63 293.66 329.63 349.23 392.00 440.00 493.88 }
 }

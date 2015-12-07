@@ -114,7 +114,8 @@ typename:
 | TYPE_INT   { Int }
 | TYPE_FLOAT { Float }
 | TYPE_STR   { String }
-
+| ID_VAR     { Type($1) }
+| typename BRACES { Array($1) }
 
 block:
 | sep_list sep_star { Block(List.rev $1) } 
@@ -175,18 +176,7 @@ args_list:
 non_apply:
 | var_ref { VarRef($1) }
 | LPAREN block RPAREN { $2 } /* we get unit () notation for free (see block) */
-| LBRACE stmt_list_plus RBRACE { Arr((List.rev $2), None) }
-| LBRACK stmt_list_plus RBRACK { ArrMusic((List.rev $2)) }
 | lit { $1 }
-| empty_list  { $1 }
-
-empty_list:
-| typename   braces_list  { Arr( [], Some($2 $1)) }
-| ID_VAR     braces_list  { Arr( [], Some($2 (Type($1))))} 
-
-braces_list: /* We might've gotten a little too excited about Church numerals... */
-| braces_list BRACES { (fun f t -> Array(f t)) $1 }
-| BRACES             { (fun t -> t) }
 
 sep_expr_sep:
 | sep_star expr sep_star { $2 }
@@ -197,6 +187,12 @@ lit:
 | LIT_FLOAT        { LitFloat($1) }
 | LIT_STR          { LitStr($1) }
 | TILDE            { StructInit("chord", []) }
+| lit_array        { $1 }
+
+lit_array:
+| LBRACE stmt_list_plus RBRACE { Arr((List.rev $2), None) }
+| LBRACK stmt_list_plus RBRACK { ArrMusic((List.rev $2)) }
+| typename   BRACES  { Arr([], Some($1)) }
 
 arith:
 | MINUS expr %prec prec_unary_minus { Uniop(Neg, $2) }
