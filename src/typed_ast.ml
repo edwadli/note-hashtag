@@ -65,41 +65,6 @@ let replace_add_fun l item =
   l := item :: List.filter !l
     ~f:(fun (Sast.FunDef(n, tps, (_, _))) -> name <> n || tparams <> tps)
 
-let check_list_type same_type_list first_t_val =
-  (* check if all values in list have same type *)
-  let same_type = List.for_all same_type_list ~f:(fun x -> x = first_t_val) in
-  if same_type then
-    ()
-  else
-    failwith("Types in Arr don't match t_option value")
-
-let return_list_type exprt =
-  let same_type_list = List.map exprt ~f:(fun(_, t) -> t) in
-  let first_t_val = List.hd_exn same_type_list in
-  check_list_type same_type_list first_t_val;
-  first_t_val (* to return the first type *)
-
-let verify_list t exprt = 
-  let same_type = List.for_all exprt ~f:(fun (_, x) -> x = t) in
-  if(same_type) then
-    Sast.Arr(exprt, t), Ast.Array(t) 
-  else
-    failwith("Types in Arr don't match, expected: " ^ Ast.string_of_type(t))
-
-let verify_list_empty orig_t_val exprt = 
-  match exprt with
-  | [] -> Sast.Arr(exprt, orig_t_val), Ast.Array(orig_t_val)
-  | _ ->
-    let first_t_val = return_list_type exprt in
-    if(orig_t_val = first_t_val) then
-      Sast.Arr(exprt, orig_t_val), Ast.Array(orig_t_val)
-    else begin
-      if orig_t_val = Ast.Type("pitch") then
-        Sast.Arr(exprt, Ast.Type("pitch")), Ast.Array(Ast.Type("pitch"))
-      else
-        failwith("Types in Arr don't match t_option value")
-      end
-
 let rec find_variable (scope: symbol_table) name =
   match List.find scope.variables ~f:(fun (s, _, _) -> s = name) with
   | None -> begin
@@ -159,19 +124,11 @@ let check_unique_functions fundefs externs =
 let chord_of expr t =
   begin match t with
     (* use function in standard library on chordable (chord, pitch, int) exprs *)
-    | Ast.Int -> Ast.FunApply("ChordOfPitch",
-        [Ast.FunApply("PitchOfInt", [expr])])
+    | Ast.Int -> Ast.FunApply("ChordOfPitch", [Ast.FunApply("PitchOfInt", [expr])])
     | Ast.Type("pitch") -> Ast.FunApply("ChordOfPitch", [expr])
     | Ast.Type("chord") -> expr
     | _ -> failwith "This expression is not chordable"
   end
-
-let rec convert_music_list zipped =
-  match zipped with
-    | [] -> []
-    | (expr, (_, t)) :: rest -> try (chord_of expr t) :: (convert_music_list rest)
-        with Failure(_) -> failwith("ArrMusic expects type of pitch, int or chord") 
- 
 
 let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
   let sast_expr_env = sast_expr ~seen_funs:seen_funs ~force:force env tfuns_ref in
@@ -508,39 +465,50 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
       in
       Struct(typename, init_exprs), Ast.Type(typename)
 
-  | Ast.Arr(expr_list, t_op) ->
-      (* check if t_op is None or Sum *)
-      let exprt = List.map expr_list ~f:(sast_expr_env) in
-      begin match exprt with
-      |(_, t) :: _ -> verify_list t exprt
-      |[] -> begin match t_op with  
-        | None -> failwith("Empty list does not have type")
-        (* t_op actually exists *)
-        | Some v ->
-          (* Assign t_val to t_op value in Arr *)
-          let orig_t_val = v in
-          verify_list_empty orig_t_val exprt
-        end
-      end
+  | Ast.Arr(exprs, Some(t)) ->
+      let texprs = List.map exprs ~f:sast_expr_env in
+      let types_same = List.for_all texprs ~f:(fun (_, item_t) -> t = item_t) in
+      if not types_same then failwith (sprintf "Array has inconsistent types (expected %s)" (Ast.string_of_type t)) else
+      Sast.Arr(texprs, t), Ast.Array(t)
+  
+  | Ast.Arr(exprs, None) ->
+      let infer_t = (
+        match exprs with
+        | [] -> failwith "Internal error: parser gave untyped empty array"
+        | head :: _ -> let (_, t) = sast_expr_env head in t
+      ) in
+      sast_expr_env (Ast.Arr(exprs, Some(infer_t)))
+  
+  | Ast.ArrMusic(exprs) ->
+      (match exprs with
+        | [] -> failwith "Internal error: parser gave untyped empty array"
+        | head :: _ ->
+            (* Infer the type of the array *)
+            let (_, infer_t) = sast_expr_env head in
+            match infer_t with
+            (* Durations (aka float) are handled normally *)
+            | Ast.Float -> sast_expr_env (Ast.Arr(exprs, Some(infer_t)))
+            
+            (* For int, pitch, or chord, promote everything to chord *)
+            | Ast.Int | Ast.Type("pitch") | Ast.Type("chord") ->
+                (* First pass: get original types *)
+                let texprs = List.map exprs ~f:(fun expr -> let (_, t) = sast_expr_env expr in (expr, t)) in
+                (* Second pass: promote everything to chord *)
+                let texprs = List.map texprs ~f:(fun (expr, item_t) ->
+                  let expr = try chord_of expr item_t with Failure(_) ->
+                      failwith (sprintf "Music array has inconsistent item of type %s (expected %s)"
+                        (Ast.string_of_type item_t) (Ast.string_of_type infer_t))
+                  in 
+                  sast_expr_env expr
+                ) in
+                let t = Ast.Type("chord") in
+                Sast.Arr(texprs, t), Ast.Array(t)
+                
+            | _ -> failwith (sprintf "Cannot use music array literal with type %s" (Ast.string_of_type infer_t))
+            
+      )
 
-  | Ast.ArrMusic(expr_list) ->
-      let exprt = List.map expr_list ~f:(sast_expr_env) in
-      begin match exprt with 
-      |[] -> failwith("Empty list does not have type")
-      |(_, first_t_val):: _ -> begin
-          match first_t_val with
-          |Ast.Float -> verify_list first_t_val exprt
-          |_ -> let zipped_expr_sexpr = match List.zip expr_list exprt with
-              |None -> failwith("Internal Error: Number of expressions don't match in zipped")
-              |Some(x) -> x
-            in
-            let music_list = convert_music_list zipped_expr_sexpr in
-            let typed_music_list = List.map music_list ~f:(sast_expr_env) in
-            verify_list (Ast.Type("chord")) typed_music_list
-        end
-      end
-
-  |Ast.ArrIdx(id_var, expr) ->
+  | Ast.ArrIdx(id_var, expr) ->
     let (exp, t) = sast_expr env tfuns_ref expr in
       if t <> Ast.Int then
         failwith(sprintf "Array Index must be an integer (%s found)" (Ast.string_of_type t))
