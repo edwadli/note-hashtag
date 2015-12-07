@@ -1,10 +1,13 @@
+#ifndef __support_hpp__
+#define __support_hpp__
+
 #include <cmath>
 #include <iostream>
 #include <string>
 #include <vector>
 
 typedef int unit_t;
-const unit_t LIT_UNIT = 0;
+extern const unit_t LIT_UNIT;
 
 namespace nh_support
 {
@@ -21,3 +24,5 @@ namespace nh_support
     return result;
   }
 }
+
+#endif
