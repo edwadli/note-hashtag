@@ -1,4 +1,10 @@
-x = int{}
-y = float{}
-z = string{}
-a = unit{}
+a1 = int{}
+a2 = float{}
+a3 = string{}
+a4 = unit{}
+a5 = bool{}
+
+type t = {
+  a = "hi"
+}
+a6 = t{}

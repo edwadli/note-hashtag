@@ -1,4 +1,21 @@
-x = {1 2 3}
-PrintEndline(StringOfInt(x.(0)))
-PrintEndline(StringOfInt(x.(1)))
-PrintEndline(StringOfInt(x.(2)))
+x = { 1 2 3 }
+PrintEndline (StringOfInt x.(0))
+PrintEndline (StringOfInt x.(1))
+PrintEndline (StringOfInt x.(2))
+
+y = { 4.0 4.5 5.0 }
+PrintEndline (StringOfFloat y.(0))
+PrintEndline (StringOfFloat y.(1))
+PrintEndline (StringOfFloat y.(2))
+
+z = { "6 str" "7 str" "8 str" }
+PrintEndline z.(0)
+PrintEndline z.(1)
+PrintEndline z.(2)
+
+u = { () () () }
+if u.(0) == () then PrintEndline "array of unit OK" else PrintEndline ":("
+
+type t = {
+  a = "hi"
+}
