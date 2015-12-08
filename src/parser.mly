@@ -147,7 +147,6 @@ expr:
 | expr COMMA expr {Binop($1, Chord, $3)}
 | asn_toplevel { $1 }
 | expr CONCAT expr { Binop($1, Concat, $3) }
-| var_ref DOT_LPAREN expr RPAREN { ArrIdx($1, $3) }
 | control { $1 }
 | THROW non_apply { Throw($2) }
 
@@ -175,6 +174,7 @@ args_list:
 
 non_apply:
 | var_ref { VarRef($1) }
+| var_ref DOT_LPAREN expr RPAREN { ArrIdx($1, $3) }
 | LPAREN block RPAREN { $2 } /* we get unit () notation for free (see block) */
 | lit { $1 }
 
