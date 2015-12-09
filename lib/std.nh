@@ -37,12 +37,11 @@ type chord = {
 fun ChordOfPitch pitch = init chord { pitches = {pitch} }
 
 fun PitchOfInt i = (
-  p = init pitch { rank = i };
-  if i < 0 || i > 7 then( 
-    throw "Pitch must be between 1-7";
-    p)
+  if (i < 0) || (i > (Size key_sig$scale)) then (
+    throw "Could not construct pitch from int";
+    init pitch)
   else
-    p
+    init pitch { rank = i }
 )
 
 fun AddPitchOctave pitch octaves = ( pitch$octave = pitch$octave + octaves; pitch )
