@@ -638,4 +638,4 @@ let sast_of_ast (fundefs, externs, exprs, typedefs) =
   } in
   let sexpr = sast_expr env tfuns_ref (Ast.Block(exprs)) in
   let cpp_includes = List.dedup (List.map externs ~f:(fun (ExternFunDecl(header, _, _, _, _, _)) -> header)) in
-  cpp_includes, !tfuns_ref, [sexpr], env.types
+  cpp_includes, !tfuns_ref, sexpr, env.types

@@ -4,11 +4,12 @@ open Ast
 open Cast
 open Log
 open Noincl_ast
+open Optimize_manager
 open Typed_ast
 open Cpp_sast
 open Version
 
-(* string -> Ast -> Noincl_ast -> Typed_ast -> Code_gen *)
+(* string -> Ast -> Noincl_ast -> Typed_ast -> Optimize_manager -> Cast *)
 let do_compile src_path bin_path keep_ast keep_il =
   let ast = Noincl_ast.ast_of_filename src_path in
   if keep_ast then
@@ -16,8 +17,9 @@ let do_compile src_path bin_path keep_ast keep_il =
     and (fdefs, externs, exprs, tdefs) = ast in
     Out_channel.write_all ast_path ~data:(string_of_prog_struc ([], fdefs, externs, exprs, tdefs))
   else ();
-  let sast = sast_of_ast ast in
-  let cast = cast_of_sast sast in
+  let (incls, funs, sast, tdefaults) = sast_of_ast ast in
+  let sast = optimized_of_sast sast in
+  let cast = cast_of_sast (incls, funs, sast, tdefaults) in
   let cpp = string_of_program cast in
   if keep_il then
     let il_path = bin_path ^ ".cpp" in
