@@ -38,7 +38,15 @@ type chord = {
 }
 
 fun ChordOfPitch pitch = init chord { pitches = {pitch} }
-fun PitchOfInt i = init pitch { rank = i }
+
+fun PitchOfInt i = (
+  if (i < 0) || (i > (Size key_sig$scale)) then (
+    throw "Could not construct pitch from int";
+    init pitch)
+  else
+    init pitch { rank = i }
+)
+
 fun AddPitchOctave pitch octaves = ( pitch$octave = pitch$octave + octaves; pitch )
 
 
@@ -72,6 +80,13 @@ fun IsMember l x = (
   mem
 )
 
+fun Range i j = (
+  if j < i then
+    int{}
+  else
+    {i} . (Range (i+1) j)
+)
+
 
 fun FlatPitch pitch = ( pitch$offset = pitch$offset - 1; pitch )
 fun SharpPitch pitch = ( pitch$offset = pitch$offset + 1; pitch )
@@ -103,11 +118,23 @@ tempo = 120
 /*
 
 fun Scale pitch_start pitch_end = (
-  // TODO: interpolate between pitches
+  c = chord{}
+  start = pitch_start$rank
+  end = pitch_end$rank
+  x = Range start end
+  if start < end then (
+    for x in Range start end do 
+      c = c . [x]
+  )
+  else (
+    for x in Range end start do
+      c = [x] . c
+  )
+  c
 )
 
-
 fun Arpeggio chord = (
+  p = chord$pitches
   // TODO: unpack chord into music array
 )
 

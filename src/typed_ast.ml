@@ -314,7 +314,7 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
                       extern_functions=env.extern_functions; types=env.types; }
                 | _ -> env
               end
-        in let texpr = sast_expr ~seen_funs:seen_funs env tfuns_ref expr in
+        in let texpr = sast_expr ~seen_funs:seen_funs ~force:force env tfuns_ref expr in
         (texpr :: texprs, env)
       )
     in
