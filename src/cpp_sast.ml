@@ -130,6 +130,42 @@ let castfun_of_sastfun fundef =
     body = [ Cast.Return (castx_of_sastx (Sast.Block([texpr]),return_type)) ];
   }
 
+let struct_equal_fun fields = 
+  (* makes a condition for each field, "and"-ing the result *)
+  let b = Cast.LitBool(true) in
+  let conds = List.fold_left fields ~init:b ~f:(fun b (name, _) ->
+    Cast.Binop(b, Cast.And, Cast.Binop(Cast.VarRef(["lhs";name]), Cast.Equal, Cast.VarRef(["rhs";name]))))
+  in
+  Cast.Block([Cast.Return(conds)])
+
+let nequality_fun (Sast.TDefault(name, _)) = 
+  let fname = "operator!=" in
+  let fargs = [(Ast.Type(name), "lhs"); (Ast.Type(name), "rhs")] in
+  let treturn = Ast.Bool in
+  let body = [Cast.Block([Cast.Return(Cast.Uniop(Cast.Not, 
+                  Cast.Call(Cast.Function("","operator=="),
+                  [Cast.VarRef(["lhs"]); Cast.VarRef(["rhs"])])))])] in
+  {
+    fnamespace = "";
+    fname = fname;
+    fargs = fargs;
+    treturn = treturn;
+    body = body;
+  }
+
+let equality_fun (Sast.TDefault(name, fields)) = 
+  let fname = "operator==" in
+  let fargs = [(Ast.Type(name), "lhs"); (Ast.Type(name), "rhs")] in
+  let treturn = Ast.Bool in
+  let body = [ struct_equal_fun(fields)] in
+  {
+    fnamespace = "";
+    fname = fname;
+    fargs = fargs;
+    treturn = treturn;
+    body = body;
+  }
+
 let casttype_of_sasttype (Sast.TDefault(name, fields)) =
   let fields = List.sort fields ~cmp:(fun (ln,_) (rn,_) -> compare ln rn) in
   let sargs = List.map fields ~f:(fun (n, (_,t)) -> (t,n)) in
@@ -215,5 +251,8 @@ let cast_of_sast (incls, fundefs, texprs, types) =
   let (sexprs, globals) = strip_top_level texprs in
   let main_expr = (Sast.Block(sexprs @ [(Sast.LitInt(0),Ast.Int)]),Ast.Int) in
   let all_funs = castfun_of_sastfun (Sast.FunDef("main",[],main_expr))::cast_fundefs in
+  let typedef_equality_funs = List.map types ~f:(equality_fun) in 
+  let typedef_nequality_funs = List.map types ~f:(nequality_fun) in 
+  let all_funs = typedef_equality_funs @ typedef_nequality_funs @ all_funs in
   let verified_funs = verify_no_init all_funs in
   cast_incls, ssignatures@fsignatures, globals, cast_types, verified_funs

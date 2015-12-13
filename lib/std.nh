@@ -115,8 +115,6 @@ key_sig = init key_signature
 time_sig = init time_signature
 tempo = 120
 
-/*
-
 fun Scale pitch_start pitch_end = (
   c = chord{}
   start = pitch_start$rank
@@ -132,6 +130,8 @@ fun Scale pitch_start pitch_end = (
   )
   c
 )
+
+/*
 
 fun Arpeggio chord = (
   p = chord$pitches

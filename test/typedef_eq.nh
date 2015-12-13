@@ -1,0 +1,20 @@
+type big = {
+  afdf = "hi"
+  fdfd = "bye"
+}
+
+x = init big
+y = init big { afdf = "hello"; fdfd = "goodbye" }
+z = init big
+if x == y then
+  PrintEndline "x=y"
+else
+  PrintEndline "x!=y"
+if x == z then
+  PrintEndline "x=z"
+else
+  PrintEndline "x!=z"
+if y != z then
+  PrintEndline "y!=z"
+else
+  PrintEndline "y=z"
