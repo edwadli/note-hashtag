@@ -13,7 +13,9 @@ LDLIBS  = -lstdc++ -lstk -lm
 .PHONY: default
 default: twinkle
 
-twinkle: twinkle.o
+twinkle: twinkle.o music_utils.o
+
+music_utils.o: music_utils.cpp music_utils.hpp
 
 .PHONY: clean
 clean:
