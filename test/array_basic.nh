@@ -16,6 +16,9 @@ PrintEndline z.(2)
 u = { () () () }
 if u.(0) == () then PrintEndline "array of unit OK" else PrintEndline ":("
 
-type t = {
+type ty = {
   a = "hi"
 }
+ta = { (init ty) (init ty) }
+ti = ta.(0)
+PrintEndline ti$a
