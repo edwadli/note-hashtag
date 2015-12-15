@@ -141,7 +141,6 @@ expr:
 | arith     { $1 }
 | bool      { $1 }
 | music     { $1 }
-| expr OCTAVE expr {Binop($1, Octave, $3)}
 | OCTAVE non_apply non_apply {Binop($2, Octave, $3)}
 | expr COLON expr {Binop($1, Zip, $3)}
 | expr COMMA expr {Binop($1, Chord, $3)}
@@ -177,6 +176,7 @@ non_apply:
 | var_ref DOT_LPAREN expr RPAREN { ArrIdx($1, $3) }
 | LPAREN block RPAREN { $2 } /* we get unit () notation for free (see block) */
 | lit { $1 }
+| non_apply OCTAVE non_apply { Binop($1, Octave, $3) }
 
 sep_expr_sep:
 | sep_star expr sep_star { $2 }
