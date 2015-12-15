@@ -1,2 +1,4 @@
 x = Range 1 3
 for i in x do PrintEndline (StringOfInt i)
+
+if Range 1 1 == int{} then PrintEndline "empty range" else PrintEndline "you sucks"
