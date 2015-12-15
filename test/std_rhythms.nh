@@ -1,0 +1,8 @@
+p = [1 5 6 7 1]
+r = [1.0 2.0 1.0 0.5 2.2]
+t = init track{chords = p; durations = r}
+out_r = Rhythms t
+if out_r == r then
+  PrintEndline "Rhythms works"
+else
+  PrintEndline "Rhythms doesn't work"

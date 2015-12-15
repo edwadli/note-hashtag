@@ -1,0 +1,14 @@
+p1 = [1 5 6 7 1]
+r1 = [1.0 2.0 1.0 0.5 2.2]
+t1 = init track{chords = p1; durations = r1}
+p2 = [1 2 3 4 5]
+r2 = [1.0 2.0 3.0 4.0 5.0]
+t2 = init track{chords = p2; durations = r2}
+
+s = Sequential {t1 t2}
+s_track = s$tracks
+s_first_track = s_track.(0)
+if s_first_track == {t1  t2} then
+  PrintEndline "Sequential Tracks Work"
+else
+  PrintEndline "Sequential Tracks Don't Work"
