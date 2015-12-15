@@ -1,0 +1,16 @@
+fun Size l = (
+  i = 0
+  for item in l do i = i + 1
+  i
+)
+
+fun AppendCopy count list = (
+    
+)
+
+fun Pop list = (
+    
+)
+
+// returns an array of all ints in [low, high)
+fun Range low high = if high <= low then int{} else { low } . Range (low + 1) high
