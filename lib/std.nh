@@ -71,10 +71,10 @@ fun FlatPitch pitch = ( pitch$offset = pitch$offset - 1; pitch )
 fun SharpPitch pitch = ( pitch$offset = pitch$offset + 1; pitch )
 
 fun ChordOfChords c1 c2 = (
-  c = chord{}
+  c = pitch{}
   for pitch in c1$pitches . c2$pitches
     do if IsMember c pitch then () else c = c . {pitch}
-  c
+  init chord { pitches = c }
 )
 
 fun Rest = init chord
