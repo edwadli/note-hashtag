@@ -10,7 +10,7 @@ open Version
 
 (* string -> Ast -> Noincl_ast -> Typed_ast -> Code_gen *)
 let do_compile src_path bin_path keep_ast keep_il =
-  let ast = noinclu_ast src_path in
+  let ast = Noincl_ast.ast_of_filename src_path in
   if keep_ast then
     let ast_path = bin_path ^ ".ast"
     and (fdefs, externs, exprs, tdefs) = ast in
@@ -37,7 +37,6 @@ let command =
     ~readme:(fun () -> "For more information, visit https://github.com/el2724/note-hashtag")
     Command.Spec.(
       empty
-      (*+> anon (maybe ("filename" %: string))*)
       +> flag "-A" no_arg ~doc:" output internal representation (syntax tree)"
       +> flag "-c" (optional string) ~doc:"file.nh compile the specified file"
       +> flag "-o" (optional_with_default "a.out" string) ~doc:"file write output to the specified file"

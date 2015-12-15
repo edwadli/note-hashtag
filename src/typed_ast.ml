@@ -180,13 +180,14 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
 
       | Ast.Octave ->
           let lexpr = match lt with
-            | Ast.Type("pitch") -> lexpr
+            | Ast.Type("pitch") | Ast.Array(Ast.Type("chord")) -> lexpr
             | Ast.Int -> Ast.FunApply("PitchOfInt", [lexpr])
-            | _ -> failwith "octave only defined for pitch or int on left side"
+            | _ -> failwith "octave only defined for pitch or int or chord list on left side"
           in begin match rt with
+            | Ast.Int when lt = Ast.Array(Ast.Type("chord")) ->
+                sast_expr_env (Ast.FunApply("OctaveChordList", [rexpr; lexpr]))
             | Ast.Int -> sast_expr_env (Ast.FunApply("AddPitchOctave", [lexpr;rexpr]))
-            | Ast.Array(_) -> sast_expr_env (Ast.FunApply("OctaveChordList", [rexpr]))
-            | _ -> failwith "octave only defined for int or array on right side"
+            | _ -> failwith "octave only defined for int on right side"
           end
 
       | Ast.Zip ->

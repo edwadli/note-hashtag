@@ -6,8 +6,10 @@
 	<array>
 		<string>nh</string>
 	</array>
+	
 	<key>name</key>
 	<string>Note Hashtag</string>
+	
 	<key>patterns</key>
 	<array>
 		<dict>
@@ -17,6 +19,12 @@
 			<string>//.*</string>
 			<key>name</key>
 			<string>comment.line.double-slash.nh</string>
+		</dict>
+		<dict>
+			<key>comment</key>
+			<string>Block Comments</string>
+			<key>include</key>
+			<string>#multi_line_comment</string>
 		</dict>
 		<dict>
 			<key>comment</key>
@@ -147,8 +155,32 @@
 			<string>keyword.operator.other.nh</string>
 		</dict>
 	</array>
+	
+    <key>repository</key> 
+    <dict>
+    	<!-- Based on https://github.com/tijn/sublime-waxeye/commit/54cfd17ee17569f8cdbd6f0c15adea4b2a19525b -->
+        <key>multi_line_comment</key>
+        <dict>
+            <key>begin</key>
+            <string>\/\*</string>
+            <key>end</key>
+            <string>\*\/</string>
+            <key>name</key>
+            <string>comment.block.nh</string>
+            <key>patterns</key>
+            <array>
+                <dict>
+                    <key>include</key>
+                    <!-- recurse to support nested comments -->
+                    <string>#multi_line_comment</string>
+                </dict>
+            </array>
+        </dict>
+    </dict>
+	
 	<key>scopeName</key>
 	<string>source.nh</string>
+	
 	<key>uuid</key>
 	<string>7f6b19e8-b940-426b-b77b-a2593befdc39</string>
 </dict>

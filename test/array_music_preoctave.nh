@@ -1,5 +1,5 @@
 
-@3[1 2 3]
+things = @3[1 2 3]
 
 for c in things do (
   p = c$pitches.(0);

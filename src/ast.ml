@@ -79,7 +79,7 @@ let string_of_op o =
   | Mul -> "*"
   | Div -> "/"
   | Mod -> "%"
-  | Eq  -> "="
+  | Eq  -> "=="
   | Neq -> "!="
   | Lt  -> "<"
   | Lte -> "<="

@@ -141,7 +141,7 @@ expr:
 | arith     { $1 }
 | bool      { $1 }
 | music     { $1 }
-| OCTAVE non_apply non_apply {Binop($2, Octave, $3)}
+| OCTAVE non_apply non_apply {Binop($3, Octave, $2)}
 | expr COLON expr {Binop($1, Zip, $3)}
 | asn_toplevel { $1 }
 | expr CONCAT expr { Binop($1, Concat, $3) }

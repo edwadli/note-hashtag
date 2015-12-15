@@ -1,5 +1,1 @@
-// returns an array of all ints in [low, high)
-fun Range low high = if high <= low
-	then int{}
-	else { low } . Range (low+1) high
-
+extern "support.hpp" "std" "pow" fun Pow float float -> float

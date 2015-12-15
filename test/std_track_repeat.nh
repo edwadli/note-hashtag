@@ -1,0 +1,12 @@
+p = [4 1 2 3 4]
+r = [1.0 2.0 3.0 4.0 5.0]
+t = init track{chords = p; durations = r}
+t1 = Repeat 2 t
+p2 = [4 1 2 3 4 4 1 2 3 4]
+r2 = [1.0 2.0 3.0 4.0 5.0 1.0 2.0 3.0 4.0 5.0]
+t2 = init track{chords = p2; durations = r2}
+
+if t1 == t2 then
+  PrintEndline "Track Repeat Works"
+else
+  PrintEndline "Track Repeat Doesn't Work"
