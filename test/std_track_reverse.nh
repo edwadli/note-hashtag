@@ -1,0 +1,12 @@
+p = [4 1 2 3 4]
+r = [1.0 2.0 3.0 4.0 5.0]
+t = init track{chords = p; durations = r}
+p2 = [4 3 2 1 4]
+r2 = [5.0 4.0 3.0 2.0 1.0]
+t2 = init track{chords = p2; durations = r2}
+t3 = Reverse t
+
+if t2 == t3 then
+  PrintEndline "Track Reverse Works"
+else
+  PrintEndline "Track Reverse Doesn't Work"

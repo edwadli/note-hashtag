@@ -41,7 +41,46 @@ fun PitchOfInt i = (
     init pitch { rank = i }
 )
 
-fun AddPitchOctave pitch octaves = ( pitch$octave = pitch$octave + octaves; pitch )
+fun AddPitchOctave p octaves = ( p$octave = p$octave + octaves; p)
+
+fun AddPitchNum num p = (
+
+  r = p$rank + num
+  oct = 0
+  size = Size key_sig$scale
+  if r > size then (
+    oct = r/size
+    r = ((r-1) % size)
+    r = r + 1 //edge case for r = 7
+  )
+  else
+    ()
+  init pitch{rank = r; octave = (oct + p$octave); offset = p$offset}
+)
+
+fun AddChordNum num ch = (
+  out_pitch = pitch{}
+  for p in ch$pitches do
+    out_pitch = out_pitch . {(AddPitchNum num p)}
+  init chord{pitches = out_pitch}
+)
+
+fun PrintChord ch = (
+  size = Size ch
+  for c in ch do (
+    x = c$pitches
+    for p in x do
+      Print (StringOfInt p$rank)
+    Print "\n"
+  )
+)
+
+fun PrintRhythms rh = (
+  size = Size rh
+  for r in rh do (
+    Print (StringOfFloat r)
+  )
+)
 
 
 type track = {
@@ -65,6 +104,18 @@ fun IsMember l x = (
   mem = false
   for item in l do mem = (mem || (item == x))
   mem
+)
+
+fun Reverse_List l = (
+  size = Size l
+  if size < 2 then
+    l
+  else (
+    out = [(l.(size-1))];
+    for i in Range 2 (size+1) do
+      out = out . [l.(size - i)]
+    out
+  ) 
 )
 
 fun FlatPitch pitch = ( pitch$offset = pitch$offset - 1; pitch )
@@ -109,65 +160,96 @@ fun Scale pitch_start pitch_end = (
   c
 )
 
-/*
-
 fun Arpeggio chord = (
-  p = chord$pitches
-  // TODO: unpack chord into music array
+  chord$pitches
 )
-
 
 fun Rhythms track = (
-  // TODO: get rhythm from track
+  track$durations
 )
-
 
 fun Chords track = (
-  // TODO: get chords from track
+  track$chords
 )
 
-
+/*
 fun Parallel tracks = (
   // TODO: return song object with tracks aligned in parallel
 )
+*/
 
-
-fun Sequential tracks = (
-  // TODO: return song object with tracks aligned sequentially
+fun Sequential t = (
+  init song { tracks = {t} }
 )
 
 fun Length track = (
-  // TODO: return length of track in terms of duration
+  length = 0.0
+  for d in track$durations do length = length + d
+  length
 )
 
-fun Extend length track = (
-  // TODO: repeat track for up to length duration
+fun Extend length tr = (
+  track_length = Length tr
+  repeat = IntOfFloat (length/track_length)
+  pad = [(length - (FloatOfInt(repeat) * track_length))]
+  i = 0
+  out_chord = chord{}
+  out_dur = float{}
+  for i in Range 0 repeat do (
+    out_chord = out_chord . t$chords
+    out_dur = out_dur . t$durations)
+  pad_chord = chord{} 
+  if pad.(0) != 0.000000 then(
+    out_chord = out_chord . pad_chord
+    out_dur = out_dur . pad)
+  else
+    ()
+  init track{time_sig = tr$time_sig; key_sig = tr$key_sig;
+             chords = out_chord; durations = out_dur}
+             //want to zip in future
 )
 
-fun StartWith track base_track = (
-  
+fun StartWith tr base_track = (
+  if((tr$key_sig != base_track$key_sig) || (tr$time_sig != base_track$time_sig)) then
+    (throw "Cannot concat tracks with different key or time signature"; tr)
+  else
+    base_track . tr
 )
 
 fun EndWith track base_track = (
-
+  StartWith base_track track
 )
 
-fun Reverse track = (
-
+fun Reverse tr = (
+  init track{time_sig = tr$time_sig; key_sig = tr$key_sig;
+  chords = (Reverse_List tr$chords); durations = (Reverse_List tr$durations)}
 )
 
-fun Relative shift track = (
-
+fun Octave_Chord_List shift chord = (
+  rel_chords = chord{}
+  for c in chord do
+    rel_chords . (AddChordNum c shift)
+  rel_chords
 )
 
-fun Octave shift track = (
-
+fun Relative shift tr = (
+  rel_chords = chord{}
+  for c in tr$chords do
+    rel_chords = rel_chords . {(AddChordNum shift c)}
+  init track{time_sig = tr$time_sig; key_sig = tr$key_sig;
+            chords = rel_chords; durations = tr$durations;}
 )
 
-fun Repeat times track = (
+fun Octave shift tr = (
+  Relative (shift*(Size key_sig$scale)) tr
+)
 
+fun Repeat times tr = (
+  if times <= 1 then
+    tr
+  else
+    tr . Repeat (times - 1) tr
 )
 
 // TODO: volume mix functions for song objects
 
-*/

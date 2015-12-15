@@ -1,0 +1,10 @@
+p = [4 1 2 3 4]
+ra = [1.0 2.0 3.0 4.0 5.0]
+t = init track{chords = p; durations = ra}
+t3 = Octave 2 t
+
+y = t3$chords.(0)
+z = y$pitches.(0)
+a = z$octave
+
+PrintEndline (StringOfInt (a))
