@@ -1,0 +1,8 @@
+pitch_start = init pitch { rank = 1}
+pitch_end = init pitch { rank = 7 }
+out = Scale pitch_start pitch_end
+test = [1 2 3 4 5 6 7]
+if test == out then
+  PrintEndline "Scale works"
+else
+  PrintEndline "Scale fails"
