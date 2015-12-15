@@ -11,8 +11,8 @@ twinkle_harmony = Relative 3 twinkle_melody
 // supporting line
 base = eighth:[ 1 5 3 5 ]
 rise = eighth:[ 1 6 4 6 ]
-fall = eighth:[ 7@-1  5 2 5 ]
-bottom = eighth:[ 6@-1  5 1 5 ]
+fall = eighth:[ (7@-1)  5 2 5 ]
+bottom = eighth:[ (6@-1)  5 1 5 ]
 
 intro_accomp = base . base . rise . base
 chorus_accomp = fall . base . bottom . base
@@ -25,4 +25,4 @@ twinkle_bass = Octave -1 accomp
 
 // the song
 twinkle = Parallel twinkle_melody twinkle_harmony twinkle_bass
-Render “twinkle.wav” twinkle
+Render twinkle "twinkle.wav"
