@@ -1,0 +1,16 @@
+
+(
+
+p1 = [1 2]
+r1 = [1.0 1.0]
+t1 = init track{chords = p1; durations = r1}
+p2 = [3 5]
+r2 = [1.0 1.0]
+t2 = init track{chords = p2; durations = r2}
+
+s = Parallel { t1 t2 }
+if s$tracks.(0) == {t1} then Print "G" else Print "B"
+
+if s$tracks.(1) == {t2} then Print "G" else Print "B"
+
+)

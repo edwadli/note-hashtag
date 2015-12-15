@@ -3,7 +3,7 @@ p2 = PitchOfInt 2
 p3 = PitchOfInt 3
 p4 = PitchOfInt 4
 p_list = {p1 p2 p3 p4}
-c = init chord { pitches = p_list }
+c = 1,2,3,4
 a = (Arpeggio c)
 if a == p_list then
   PrintEndline "Arpeggio works"

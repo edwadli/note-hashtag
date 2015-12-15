@@ -173,14 +173,14 @@ fun Chords track = (
   track$chords
 )
 
-/*
-fun Parallel tracks = (
-  // TODO: return song object with tracks aligned in parallel
+fun Parallel ts = (
+  s = init song
+  for t in ts do s$tracks = s$tracks . { {t} }
+  s
 )
-*/
 
-fun Sequential t = (
-  init song { tracks = {t} }
+fun Sequential ts = (
+  init song { tracks = {ts} }
 )
 
 fun Length track = (
