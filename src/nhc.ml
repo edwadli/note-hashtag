@@ -23,7 +23,7 @@ let do_compile src_path bin_path keep_ast keep_il =
     let il_path = bin_path ^ ".cpp" in
     Out_channel.write_all il_path ~data:cpp
   else ();
-  let cxx = "clang++ -Wall -pedantic -fsanitize=address -std=c++14 -O2 -xc++ - support.cpp" in
+  let cxx = "clang++ -Wall -pedantic -fsanitize=address -std=c++14 -O2 -xc++ -I/usr/local/include/ -L/usr/local/lib/ -lstk - support.cpp" in
   let ch = Unix.open_process_out cxx in
   Out_channel.output_string ch cpp;
   if Unix.close_process_out ch <> Result.Ok( () ) then

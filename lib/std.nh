@@ -13,10 +13,18 @@ extern "support.hpp" "nh_support" "shuffle" fun ShuffleFloats float{} -> float{}
 
 fun Ignore x = ()
 
+const quarter = 0.25
+const q = quarter
+const triplet = 1.0 / 3.0
+const t = triplet
+const half = 0.5
+const h = 0.5
+const whole = 1.0
+const w = whole
+
 type key_signature = {
   scale = { 261.63 293.66 329.63 349.23 392.00 440.00 493.88 }
 }
-
 
 type time_signature = {
   upper = 4
@@ -43,6 +51,12 @@ fun PitchOfInt i = (
     init pitch { rank = i }
 )
 
+fun NormalizePitch pitch keysig = (
+  pitch$rank = pitch$rank - 1
+  pitch$octave = pitch$octave + pitch$rank / Size keysig$scale
+  pitch$rank = pitch$rank % Size keysig$scale
+  pitch
+)
 
 fun AddPitchOctave p octaves = ( p$octave = p$octave + octaves; p)
 
@@ -89,9 +103,9 @@ fun PrintRhythms rh = (
 type track = {
   key_sig = init key_signature
   time_sig = init time_signature
+  tempo = 120
   chords = chord{}
   durations = float{}
-  tempo = 120
   // currently we can only assign a single volume to the track
   // of dynamics control we lack
   // yes, it's a simplicity hack
@@ -187,6 +201,59 @@ fun Scale pitch_start pitch_end = (
       c = [x] . c
   )
   c
+)
+
+extern "support.hpp" "nh_support" "render_impl" fun RenderImpl float{}{}{} float{}{} float{} string -> unit
+
+fun Render song filename = (
+  if Size song$tracks != Size song$volumes then throw "Internal error: song has mismatched tracks and volumes" else ()
+  freqs = float{}{}{}
+  durs = float{}{}
+  for track_chan in song$tracks do (
+    freq_chan = float{}{}
+    dur_chan = float{}
+    for track in track_chan do (
+      freq_chan = freq_chan . FrequenciesOfChords track$chords track$key_sig
+      dur_chan = dur_chan . SecondsOfDurations track$durations track$time_sig track$tempo
+    )
+    freqs = freqs . { freq_chan }
+    durs = durs . { dur_chan }
+  )
+  RenderImpl freqs durs song$volumes filename
+)
+
+fun FrequencyOfPitch pitch keysig = (
+  if pitch$offset != 0 then PrintEndline "warning: pitch offset not supported right now" else ()
+  pitch$rank = pitch$rank - 1
+  keysig$scale.(pitch$rank) * Pow 2.0 (FloatOfInt pitch$octave)
+)
+
+fun FrequenciesOfChord chord keysig = (
+  if Size chord$pitches == 0 then { 0.0 }
+  else (
+    freqs = float{}
+    for pitch in chord$pitches do (
+      freqs = freqs . { (FrequencyOfPitch pitch keysig) }
+    )
+    freqs
+  )
+)
+
+fun FrequenciesOfChords chords keysig = (
+  freqs = float{}{}
+  for chord in chords do (
+    freqs = freqs . { (FrequenciesOfChord chord keysig) }
+  )
+  freqs
+)
+
+fun SecondsOfDurations durations timesig tempo = (
+  multiplier = FloatOfInt timesig$lower * 60.0 / FloatOfInt tempo
+  seconds = float{}
+  for duration in durations do (
+    seconds = seconds . { (duration * multiplier) }
+  )
+  seconds
 )
 
 fun Arpeggio chord = (

@@ -4,7 +4,7 @@ a3 = string{}
 a4 = unit{}
 a5 = bool{}
 
-type t = {
+type ty = {
   a = "hi"
 }
-a6 = t{}
+a6 = ty{}

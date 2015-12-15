@@ -1,10 +1,10 @@
 p = [4 1 2 3 4]
 ra = [1.0 2.0 3.0 4.0 5.0]
-t = init track{chords = p; durations = ra}
+tr = init track{chords = p; durations = ra}
 p2 = [(1@1) 5 6 7 (1@1)]
 r2 = [1.0 2.0 3.0 4.0 5.0]
 t2 = init track{chords = p2; durations = r2}
-t3 = Relative 4 t
+t3 = Relative 4 tr
 
 if t2 == t3 then
   PrintEndline "Track Relative Works"

@@ -29,10 +29,18 @@ namespace nh_support
   }
   
   template<typename T>
-  std::vector<T> shuffle(std::vector<T> v) {
+  std::vector<T> shuffle(std::vector<T> v)
+  {
     std::shuffle(v.begin(), v.end(), myrand);
     return v;
   }
+  
+  unit_t render_impl(
+    std::vector<std::vector<std::vector<double>>> frequencies,
+    std::vector<std::vector<double>> durations,
+    std::vector<double> volumes,
+    std::string filename
+  );
 }
 
 #endif
