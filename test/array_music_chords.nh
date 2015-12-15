@@ -1,0 +1,16 @@
+
+things = [ 1 1,3 2 ]
+
+c = things.(0)
+p = c$pitches.(0);
+Print (StringOfInt (p$rank))
+
+c = things.(1)
+p = c$pitches.(0);
+Print (StringOfInt (p$rank))
+p = c$pitches.(1);
+Print (StringOfInt (p$rank))
+
+c = things.(2)
+p = c$pitches.(0);
+Print (StringOfInt (p$rank))

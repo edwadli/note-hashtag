@@ -54,4 +54,4 @@ second_part = (2*whole):~ . RemoveEnd (2*whole) melody . whole:3@1
 bass_part = Extend (Length melody) bass_part . whole:5
 
 canon =  Parallel first_part second_part bass_part
-Render “canon.wav” canon
+Render "canon.wav" canon

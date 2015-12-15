@@ -143,7 +143,6 @@ expr:
 | music     { $1 }
 | OCTAVE non_apply non_apply {Binop($2, Octave, $3)}
 | expr COLON expr {Binop($1, Zip, $3)}
-| expr COMMA expr {Binop($1, Chord, $3)}
 | asn_toplevel { $1 }
 | expr CONCAT expr { Binop($1, Concat, $3) }
 | control { $1 }
@@ -177,6 +176,7 @@ non_apply:
 | LPAREN block RPAREN { $2 } /* we get unit () notation for free (see block) */
 | lit { $1 }
 | non_apply OCTAVE non_apply { Binop($1, Octave, $3) }
+| non_apply COMMA non_apply {Binop($1, Chord, $3)}
 
 sep_expr_sep:
 | sep_star expr sep_star { $2 }

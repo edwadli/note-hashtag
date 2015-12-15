@@ -1,0 +1,8 @@
+
+things = [ 1 1@1 1 ]
+
+for c in things do (
+  p = c$pitches.(0);
+  Print (StringOfInt (p$rank))
+  Print (StringOfInt (p$octave))
+)

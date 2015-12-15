@@ -37,7 +37,7 @@ type chord = {
   pitches = pitch{}
 }
 
-fun ChordOfPitch pitch = init chord { pitches = {pitch} }
+fun ChordOfPitch p = init chord { pitches = {p} }
 
 fun PitchOfInt i = (
   if (i < 0) || (i > (Size key_sig$scale)) then (
@@ -47,7 +47,7 @@ fun PitchOfInt i = (
     init pitch { rank = i }
 )
 
-fun AddPitchOctave pitch octaves = ( pitch$octave = pitch$octave + octaves; pitch )
+fun AddPitchOctave p octaves = ( p$octave = p$octave + octaves; p )
 
 
 type track = {
@@ -88,13 +88,13 @@ fun Range i j = (
 )
 
 
-fun FlatPitch pitch = ( pitch$offset = pitch$offset - 1; pitch )
-fun SharpPitch pitch = ( pitch$offset = pitch$offset + 1; pitch )
+fun FlatPitch p = ( p$offset = p$offset - 1; p )
+fun SharpPitch p = ( p$offset = p$offset + 1; p )
 
 fun ChordOfChords c1 c2 = (
-  c = chord{}
-  for pitch in c1$pitches . c2$pitches
-    do if IsMember c pitch then () else c = c . {pitch}
+  c = init chord
+  for p in c1$pitches . c2$pitches
+    do if IsMember c$pitches p then () else c$pitches = c$pitches . {p}
   c
 )
 
