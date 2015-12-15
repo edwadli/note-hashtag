@@ -7,7 +7,7 @@ tune = [ 1 1 1 2 3 3 2 3 4 5 ] . Repeat 3 [ 1@1 ] . Repeat 3 [ 5 ] . Repeat 3 [ 
     Repeat 3 [ 1 ] . [ 5 4 3 2 1 ]
 
 row_your_boat = rhythm : tune
-Render “row_your_boat.wav” row_boat
+Render row_boat "row_your_boat.wav"
 
 
 
@@ -15,7 +15,7 @@ Render “row_your_boat.wav” row_boat
 key_signature = C_Minor
 // the key signature is grabbed when the track object is created!
 sad_boat = rhythm : tune
-Render “row_alone.wav” sad_boat
+Render sad_boat "row_alone.wav"
 
 
 
@@ -31,4 +31,4 @@ sick_accomp = sick_beat : sick_tune . \
             EndWith (e:[ 7  1@1  ~ ]) (sick_beat : sick_tune)
 
 gangsta_boat = Parallel swag_boat sick_accomp
-Render "roll_ya_rims.wav" gangsta_boat
+Render gangsta_boat "roll_ya_rims.wav"

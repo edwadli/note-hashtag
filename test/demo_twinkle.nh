@@ -1,0 +1,12 @@
+
+intro = 0.25:[ 1 1 5 5 6 6 ] . 0.5:5
+chorus = Rhythms intro : [ 4 4 3 3 2 2 1 ]
+bridge = Relative 1 chorus
+
+// the tune
+twinkle = intro . chorus . bridge . bridge . intro . chorus
+
+full_twinkle = [1 1 5 5 6 6 5 4 4 3 3 2 2 1 5 5 4 4 3 3 2 5 5 4 4 3 3 2\
+                  1 1 5 5 6 6 5 4 4 3 3 2 2 1]
+
+if twinkle$chords == full_twinkle then Print "TWINKLE" else Print "TINKLE"
