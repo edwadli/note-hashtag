@@ -89,6 +89,7 @@ type track = {
   time_sig = init time_signature
   chords = chord{}
   durations = float{}
+  tempo = 120
   // currently we can only assign a single volume to the track
   // of dynamics control we lack
   // yes, it's a simplicity hack
@@ -145,6 +146,37 @@ fun ConcatTracks t1 t2 = (
 key_sig = init key_signature
 time_sig = init time_signature
 tempo = 120
+
+fun SameList x iter = (
+  out = {x}
+  for i in Range 1 iter do
+    out = out . {x}
+  out
+)
+
+fun ZipSame f c = (
+  if (Size f) != (Size c) then
+    (throw "Cannot Zip Arrays of Different Lengths"; init track)
+  else(
+    init track{chords = c; durations = f;key_sig = key_sig
+              time_sig = time_sig; tempo = tempo}
+  )
+)
+
+fun ZipDiff f c = (
+  out_f = f
+  out_c = c
+  if (Size f) == 1 then(
+    iter = Size c
+    out_f = SameList f.(0) iter
+  )
+  else (
+    iter = Size f
+    out_c = SameList c.(0) iter
+  )
+  init track{chords = out_c; durations = out_f; key_sig = key_sig
+              time_sig = time_sig; tempo = tempo}
+)
 
 fun Scale pitch_start pitch_end = (
   c = chord{}

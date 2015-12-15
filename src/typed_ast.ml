@@ -191,13 +191,21 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
           end
 
       | Ast.Zip ->
-          if (lt = Ast.Float || lt = Ast.Array(Ast.Float))
-            then let rexprt = match rt with
-                (* either chord or array of chord is valid for zip *)
-                | Ast.Array(Ast.Type("chord")) -> rexprt
-                | _ -> sast_expr_env (chord_of rexpr rt)
-              in Sast.Binop(lexprt,op,rexprt), Ast.Type("track")
-            else failwith "left side expression of zip must of float or array of float"
+          let (fname, lhs, rhs) = begin match lt with
+          |Ast.Float ->
+            if(rt = Ast.Array(Ast.Type("chord"))) then 
+              ("ZipDiff", Ast.Arr([lexpr], Some(Ast.Float)), rexpr)
+            else
+              ("ZipSame", Ast.Arr([lexpr], Some(Ast.Float)), 
+                                  Ast.Arr([(chord_of rexpr rt)], Some(Ast.Type("chord"))))
+          |Ast.Array(Ast.Float) ->
+              if rt = Ast.Array(Ast.Type("chord")) then 
+                ("ZipSame", lexpr, rexpr)
+              else
+                ("ZipDiff", lexpr, Ast.Arr([(chord_of rexpr rt)], Some(Ast.Type("chord"))))
+          |_ -> failwith "left side expression of zip must of float or array of float"
+        end
+          in sast_expr_env (Ast.FunApply(fname, [lhs;rhs]))
     end
   | Ast.Uniop(op, expr) ->
     let exprt = sast_expr_env expr in
