@@ -1,0 +1,15 @@
+x = [1.0 1.0 1.0]
+p = [1 2 3]
+t = 1.0:p
+t1 = x:3
+y = [3 3 3]
+
+if (t$chords == p) && (t$durations == x) then
+  PrintEndline "Zip Works"
+else
+  PrintEndline "Zip fails"
+
+if (t1$chords == y) && (t1$durations == x) then
+  PrintEndline "Zip Works"
+else
+  PrintEndline "Zip fails"

@@ -54,8 +54,15 @@ fun AddPitchNum num p = (
     r = ((r-1) % size)
     r = r + 1 //edge case for r = 7
   )
-  else
-    ()
+  else(
+    if r < 0 then (
+      oct = (-r)/size - 1
+      r = (r % size) + size
+    )
+    else
+      ()
+  )
+    
   init pitch{rank = r; octave = (oct + p$octave); offset = p$offset}
 )
 
