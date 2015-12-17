@@ -71,13 +71,13 @@ rule token = parse
 | "init" | "beget" | "bringintobeing" { INIT }
 | "extern" { EXTERN }
 | "const" { CONST }
-(* Regex conflicts are resolved by order! Place all keywords above this or ID_VAR will eat them up. *)
+(* Regex conflicts are resolved by order! Place all keywords above this or ID_LOWER will eat them up. *)
 | digit+ as lit { LIT_INT(Int.of_string lit) }
 | ((hasint | hasfrac) hasexp?) | (digit+ hasexp) as lit { LIT_FLOAT(Float.of_string lit) }
 (* matches only outer quotes *)
 | '"' (('\\' '"'| [^'"'])* as str) '"' { LIT_STR(Scanf.unescaped str) }
-| (lowercase | '_') (letter | digit | '_')* as lit { ID_VAR(lit) }
-| uppercase (letter | digit | '_')* as lit { ID_FUN(lit) }
+| (lowercase | '_') (letter | digit | '_')* as lit { ID_LOWER(lit) }
+| uppercase (letter | digit | '_')* as lit { ID_UPPER(lit) }
 | '(' { LPAREN }
 | ')' { RPAREN }
 | '['(whitespace|newline)*']'{ BRACKS }

@@ -22,8 +22,8 @@
 %token THROW
 %token INIT
 
-%token <string> ID_VAR
-%token <string> ID_FUN
+%token <string> ID_LOWER
+%token <string> ID_UPPER
 
 %token <bool> LIT_BOOL
 %token <int> LIT_INT
@@ -65,14 +65,14 @@ program:
 | sep_star program_header EOF { $2, [], [] ,[], [] }
 
 program_header_follow_body:
-| INCLUDE ID_VAR include_list sep_plus { $2 :: List.rev $3 }
+| INCLUDE ID_LOWER include_list sep_plus { $2 :: List.rev $3 }
 
 program_header:
-| INCLUDE ID_VAR include_list sep_star { $2 :: List.rev $3 }
+| INCLUDE ID_LOWER include_list sep_star { $2 :: List.rev $3 }
 
 include_list:
 | /* nothing */ { [] }
-| include_list sep_plus INCLUDE ID_VAR { $4 :: $1 }
+| include_list sep_plus INCLUDE ID_LOWER { $4 :: $1 }
 
 program_body:
 | struct_declaration program_body_list sep_star
@@ -96,13 +96,13 @@ program_body_list:
   { (fun (fdefs, externs, exprs, structdefs) -> (fdefs, externs, exprs @ [ $3 ], structdefs)) $1 }
 
 struct_declaration:
-| TYPE ID_VAR ASSIGN LBRACE sep_star asn_list sep_star RBRACE { TypeDef($2, List.rev $6) }
+| TYPE ID_LOWER ASSIGN LBRACE sep_star asn_list sep_star RBRACE { TypeDef($2, List.rev $6) }
 
 fun_def:
-| FUN ID_FUN id_var_list ASSIGN expr { FunDef($2, $3, $5) }
+| FUN ID_UPPER ID_LOWER_list ASSIGN expr { FunDef($2, $3, $5) }
 
 extern_fun:
-| EXTERN LIT_STR LIT_STR LIT_STR FUN ID_FUN typename_list RARROW typename { ExternFunDecl($2, $3, $4, $6, $7, $9) }
+| EXTERN LIT_STR LIT_STR LIT_STR FUN ID_UPPER typename_list RARROW typename { ExternFunDecl($2, $3, $4, $6, $7, $9) }
 
 typename_list:
 | /* nothing */ { [] }
@@ -114,7 +114,7 @@ typename:
 | TYPE_INT   { Int }
 | TYPE_FLOAT { Float }
 | TYPE_STR   { String }
-| ID_VAR     { Type($1) }
+| ID_LOWER   { Type($1) }
 | typename BRACES { Array($1) }
 
 block:
@@ -151,20 +151,20 @@ expr:
 control:
 | IF sep_expr_sep THEN sep_expr_sep ELSE sep_star expr { Conditional($2,$4,$7) }
 | BE sep_expr_sep UNLESS sep_expr_sep INWHICHCASE sep_star expr { Conditional($4,$7,$2) }
-| FOR sep_star ID_VAR sep_star IN sep_expr_sep DO sep_star expr { For($3,$6,$9) }
-| INIT ID_VAR { StructInit($2, []) }
-| INIT ID_VAR LBRACE sep_star asn_list sep_star RBRACE { StructInit($2, List.rev $5) }
+| FOR sep_star ID_LOWER sep_star IN sep_expr_sep DO sep_star expr { For($3,$6,$9) }
+| INIT ID_LOWER { StructInit($2, []) }
+| INIT ID_LOWER LBRACE sep_star asn_list sep_star RBRACE { StructInit($2, List.rev $5) }
 
-id_var_list:
+ID_LOWER_list:
 | /* nothing */ { [] }
-| ID_VAR id_var_list { $1 :: $2 }
+| ID_LOWER ID_LOWER_list { $1 :: $2 }
 
 stmt_list_plus:
 | non_apply { [$1] }
 | stmt_list_plus non_apply { $2 :: $1 }
 
 apply:
-| ID_FUN args_list { FunApply($1, $2) }
+| ID_UPPER args_list { FunApply($1, $2) }
 
 args_list:
 | /* nothing */       { [] }
@@ -224,13 +224,13 @@ music:
 | expr SHARP    { Uniop(Sharp, $1)}
 
 var_ref:
-| ID_VAR { [ $1 ] }
-| ID_VAR BLING var_ref { $1 :: $3 }
+| ID_LOWER { [ $1 ] }
+| ID_LOWER BLING var_ref { $1 :: $3 }
 
 asn_toplevel:
 | asn { $1 }
-/* ID_VAR because you can't do `const a$b = 10` */
-| CONST ID_VAR ASSIGN expr { Assign([ $2 ], $4, Immutable) }
+/* ID_LOWER because you can't do `const a$b = 10` */
+| CONST ID_LOWER ASSIGN expr { Assign([ $2 ], $4, Immutable) }
 
 asn:
 | var_ref ASSIGN expr { Assign($1, $3, Mutable) }
