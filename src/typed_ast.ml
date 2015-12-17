@@ -143,7 +143,7 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
     let (_, lt) = lexprt in
     let (_, rt) = rexprt in
     let opfailwith constraint_str =
-      failwith (sprintf "Operator %s is only defined for %s (%s, %s found)"
+      failwith (sprintf "Operator '%s' is only defined for %s (%s, %s found)"
         (Ast.string_of_op op) constraint_str (Ast.string_of_type lt) (Ast.string_of_type rt))
     in
     begin match op with
@@ -172,7 +172,8 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
         | Ast.Type("track"), Ast.Type("track") -> 
             sast_expr_env (Ast.FunApply("ConcatTracks", [lexpr;rexpr]))
         | Ast.Array(l), Ast.Array(r) when l = r -> Sast.Binop(lexprt,op,rexprt), lt
-        | _ -> failwith "Concat is only for defined for same typed arrays and tracks" end
+        | Ast.String, Ast.String -> Sast.Binop(lexprt, op, rexprt), lt
+        | _ -> opfailwith "strings, arrays, and tracks" end
 
       | Ast.Chord ->
           (* guarantee that chord binop is between two chords *)
