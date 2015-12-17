@@ -6,6 +6,12 @@ fun Size l = (
   i
 )
 
+fun SameList x iter = (
+  out = {x}
+  for i in Range 1 iter do (out = out . {x}; Ignore i)
+  out
+)
+
 fun AppendCopy count list = (
     
 )

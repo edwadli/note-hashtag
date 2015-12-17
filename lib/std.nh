@@ -149,13 +149,6 @@ key_sig = init key_signature
 time_sig = init time_signature
 tempo = 120
 
-fun SameList x iter = (
-  out = {x}
-  for i in Range 1 iter do
-    out = out . {x}
-  out
-)
-
 fun ZipSame f c = (
   if (Size f) != (Size c) then
     (throw "Cannot Zip Arrays of Different Lengths"; init track)
