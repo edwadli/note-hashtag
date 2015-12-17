@@ -136,13 +136,14 @@ fun Rest = init chord
 
 fun ConcatTracks t1 t2 = (
   if t1$key_sig == t2$key_sig &&\
-      t1$time_sig == t2$time_sig
+      t1$time_sig == t2$time_sig &&\
+      t1$tempo == t2$tempo
   then (
     t1$chords = t1$chords . t2$chords
     t1$durations = t1$durations . t2$durations
     t1
   )
-  else (throw "Cannot concat tracks with different key or time signature"; t1)
+  else (throw "Cannot concat tracks with different key or time signature or tempo"; t1)
 )
 
 key_sig = init key_signature
