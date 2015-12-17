@@ -56,7 +56,7 @@ fun AddPitchNum num p = (
   )
   else(
     if r < 0 then (
-      oct = (-r)/size - 1
+      oct = r/size - 1
       r = (r % size) + size
     )
     else
@@ -77,8 +77,12 @@ fun PrintChord ch = (
   size = Size ch
   for c in ch do (
     x = c$pitches
-    for p in x do
+    for p in x do(
+      Print "rank: " 
       Print (StringOfInt p$rank)
+      Print "oct: " 
+      Print (StringOfInt p$octave)
+      )
     Print "\n"
   )
 )
@@ -246,7 +250,7 @@ fun Extend length tr = (
     ()
   init track{time_sig = tr$time_sig; key_sig = tr$key_sig;
              chords = out_chord; durations = out_dur}
-             //want to zip in future
+        RelatRelatRelat     //want to zip in future
 )
 
 fun StartWith tr base_track = (
