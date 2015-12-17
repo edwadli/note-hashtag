@@ -17,7 +17,7 @@ const eighth = 0.125
 const e = eighth
 const quarter = 0.25
 const q = quarter
-const triplet = 1.0 / 3.0
+const triplet = 0.25 / 3.0
 const t = triplet
 const half = 0.5
 const h = 0.5
@@ -27,6 +27,37 @@ const w = whole
 type key_signature = {
   scale = { 261.63 293.66 329.63 349.23 392.00 440.00 493.88 }
 }
+
+const f3 = 174.61
+const fs3 = 185.00
+const g3 = 196.00
+const gs3 = 207.65
+const a3 = 220.00
+const as3 = 233.08
+const b3 = 246.94
+const c4 = 261.63
+const cs4 = 277.18
+const d4 = 293.66
+const ds4 = 311.13
+const e4 = 329.63
+const f4 = 349.23
+const fs4 = 369.99
+const g4 = 392.00
+const gs4 = 415.30
+const a4 = 440.00
+const as4 = 466.16
+const b4 = 493.88
+const c5 = 523.25
+const cs5 = 554.37
+const d5 = 587.33
+const ds5 = 622.25
+const e5 = 659.25
+const f5 = 698.46
+
+const c_major = init key_signature
+const f_minor = init key_signature{ scale={ f3 g3 gs3 as3 c4 cs4 ds4 } }
+const c_minor = init key_signature{ scale={ c4 d4 ds4 f4 g4 gs4 as4 } }
+const fsharp_major = init key_signature{ scale={ fs3 gs3 as3 b3 cs4 ds4 f4 } }
 
 type time_signature = {
   upper = 4
@@ -313,8 +344,8 @@ fun StartWith tr base_track = (
     base_track . tr
 )
 
-fun EndWith track base_track = (
-  StartWith base_track track
+fun EndWith tr base_track = (
+  StartWith base_track tr
 )
 
 fun Reverse tr = (

@@ -1,6 +1,6 @@
 
 // You Belong With Me (Taylor Swift)
-//key_signature = FSharp_Major
+//key_sig = fsharp_major
 
 resolve = [ 1 2 3 ]
 cont = [ 3 2 ]

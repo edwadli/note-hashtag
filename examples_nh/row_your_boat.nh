@@ -1,34 +1,33 @@
 
 // Row, Row, Row Your Boat
 de = 1.5*e
-se = e/2
+se = e/2.0
 rhythm = [ q q de se q de se de se h ] . Repeat 12 [ triplet ] . [ de se de se h ]
 tune = [ 1 1 1 2 3 3 2 3 4 5 ] . Repeat 3 [ 1@1 ] . Repeat 3 [ 5 ] . Repeat 3 [ 3 ] . \
     Repeat 3 [ 1 ] . [ 5 4 3 2 1 ]
 
 row_your_boat = rhythm : tune
-Render row_boat "row_your_boat.wav"
-
-
+Render (Parallel {row_your_boat}) "row_your_boat.wav"
 
 // Row, Row, Row Alone (Sad Boat)
-key_signature = C_Minor
+key_sig = c_minor
 // the key signature is grabbed when the track object is created!
 sad_boat = rhythm : tune
-Render sad_boat "row_alone.wav"
+Render (Parallel {sad_boat}) "row_alone.wav"
 
 
 
 // Roll, Roll, Roll Ya Rims (Gangsta Boat)
-key_signature = F_Minor
+key_sig = f_minor
 // make it sound dirty and dangerous
-swag_boat = Octave -1 (rhythm : tune)
+swag_boat = Octave (-1) (rhythm : tune)
 
 // add a background track
-sick_beat = Repeat 2 [ e e e e/2 e/2 ] . [ e e de se e e ]
+sick_beat = Repeat 2 [ e e e (e/2.0) (e/2.0) ] . [ e e de se e e ]
 sick_tune = @1[ 1@1  5 6 6 5 4 4 5  1@1  1@1  1@1  5 6 5 4 4 ]
 sick_accomp = sick_beat : sick_tune . \
             EndWith (e:[ 7  1@1  ~ ]) (sick_beat : sick_tune)
 
-gangsta_boat = Parallel swag_boat sick_accomp
+gangsta_boat = Parallel { swag_boat sick_accomp }
 Render gangsta_boat "roll_ya_rims.wav"
+

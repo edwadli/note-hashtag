@@ -25,4 +25,5 @@ twinkle_bass = Octave (-1) accomp
 
 // the song
 twinkle = Parallel { twinkle_melody twinkle_harmony twinkle_bass }
+twinkle$volumes = { 1.0 0.5 0.5 }
 Render twinkle "twinkle.wav"
