@@ -13,6 +13,8 @@ extern "support.hpp" "nh_support" "shuffle" fun ShuffleFloats float{} -> float{}
 
 fun Ignore x = ()
 
+const eighth = 0.125
+const e = eighth
 const quarter = 0.25
 const q = quarter
 const triplet = 1.0 / 3.0
@@ -51,35 +53,34 @@ fun PitchOfInt i = (
     init pitch { rank = i }
 )
 
-fun NormalizePitch pitch keysig = (
-  pitch$rank = pitch$rank - 1
-  pitch$octave = pitch$octave + pitch$rank / Size keysig$scale
-  pitch$rank = pitch$rank % Size keysig$scale
-  pitch
+fun NormalizePitch p keysig = (
+  scale_size = Size keysig$scale
+  if p$rank < 1 then (
+    octave_offset = (-1 * p$rank) / scale_size + 1
+    p$rank = p$rank + octave_offset * scale_size
+    p$octave = p$octave - octave_offset
+  ) else (
+    p$rank = p$rank - 1 // Make normalization easier. Pitch is [1, 7] -> [0, 6]
+    p$octave = p$octave + p$rank / scale_size
+    p$rank = p$rank % scale_size
+    p$rank = p$rank + 1 // Undo our change: [0, 6] -> [1, 7]
+  )
+  p
 )
 
 fun AddPitchOctave p octaves = ( p$octave = p$octave + octaves; p)
 
-fun AddPitchNum num p = (
-
-  r = p$rank + num
-  oct = 0
-  size = Size key_sig$scale
-  if r > size then (
-    oct = r/size
-    r = ((r-1) % size)
-    r = r + 1 //edge case for r = 7
-  )
-  else
-    ()
-  init pitch{rank = r; octave = (oct + p$octave); offset = p$offset}
+fun AddPitchNum num p keysig = (
+  p$rank = p$rank + num
+  NormalizePitch p keysig
 )
 
-fun AddChordNum num ch = (
+fun AddChordNum num ch keysig = (
   out_pitch = pitch{}
   for p in ch$pitches do
-    out_pitch = out_pitch . {(AddPitchNum num p)}
-  init chord{pitches = out_pitch}
+    out_pitch = out_pitch . { (AddPitchNum num p keysig) }
+  ch$pitches = out_pitch
+  ch
 )
 
 fun PrintChord ch = (
@@ -270,7 +271,10 @@ fun Chords track = (
 
 fun Parallel ts = (
   s = init song
-  for t in ts do s$tracks = s$tracks . { {t} }
+  for t in ts do (
+    s$tracks = s$tracks . { {t} }
+    s$volumes = s$volumes . { 1.0 }
+  )
   s
 )
 
@@ -321,20 +325,20 @@ fun Reverse tr = (
 fun OctaveChordList shift ch = (
   rel_chords = chord{}
   for c in ch do
-    rel_chords = rel_chords . {(AddChordNum (shift * Size key_sig$scale) c)}
+    rel_chords = rel_chords . {(AddChordNum (shift * Size key_sig$scale) c key_sig)}
   rel_chords
 )
 
 fun Relative shift tr = (
   rel_chords = chord{}
   for c in tr$chords do
-    rel_chords = rel_chords . {(AddChordNum shift c)}
-  init track{time_sig = tr$time_sig; key_sig = tr$key_sig;
-            chords = rel_chords; durations = tr$durations;}
+    rel_chords = rel_chords . {(AddChordNum shift c tr$key_sig)}
+  tr$chords = rel_chords
+  tr
 )
 
 fun Octave shift tr = (
-  Relative (shift*(Size key_sig$scale)) tr
+  Relative (shift*(Size tr$key_sig$scale)) tr
 )
 
 fun Repeat times tr = (
