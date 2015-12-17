@@ -28,8 +28,8 @@ double nh_support::float_of_int(int64_t n)
 template <typename T>
 void safe_insert(std::vector<T> &v, size_t idx, T obj)
 {
-  if (v.size() <= idx) v.push_back(obj);
-  else v[idx] = obj;
+  while (v.size() <= idx) v.push_back(T());
+  v[idx] = obj;
 }
 
 template <typename T>
@@ -79,11 +79,9 @@ unit_t nh_support::render_impl(
           safe_insert(samples, j, sample);
         }
       }
-      // Add some silence to the end of each note so it doesn't sound weird
-      for (size_t j = i + samples_sound; j < i + samples_total; j++) {
-        safe_insert(samples, j, 0.0);
-      }
       // Done outputting this note, so increment our index to the output buffer
+      // Since we output audio samples until samples_sound, incrementing by samples_total gives us some silence at the
+      // end of each note.
       i += static_cast<size_t>(samples_total);
     }
   }
