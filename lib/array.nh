@@ -1,6 +1,8 @@
+include std
+
 fun Size l = (
   i = 0
-  for item in l do i = i + 1
+  for item in l do (Ignore item; i = i + 1)
   i
 )
 
