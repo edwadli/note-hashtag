@@ -1,0 +1,6 @@
+PrintEndline (if { 1 2 } . { 3 4 } == { 1 2 3 4 } then "concat arrays ok" else "concat arrays no")
+
+arr = { 1 2 }
+PrintEndline (if arr . arr == { 1 2 1 2 } then "concat arrays to self ok" else "concat ararys to self :(")
+  
+PrintEndline (if arr . int{} == arr then "concat empty ok" else "concat empty :(")
