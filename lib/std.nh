@@ -11,6 +11,8 @@ extern "support.hpp" "std" "to_string" fun StringOfInt int -> string
 extern "support.hpp" "nh_support" "shuffle" fun ShuffleInts int{} -> int{}
 extern "support.hpp" "nh_support" "shuffle" fun ShuffleFloats float{} -> float{}
 
+fun Ignore x = ()
+
 type key_signature = {
   scale = { 261.63 293.66 329.63 349.23 392.00 440.00 493.88 }
 }
@@ -222,24 +224,21 @@ fun Length track = (
 )
 
 fun Extend length tr = (
-  track_length = Length tr
-  repeat = IntOfFloat (length/track_length)
-  pad = [(length - (FloatOfInt(repeat) * track_length))]
-  i = 0
-  out_chord = chord{}
-  out_dur = float{}
-  for i in Range 0 repeat do (
-    out_chord = out_chord . t$chords
-    out_dur = out_dur . t$durations)
-  pad_chord = chord{} 
-  if pad.(0) != 0.000000 then(
-    out_chord = out_chord . pad_chord
-    out_dur = out_dur . pad)
-  else
-    ()
-  init track{time_sig = tr$time_sig; key_sig = tr$key_sig;
-             chords = out_chord; durations = out_dur}
-             //want to zip in future
+  multiplier = length / Length tr
+  // Add as many copies of the track as will fit
+  orig_chords = tr$chords; orig_durations = tr$durations
+  for i in Range 0 (IntOfFloat multiplier - 1) do (
+    Ignore i
+    tr$chords = tr$chords . orig_chords
+    tr$durations = tr$durations . orig_durations
+  )
+  // Fill the rest of the space with a rest
+  pad = length - Length tr
+  if pad > 0.0 then (
+    tr$chords = tr$chords . { (init chord) }
+    tr$durations = tr$durations . [ pad ]
+  ) else ()
+  tr
 )
 
 fun StartWith tr base_track = (
