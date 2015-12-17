@@ -34,12 +34,12 @@
 %nonassoc ELSE INWHICHCASE DO
 %left SEP
 %nonassoc ASSIGN
-%left CONCAT
 %left OR
 %left AND
 %left EQ NEQ
 /* x < y < z can never be valid because can't use < on bool type. */
 %nonassoc LT LTE GT GTE
+%left CONCAT
 %left OCTAVE
 %left COLON
 %left COMMA
