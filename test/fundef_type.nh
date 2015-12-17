@@ -1,6 +1,6 @@
-type t = {
+type ty = {
   mem = "hi"
 }
 fun Ident x = x
-x = Ident (init t)
+x = Ident (init ty)
 Print x$mem
