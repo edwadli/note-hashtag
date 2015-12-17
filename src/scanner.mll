@@ -94,10 +94,11 @@ rule token = parse
 (* Comments *)
 | "//" { comment_oneline lexbuf }
 | "/*" { comment_multiline 0 lexbuf }
+| "*/" { raise (Lexing_error("You have a '*/' without a matching '/*'")) }
 | _ as c { raise (Lexing_error("Unknown token '" ^ Char.to_string c ^ "'")) }
 
 and comment_oneline = parse
-| (newline | eof) { token lexbuf } (* End of single line comment *)
+| (newline | eof) { SEP } (* End of single line comment *)
 | _ { comment_oneline lexbuf }
 
 and comment_multiline depth = parse
