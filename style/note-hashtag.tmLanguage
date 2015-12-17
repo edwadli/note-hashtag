@@ -44,7 +44,7 @@
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>\b(q|quarter|h|half|w|whole|t|triplet)\b</string>
+			<string>\b(e|eighth|q|quarter|h|half|w|whole|t|triplet)\b</string>
 			<key>name</key>
 			<string>support.constant.nh</string>
 		</dict>
