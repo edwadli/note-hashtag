@@ -29,5 +29,6 @@ sick_accomp = sick_beat : sick_tune . \
             EndWith (e:[ 7  1@1  ~ ]) (sick_beat : sick_tune)
 
 gangsta_boat = Parallel { swag_boat sick_accomp }
+gangsta_boat$volumes = { 1.0 0.5 }
 Render gangsta_boat "roll_ya_rims.wav"
 

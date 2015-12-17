@@ -1,10 +1,10 @@
-a1 = int{}
-a2 = float{}
-a3 = string{}
-a4 = unit{}
-a5 = bool{}
+a_1 = int{}
+a_2 = float{}
+a_3 = string{}
+a_4 = unit{}
+a_5 = bool{}
 
 type ty = {
   a = "hi"
 }
-a6 = ty{}
+a_6 = ty{}
