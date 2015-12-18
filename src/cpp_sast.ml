@@ -12,14 +12,14 @@ let rec castx_of_sastx texpr =
     | Sast.LitInt(x) -> Cast.LitInt(x)
     | Sast.LitFloat(x) -> Cast.LitFloat(x)
     (* Comparison of string literals in C++ is undefined (you are actually comparing the two char* values) *)
-    | Sast.LitStr(x) -> Cast.Call(Function("std", "string"), [ Cast.LitStr(x) ])
+    | Sast.LitStr(x) -> Cast.Call(Function("std", "string", []), [ Cast.LitStr(x) ])
     | Sast.LitUnit -> Cast.LitUnit
 
     | Sast.Binop(lexpr, op, rexpr) ->
         begin match op with
           | Ast.Zip -> failwith "Internal error: binop zip should have been converted to Call NhFunction in ast2sast"
           | Ast.Concat ->
-              Cast.Call(Cast.Function("nh_support","concat"),[castx_of_sastx lexpr; castx_of_sastx rexpr])
+              Cast.Call(Cast.Function("nh_support","concat", []),[castx_of_sastx lexpr; castx_of_sastx rexpr])
           | Ast.Chord -> failwith "Internal error: binop chord should have been converted to Call NhFunction in ast2sast"
           | Ast.Octave -> failwith "Internal error: binop octave should have been converted to Call NhFunction in ast2sast"
           | _ as cop -> let op = begin match cop with
@@ -53,17 +53,13 @@ let rec castx_of_sastx texpr =
         let (ns, fn) = match fname with
           | NhFunction(name) -> "", name
           | CppFunction(_, ns, name) -> ns, name
-        in Cast.Call(Cast.Function(ns, fn), List.map exprs ~f:(castx_of_sastx))
+        in Cast.Call(Cast.Function(ns, fn, []), List.map exprs ~f:(castx_of_sastx))
 
     | Sast.ArrIdx(varname, expr)
       -> Cast.Idx(varname, castx_of_sastx expr)
 
     | Sast.Arr(exprs, ast_t) ->
-        let start = match ast_t with
-        |Ast.Type(_) -> "struct "
-        |_ -> "" in
-        let template_type = "vector<" ^ start ^ Cast.string_of_type(ast_t) ^ ">" in
-        Cast.Call(Function("std", template_type), [Cast.InitList(List.map exprs ~f:(castx_of_sastx) )])
+        Cast.Call(Function("std", "vector", [ ast_t ]), [Cast.InitList(List.map exprs ~f:(castx_of_sastx) )])
 
     | Sast.Block(exprs) ->
         begin match List.rev exprs with
@@ -102,7 +98,7 @@ let rec castx_of_sastx texpr =
         Cast.Call(Cast.LambdaRefCap([], Ast.Unit, [ for_stmt; unit_ret ]), [])
 
     | Sast.Exit(code) ->
-        let cast_exit = Cast.Call(Cast.Function("","exit"),[Cast.LitInt(code)]) in
+        let cast_exit = Cast.Call(Cast.Function("", "exit", []),[Cast.LitInt(code)]) in
         Cast.Call(Cast.LambdaRefCap([], Ast.Unit, [Cast.Expr(cast_exit); unit_ret]), [])
 
     | Sast.Init(name, expr, _) ->
@@ -130,39 +126,32 @@ let castfun_of_sastfun fundef =
     body = [ Cast.Return (castx_of_sastx (Sast.Block([texpr]),return_type)) ];
   }
 
-let struct_equal_fun fields = 
-  (* makes a condition for each field, "and"-ing the result *)
-  let b = Cast.LitBool(true) in
-  let conds = List.fold_left fields ~init:b ~f:(fun b (name, _) ->
-    Cast.Binop(b, Cast.And, Cast.Binop(Cast.VarRef(["lhs";name]), Cast.Equal, Cast.VarRef(["rhs";name]))))
-  in
-  Cast.Block([Cast.Return(conds)])
-
 let nequality_fun (Sast.TDefault(name, _)) = 
-  let fname = "operator!=" in
-  let fargs = [(Ast.Type(name), "lhs"); (Ast.Type(name), "rhs")] in
-  let treturn = Ast.Bool in
-  let body = [Cast.Block([Cast.Return(Cast.Uniop(Cast.Not, 
-                  Cast.Call(Cast.Function("","operator=="),
-                  [Cast.VarRef(["lhs"]); Cast.VarRef(["rhs"])])))])] in
+  let body = [Cast.Block([Cast.Return(Cast.Uniop(Cast.Not,
+    Cast.Call(Cast.Function("","operator==", []), [Cast.VarRef(["lhs"]); Cast.VarRef(["rhs"])])))])] in
   {
     fnamespace = "";
-    fname = fname;
-    fargs = fargs;
-    treturn = treturn;
+    fname = "operator!=";
+    fargs = [(Ast.Type(name), "lhs"); (Ast.Type(name), "rhs")];
+    treturn = Ast.Bool;
     body = body;
   }
 
-let equality_fun (Sast.TDefault(name, fields)) = 
-  let fname = "operator==" in
-  let fargs = [(Ast.Type(name), "lhs"); (Ast.Type(name), "rhs")] in
-  let treturn = Ast.Bool in
+let equality_fun (Sast.TDefault(name, fields)) =
+  let struct_equal_fun fields = 
+    (* makes a condition for each field, "and"-ing the result *)
+    let b = Cast.LitBool(true) in
+    let conds = List.fold_left fields ~init:b ~f:(fun b (name, _) ->
+      Cast.Binop(b, Cast.And, Cast.Binop(Cast.VarRef(["lhs";name]), Cast.Equal, Cast.VarRef(["rhs";name]))))
+    in
+    Cast.Block([Cast.Return(conds)])
+  in
   let body = [ struct_equal_fun(fields)] in
   {
     fnamespace = "";
-    fname = fname;
-    fargs = fargs;
-    treturn = treturn;
+    fname = "operator==";
+    fargs = [(Ast.Type(name), "lhs"); (Ast.Type(name), "rhs")];
+    treturn = Ast.Bool;
     body = body;
   }
 
@@ -198,7 +187,7 @@ and verify_expr = function
   | Cast.Call(callable,exprs) -> ignore(List.map exprs ~f:verify_no_assign_expr);
       begin match callable with
         | Cast.LambdaRefCap(_,_,stmts) -> ignore(List.map stmts ~f:verify_no_init_stmt)
-        | Cast.Method(_) | Cast.Function(_,_) | Cast.Struct(_) -> ()
+        | Cast.Method(_) | Cast.Function(_,_,_) | Cast.Struct(_) -> ()
       end
   | Cast.LitUnit | Cast.LitBool(_) | Cast.LitInt(_) | Cast.LitFloat(_) | Cast.LitStr(_)
   | Cast.InitList(_) | Cast.Decl(_) | Cast.VarRef(_) | Noexpr -> ()

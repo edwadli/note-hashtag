@@ -36,7 +36,7 @@ and stmt =
 
 and callable = 
   | Struct of string
-  | Function of string * string
+  | Function of string * string * Ast.t list
   | Method of var_reference * string
   | LambdaRefCap of decl list * Ast.t * stmt list
 
@@ -110,7 +110,12 @@ and string_of_callable = function
       String.concat ~sep:", " (List.map decls ~f:(fun (t, name) -> string_of_type t ^ " " ^ name)) ^
       ") -> " ^ string_of_type treturn ^" "^ string_of_stmt (Block stmts)
   | Method(oname, fname) -> string_of_expr (VarRef(oname)) ^ "." ^ fname
-  | Function(namespace, fname) -> namespace ^ ns ^ fname
+  | Function(namespace, fname, tmpl_args) ->
+      let string_of_template_args args =
+        if args = [] then ""
+        else "<" ^ String.concat ~sep:", " (List.map args ~f:string_of_type) ^ ">"
+      in
+      namespace ^ ns ^ fname ^ string_of_template_args tmpl_args
 
 and string_of_stmt = function
   | Block(stmts) -> "{\n" ^ String.concat (List.map stmts ~f:string_of_stmt) ^ "}\n"
