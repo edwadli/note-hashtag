@@ -157,7 +157,7 @@ fun IsMember l x = (
   mem
 )
 
-fun Reverse_List l = (
+fun ReverseList l = (
   size = Size l
   if size < 2 then
     l
@@ -351,7 +351,7 @@ fun EndWith tr base_track = (
 
 fun Reverse tr = (
   init track{time_sig = tr$time_sig; key_sig = tr$key_sig;
-  chords = (Reverse_List tr$chords); durations = (Reverse_List tr$durations)}
+  chords = (ReverseList tr$chords); durations = (ReverseList tr$durations)}
 )
 
 fun OctaveChordList shift ch = (

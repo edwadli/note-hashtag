@@ -1,6 +1,6 @@
 
 // You Belong With Me (Taylor Swift)
-//key_sig = fsharp_major
+key_sig = fsharp_major
 
 resolve = [ 1 2 3 ]
 cont = [ 3 2 ]
@@ -21,9 +21,9 @@ prechorus = short_skirts . cheer_captain . dreaming . looking_for
 
 dq = q + e
 understands = [ e e e q e q e q e e e q q ] : \
-(@1[ 1 1 2 ] . Repeat 3 (OctaveChordList 1 cont) . [ 2 ] . Reverse_List resolve)
+(@1[ 1 1 2 ] . Repeat 3 (OctaveChordList 1 cont) . [ 2 ] . ReverseList resolve)
 been_here = [ q e q e q e q q q dq dq h ] : \
-(Repeat 3 (OctaveChordList 1 cont) . Reverse_List resolve . [ 4 3  6@(-1) ])
+(Repeat 3 (OctaveChordList 1 cont) . ReverseList resolve . [ 4 3  6@(-1) ])
 belong = [ e e e e q dq dq h e e q e h h ] : (@1[ 1 1 1 ] . [ 6 5 ] . @1[ 4 3 ] . [ 4 4 4 4 3 3  ~ ])
 chorus = understands . been_here . belong
 
