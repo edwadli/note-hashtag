@@ -1,13 +1,13 @@
 p1 = [1 5 6 7 1]
 r1 = [1.0 2.0 1.0 0.5 2.2]
 t1 = init track{chords = p1; durations = r1}
-p2 = [1 2]
-r2 = [1.0 2.0]
+p2 = [3 2]
+r2 = [1.0 0.5]
 t2 = init track{chords = p2; durations = r2}
 
 t3 = StartWith t2 t1
-p_test = [1 5 6 7 1 1 2]
-r_test = [1.0 2.0 1.0 0.5 2.2 1.0 2.0]
+p_test = [3 2 5 6 7 1]
+r_test = [1.0 0.5 1.5 1.0 0.5 2.2]
 if((t3$chords == p_test) && (t3$durations == r_test))then
   PrintEndline "StartsWith Work"
 else
