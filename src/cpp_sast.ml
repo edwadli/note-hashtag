@@ -53,7 +53,16 @@ let rec castx_of_sastx texpr =
         let (ns, fn) = match fname with
           | NhFunction(name) -> "", name
           | CppFunction(_, ns, name) -> ns, name
-        in Cast.Call(Cast.Function(ns, fn, []), List.map exprs ~f:(castx_of_sastx))
+        in
+        (* Convert args to C++ AST and wrap them in a static_cast. This resolves ambiguity when calling certain
+         * overloaded functions:
+         *   void f(int64_t a, int64_t b) {} // 1
+         *   void f(double a, double b) {}   // 2
+         *   f(1, 2)
+         * Because the int arguments could be promoted to int64_t OR double, both functions are candidates in the C++
+         * compiler's eyes. *)
+        let exprs = List.map exprs ~f:(fun (e, t) -> let e = castx_of_sastx (e, t) in Cast.wrap_static_cast e t) in
+        Cast.Call(Cast.Function(ns, fn, []), exprs)
 
     | Sast.ArrIdx(varname, expr)
       -> Cast.Idx(varname, castx_of_sastx expr)
