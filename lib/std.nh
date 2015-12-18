@@ -223,16 +223,12 @@ fun ZipDiff f c = (
 
 fun Scale pitch_start pitch_end = (
   c = chord{}
-  start = pitch_start$rank
-  end = pitch_end$rank
-  if start < end then (
-    for x in Range start (end + 1) do 
-      c = c . [x]
-  )
-  else (
-    for x in Range end (start + 1) do
-      c = [x] . c
-  )
+  oct_diff = pitch_end$octave - pitch_start$octave
+  pitch_diff = pitch_end$rank - pitch_start$rank
+  total_diff = (Size key_sig$scale) * oct_diff + pitch_diff
+  direction = be 1 unless total_diff < 0 inwhichcase -1
+  for x in Range 0 (direction * total_diff + 1) do
+    c = c . [(AddPitchNum (direction*x) pitch_start key_sig)]
   c
 )
 
@@ -339,18 +335,15 @@ fun Extend length tr = (
 )
 
 fun StartWith tr base_track = (
-  if((tr$key_sig != base_track$key_sig) || (tr$time_sig != base_track$time_sig)) then
-    (throw "Cannot concat tracks with different key or time signature"; tr)
-  else
-    base_track . tr
+    Reverse (EndWith (Reverse tr) (Reverse base_track))
 )
 
 fun EndWith tr base_track = (
-  StartWith base_track tr
+  RemoveEnd (Length tr) base_track . tr
 )
 
 fun Reverse tr = (
-  init track{time_sig = tr$time_sig; key_sig = tr$key_sig;
+  init track{time_sig = tr$time_sig; key_sig = tr$key_sig; tempo=tr$tempo
   chords = (ReverseList tr$chords); durations = (ReverseList tr$durations)}
 )
 

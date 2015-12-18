@@ -1,0 +1,21 @@
+
+// Rast (maqam) scale
+key_sig = init key_signature{
+  scale={ 261.63 293.66 320.38 349.23 392.00 440.00 480.02 }
+}
+tempo = 150
+
+sth = e/2.0
+
+fun Distort dur p = [ (dur/8.0) (7.0 * dur/8.0) ] :\
+  [ (AddPitchNum (-1) p key_sig) p ]
+
+opening = [ e e ] : [ 5 5 ] . Repeat 2 (Distort q (5@0)) .\
+  [e q e q e e q ] : [ 4 5 4 3 4 3 2 ] . e:[2 3] . Distort e (4@0) .\
+  Distort e (5@0) . Distort sth (4@0) . Distort sth (3@0) . e:2
+
+bridge = [ e e sth sth e ] : [ 3 4 3 2 1 ] . Distort q (2@0) .\
+  Distort e (3@0) . Distort e (2@0) . Distort q (1@0)
+
+arabic = Relative 1 (opening . bridge)
+Render (Parallel {arabic}) "arabic.wav"
