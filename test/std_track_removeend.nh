@@ -1,0 +1,12 @@
+p1 = [1 5 6 7 1]
+r1 = [1.0 2.0 1.0 0.5 2.0]
+t1 = r1:p1
+p2 = [1 5 6]
+r2 = [1.0 2.0 0.5]
+t2 = r2:p2
+t3 = RemoveEnd 3.0 t1
+
+if t3 == t2 then
+  PrintEndline "RemoveEnd Works"
+else
+  PrintEndline "RemoveEnd fails"  

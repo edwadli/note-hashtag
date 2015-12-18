@@ -36,7 +36,7 @@ and stmt =
 
 and callable = 
   | Struct of string
-  | Function of string * string
+  | Function of string * string * Ast.t list
   | Method of var_reference * string
   | LambdaRefCap of decl list * Ast.t * stmt list
 
@@ -66,6 +66,9 @@ type program = incl list * signature list * decl list * struct_decl list * func_
 let sep = ";\n"
 let ns = "::"
 
+let wrap_static_cast expr to_type =
+  Call(Function("", "static_cast", [ to_type ]), [ expr ])
+
 let rec string_of_type t =
   match t with
   | Unit -> "unit_t"
@@ -74,10 +77,12 @@ let rec string_of_type t =
   | String -> "std" ^ ns ^ "string"
   | Bool -> "bool"
   | Type(type_name) -> type_name
-  | Array(t) ->  let start = match t with
-      |Ast.Type(_) -> "struct "
-      |_ -> "" in
-      "std" ^ ns ^ "vector<" ^ start ^ string_of_type t ^ ">"
+  | Array(t) -> "std" ^ ns ^ "vector" ^ string_of_type_args [ t ]
+and string_of_type_args args =
+  if args = [] then ""
+  else 
+    let string_of_type t = (match t with Ast.Type(_) -> "struct " | _ -> "") ^ string_of_type t in
+    "<" ^ String.concat ~sep:", " (List.map args ~f:string_of_type) ^ ">"
 
 let rec string_of_expr = function
   | LitUnit -> "LIT_UNIT"
@@ -110,7 +115,8 @@ and string_of_callable = function
       String.concat ~sep:", " (List.map decls ~f:(fun (t, name) -> string_of_type t ^ " " ^ name)) ^
       ") -> " ^ string_of_type treturn ^" "^ string_of_stmt (Block stmts)
   | Method(oname, fname) -> string_of_expr (VarRef(oname)) ^ "." ^ fname
-  | Function(namespace, fname) -> namespace ^ ns ^ fname
+  | Function(namespace, fname, tmpl_args) ->
+      namespace ^ (if namespace <> "" then ns else "") ^ fname ^ string_of_type_args tmpl_args
 
 and string_of_stmt = function
   | Block(stmts) -> "{\n" ^ String.concat (List.map stmts ~f:string_of_stmt) ^ "}\n"

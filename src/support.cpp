@@ -87,7 +87,9 @@ unit_t nh_support::render_impl(
   }
   
   // Open a 16-bit, one-channel WAV formatted output file
+  stk::Stk::showWarnings(false); // Suppress the annoying "creating WAV file" message
   stk::FileWvOut output(filename, 1, stk::FileWrite::FILE_WAV, stk::Stk::STK_SINT16);
+  stk::Stk::showWarnings(true);
   for (double sample : samples) {
     output.tick(sample);
   }

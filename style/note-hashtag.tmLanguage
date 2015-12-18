@@ -44,13 +44,13 @@
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>\b(q|quarter|h|half|w|whole|t|triplet)\b</string>
+			<string>\b(e|eighth|q|quarter|h|half|w|whole|t|triplet)\b</string>
 			<key>name</key>
 			<string>support.constant.nh</string>
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>\b(key_signature)\b</string>
+			<string>\b(key_sig|time_sig|tempo)\b</string>
 			<key>name</key>
 			<string>variable.language.nh</string>
 		</dict>
@@ -70,7 +70,7 @@
 		</dict>
 		<dict>
 			<key>match</key>
-			<string>\b(pitch|chord|track|song)\b</string>
+			<string>\b(key_signature|time_signature|pitch|chord|track|song)\b</string>
 			<key>name</key>
 			<string>storage.type.nh</string>
 		</dict>

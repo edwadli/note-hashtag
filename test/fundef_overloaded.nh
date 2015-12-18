@@ -1,0 +1,4 @@
+fun MyFavorite x y = if x > y then x else y
+
+PrintEndline (StringOfInt (MyFavorite 1 2))
+PrintEndline (StringOfFloat (MyFavorite 1.0 2.0))

@@ -380,5 +380,30 @@ fun Repeat times tr = (
     tr . Repeat (times - 1) tr
 )
 
+fun RemoveEnd len tr = (
+  dur = (Length tr) - len
+  if dur < 0.0 then
+    (throw "Remove End length is too long"; tr)
+  else(
+    notes = tr$chords
+    durations = tr$durations
+    out_chords = chord{}
+    out_dur = float{}
+    for i in Range 0 (Size notes) do (
+      if dur <= 0.0 then
+        ()
+      else( 
+        to_add = durations.(i)
+        out_dur = out_dur . {(Min dur to_add)}
+        dur = dur - to_add
+        out_chords = out_chords . {notes.(i)}
+      )
+    )
+    tr$durations = out_dur
+    tr$chords = out_chords
+    tr
+  )
+)
+
 // TODO: volume mix functions for song objects
 
