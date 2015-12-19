@@ -23,8 +23,8 @@ key_sig = f_minor
 swag_boat = Octave (-1) (rhythm : tune)
 
 // add a background track
-sick_beat = Repeat 2 [ e e e (e/2.0) (e/2.0) ] . [ e e de se e e ]
-sick_tune = @1[ 1@1  5 6 6 5 4 4 5  1@1  1@1  1@1  5 6 5 4 4 ]
+sick_beat = Repeat 2 [ e e e (e/2.0) (e/2.0) ] . [ e e de se e e q ]
+sick_tune = @1[ 1@1  5 6 6 5 4 4 5  1@1  1@1  1@1  5 6 5 4 4 ~ ]
 sick_accomp = sick_beat : sick_tune . \
             EndWith (e:[ 7  1@1  ~ ]) (sick_beat : sick_tune)
 
