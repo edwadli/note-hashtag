@@ -140,7 +140,6 @@ expr:
 | non_apply { $1 }
 | arith     { $1 }
 | bool      { $1 }
-| music     { $1 }
 | OCTAVE non_apply non_apply {Binop($3, Octave, $2)}
 | expr COLON expr {Binop($1, Zip, $3)}
 | asn_toplevel { $1 }
@@ -177,6 +176,7 @@ non_apply:
 | lit { $1 }
 | non_apply OCTAVE non_apply { Binop($1, Octave, $3) }
 | non_apply COMMA non_apply {Binop($1, Chord, $3)}
+| music     { $1 }
 
 sep_expr_sep:
 | sep_star expr sep_star { $2 }
@@ -220,8 +220,8 @@ logic:
 | expr OR  expr { Binop($1, Or,  $3) }
 
 music:
-| expr FLAT     { Uniop(Flat, $1)}
-| expr SHARP    { Uniop(Sharp, $1)}
+| non_apply FLAT     { Uniop(Flat, $1)}
+| non_apply SHARP    { Uniop(Sharp, $1)}
 
 var_ref:
 | ID_LOWER { [ $1 ] }

@@ -1,0 +1,11 @@
+
+
+(
+x = [ 1b 2# ]
+p1 = init pitch {rank=1; offset=-1}
+p2 = init pitch {rank=2; offset=1}
+y = p2#b b
+p3 = init pitch {rank=2; offset = 0}
+if x == [p1 p2] && y == p3 then
+  Print "Flat and Sharp work" else Print "Flat and Sharp don't work"
+)

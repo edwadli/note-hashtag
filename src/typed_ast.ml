@@ -216,9 +216,6 @@ let rec sast_expr ?(seen_funs = []) ?(force = false) env tfuns_ref e =
       | Ast.Not -> failwith "This operator is only defined for bool"
       | Ast.Neg when t = Ast.Int || t = Ast.Float -> Sast.Uniop(op, exprt), t
       | Ast.Neg -> failwith "This operator is only defined for int or float"
-      
-      | Ast.Sharp | Ast.Flat when t = Ast.Int || t = Ast.Type("pitch")
-        -> Sast.Uniop(op, exprt), Ast.Type("pitch")
       | Ast.Sharp ->
           let expr = match t with
             | Ast.Int -> Ast.FunApply("PitchOfInt", [expr])

@@ -59,6 +59,7 @@ const f_minor = init key_signature{ scale={ f3 g3 gs3 as3 c4 cs4 ds4 } }
 const c_minor = init key_signature{ scale={ c4 d4 ds4 f4 g4 gs4 as4 } }
 const fsharp_major = init key_signature{ scale={ fs3 gs3 as3 b3 cs4 ds4 f4 } }
 const d_major = init key_signature{ scale={ d4 e4 fs4 g4 a4 b4 cs5 } }
+const g_major = init key_signature{ scale={ g3 a3 b3 c4 d4 e4 fs4 } }
 
 type time_signature = {
   upper = 4
