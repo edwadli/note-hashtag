@@ -1,0 +1,6 @@
+
+asdf = quarter:[ 1# 2b ]
+
+Render (Parallel {asdf}) "flat_sharp.wav"
+
+Print "Render flat and sharp works"

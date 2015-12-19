@@ -40,9 +40,9 @@
 /* x < y < z can never be valid because can't use < on bool type. */
 %nonassoc LT LTE GT GTE
 %left CONCAT
-%left OCTAVE
 %left COLON
 %left COMMA
+%left OCTAVE
 %left PLUS MINUS
 %left TIMES DIVIDE MOD
 %left BLING

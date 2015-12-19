@@ -252,10 +252,25 @@ fun Render song filename = (
   RenderImpl freqs durs song$volumes filename
 )
 
+fun ChromaticOfFrequency base_frequency frequency = (
+  Log (frequency/base_frequency) / Log 2.0 * 12.0
+)
+
+fun FrequencyOfChromatic base_frequency chromatic = (
+  base_frequency * Pow 2.0 (chromatic/12.0)
+)
+
+fun OffsetFrequency frequency offset = (
+  // this function should be overridden by the user if using non chromatic scales
+  // how a flat or sharp affects the music helps tell a different tale
+  base_freq = 440.0
+  FrequencyOfChromatic base_freq (ChromaticOfFrequency base_freq frequency + offset)
+)
+
 fun FrequencyOfPitch pitch keysig = (
-  if pitch$offset != 0 then PrintEndline "warning: pitch offset not supported right now" else ()
-  pitch$rank = pitch$rank - 1
-  keysig$scale.(pitch$rank) * Pow 2.0 (FloatOfInt pitch$octave)
+  index = pitch$rank - 1
+  frequency = keysig$scale.(index) * Pow 2.0 (FloatOfInt pitch$octave)
+  OffsetFrequency frequency (FloatOfInt pitch$offset)
 )
 
 fun FrequenciesOfChord chord keysig = (

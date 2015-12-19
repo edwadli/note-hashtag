@@ -1,4 +1,5 @@
 extern "support.hpp" "std" "pow" fun Pow float float -> float
+extern "support.hpp" "std" "log" fun Log float -> float
 
 extern "support.hpp" "std" "floor" fun Floor float -> float
 extern "support.hpp" "std" "ceil" fun Ceiling float -> float
