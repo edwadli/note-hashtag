@@ -1,5 +1,8 @@
 include std
 
+extern "support.hpp" "nh_support" "shuffle" fun ShuffleInts int{} -> int{}
+extern "support.hpp" "nh_support" "shuffle" fun ShuffleFloats float{} -> float{}
+
 fun Size l = (
   //Returns the number of elements in list
   i = 0

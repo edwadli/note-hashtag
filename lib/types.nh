@@ -1,0 +1,7 @@
+extern "support.hpp" "nh_support" "int_of_float" fun IntOfFloat float -> int
+extern "support.hpp" "std" "to_string" fun StringOfFloat float -> string
+
+extern "support.hpp" "nh_support" "float_of_int" fun FloatOfInt int -> float
+extern "support.hpp" "std" "to_string" fun StringOfInt int -> string
+
+fun StringOfBool n = if n then "true" else "false"

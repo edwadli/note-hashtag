@@ -1,3 +1,8 @@
 PrintEndline (StringOfFloat 42.0)
 PrintEndline (StringOfInt 42)
 PrintEndline (StringOfFloat (Pow 4.0 2.0))
+PrintEndline (StringOfBool true)
+
+PrintInt (-42); Print "\n"
+PrintFloat (-42.0); Print "\n"
+PrintBool false; Print "\n"

@@ -1,3 +1,5 @@
+include types
+
 extern "support.hpp" "nh_support" "print_string" fun Print string -> unit
 
 fun PrintEndline str = (
@@ -5,3 +7,9 @@ fun PrintEndline str = (
   Print str
   Print "\n"
 )
+
+fun PrintInt n = Print (StringOfInt n)
+
+fun PrintFloat n = Print (StringOfFloat n)
+
+fun PrintBool n = Print (StringOfBool n)
