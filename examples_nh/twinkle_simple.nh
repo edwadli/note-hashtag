@@ -1,5 +1,0 @@
-intro = [1 1 5 5 6 6]
-chorus = Rhythm intro
-bridge = Relative 1 chorus
-twinkle = intro . chorus . bridge . bridge . intro . chorus
-Render twinkle "twinkle.mp3" 
