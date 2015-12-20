@@ -66,6 +66,8 @@ type time_signature = {
   lower = 4
 }
 
+const two_two = init time_signature{ upper=2; lower=2 }
+
 type pitch = {
   rank = 1
   octave = 0

@@ -1,0 +1,17 @@
+
+// walk this way - aerosmith
+tempo = 144
+time_sig = two_two
+
+basic = [ 6 6# 7  3@1 ]
+bass = Octave (-2) (e:basic . e:~ . [ e e e q ]:basic . [ q h ]:[ 3 ~])
+bass = bass . EndWith ([ e e h ]:@(-2)[ 5 3 3@1 ]) bass .\
+  bass . EndWith ((h+q):6@(-2)) bass
+
+walk = [ h h (w-e) e ]:[ 7 7 7 ~ ] . [ h h e (w-e) ]:[ 6 6 7 5 ]
+walk = Length bass : ~ . Repeat 2 walk
+bass = Extend (Length walk) bass
+
+walk_this_way = Parallel { walk bass }
+walk_this_way$volumes = { 1.0 0.8 }
+Render walk_this_way "walk_this_way.wav"
