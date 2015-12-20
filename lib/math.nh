@@ -5,7 +5,16 @@ extern "support.hpp" "std" "floor" fun Floor float -> float
 extern "support.hpp" "std" "ceil" fun Ceiling float -> float
 
 fun Min x y = (
+  //Returns the minimum of the two elements
   if x <= y then
+    x
+  else
+    y
+)
+
+fun Max x y = (
+  //Returns the maximum of the two elements
+  if x >= y then
     x
   else
     y

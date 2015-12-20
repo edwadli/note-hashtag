@@ -1,12 +1,35 @@
 include std
 
 fun Size l = (
+  //Returns the number of elements in list
   i = 0
   for item in l do (Ignore item; i = i + 1)
   i
 )
 
+fun ReverseList l = (
+  //Returns an array with all the elements reversed
+  size = Size l
+  if size < 2 then
+    l
+  else (
+    out = [(l.(size-1))];
+    for i in Range 2 (size+1) do
+      out = out . [l.(size - i)]
+    out
+  ) 
+)
+
+fun IsMember l x = (
+  //Returns true if list contains element
+  mem = false
+  for item in l do mem = (mem || (item == x))
+  mem
+)
+
+
 fun SameList x iter = (
+  //Returns a list with x repeated iter amount of times
   out = {x}
   for i in Range 1 iter do (out = out . {x}; Ignore i)
   out
