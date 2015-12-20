@@ -76,9 +76,11 @@ type chord = {
   pitches = pitch{}
 }
 
+//Returns a chord containing the given pitch
 fun ChordOfPitch p = init chord { pitches = {p} }
 
 fun PitchOfInt i = (
+  //Returns a pitch with the given rank
   if (i < 0) || (i > (Size key_sig$scale)) then (
     throw "Could not construct pitch from int";
     init pitch)
@@ -87,6 +89,7 @@ fun PitchOfInt i = (
 )
 
 fun NormalizePitch p keysig = (
+  //Returns a valid pitch with a rank between 0 and the length of the key signature
   scale_size = Size keysig$scale
   if p$rank < 1 then (
     octave_offset = (-1 * p$rank) / scale_size + 1
@@ -101,14 +104,17 @@ fun NormalizePitch p keysig = (
   p
 )
 
+//Returns a pitch shifted up by the given octave
 fun AddPitchOctave p octaves = ( p$octave = p$octave + octaves; p)
 
 fun AddPitchNum num p keysig = (
+  //Returns a pitch object shifted up by num for the given p and key signature
   p$rank = p$rank + num
   NormalizePitch p keysig
 )
 
 fun AddChordNum num ch keysig = (
+  //Returns a chord with all the notes of ch shifted up by num for the given key signature.
   out_pitch = pitch{}
   for p in ch$pitches do
     out_pitch = out_pitch . { (AddPitchNum num p keysig) }
@@ -117,6 +123,7 @@ fun AddChordNum num ch keysig = (
 )
 
 fun PrintChord ch = (
+  //Prints each pitch of chord
   size = Size ch
   for c in ch do (
     x = c$pitches
@@ -127,6 +134,7 @@ fun PrintChord ch = (
 )
 
 fun PrintRhythms rh = (
+  //Prints each duration inside rh
   size = Size rh
   for r in rh do (
     Print (StringOfFloat r)
@@ -152,28 +160,13 @@ type song = {
   volumes = float{}
 }
 
-fun IsMember l x = (
-  mem = false
-  for item in l do mem = (mem || (item == x))
-  mem
-)
-
-fun ReverseList l = (
-  size = Size l
-  if size < 2 then
-    l
-  else (
-    out = [(l.(size-1))];
-    for i in Range 2 (size+1) do
-      out = out . [l.(size - i)]
-    out
-  ) 
-)
-
+//Flats the pitch
 fun FlatPitch p = ( p$offset = p$offset - 1; p )
+//Sharps the pitch
 fun SharpPitch p = ( p$offset = p$offset + 1; p )
 
 fun ChordOfChords c1 c2 = (
+  //Returns a chord object containing the union of pitches in both chords
   c = init chord
   for p in c1$pitches . c2$pitches
     do if IsMember c$pitches p then () else c$pitches = c$pitches . {p}
@@ -183,6 +176,8 @@ fun ChordOfChords c1 c2 = (
 fun Rest = init chord
 
 fun ConcatTracks t1 t2 = (
+  // Returns a new track with the tracks arranged sequentially 
+  //(use the . operator instead)
   if t1$key_sig == t2$key_sig &&\
       t1$time_sig == t2$time_sig &&\
       t1$tempo == t2$tempo
@@ -223,6 +218,8 @@ fun ZipDiff f c = (
 )
 
 fun Scale pitch_start pitch_end = (
+  //Returns an array of chords representing the scale in the current key signature 
+  //between pitch_start and pitch_end
   c = chord{}
   oct_diff = pitch_end$octave - pitch_start$octave
   pitch_diff = pitch_end$rank - pitch_start$rank
@@ -236,6 +233,7 @@ fun Scale pitch_start pitch_end = (
 extern "support.hpp" "nh_support" "render_impl" fun RenderImpl float{}{}{} float{}{} float{} string -> unit
 
 fun Render song filename = (
+  //Creates a WAV file of the song
   if Size song$tracks != Size song$volumes then throw "Internal error: song has mismatched tracks and volumes" else ()
   freqs = float{}{}{}
   durs = float{}{}
@@ -253,14 +251,17 @@ fun Render song filename = (
 )
 
 fun ChromaticOfFrequency base_frequency frequency = (
+  //Computes the offset of frequency relative to base_frequency
   Log (frequency/base_frequency) / Log 2.0 * 12.0
 )
 
 fun FrequencyOfChromatic base_frequency chromatic = (
+  //Computes the frequency for the given chromatic
   base_frequency * Pow 2.0 (chromatic/12.0)
 )
 
 fun OffsetFrequency frequency offset = (
+  //Returns the frequency for the given offset
   // this function should be overridden by the user if using non chromatic scales
   // how a flat or sharp affects the music helps tell a different tale
   base_freq = 440.0
@@ -268,12 +269,14 @@ fun OffsetFrequency frequency offset = (
 )
 
 fun FrequencyOfPitch pitch keysig = (
+  //Returns the frequency of the pitch for the given key signature
   index = pitch$rank - 1
   frequency = keysig$scale.(index) * Pow 2.0 (FloatOfInt pitch$octave)
   OffsetFrequency frequency (FloatOfInt pitch$offset)
 )
 
 fun FrequenciesOfChord chord keysig = (
+  //Returns a list representing the frequencies of the chord
   if Size chord$pitches == 0 then { 0.0 }
   else (
     freqs = float{}
@@ -285,6 +288,7 @@ fun FrequenciesOfChord chord keysig = (
 )
 
 fun FrequenciesOfChords chords keysig = (
+  //Returns a list representing the frequencies of the chords
   freqs = float{}{}
   for chord in chords do (
     freqs = freqs . { (FrequenciesOfChord chord keysig) }
@@ -293,6 +297,7 @@ fun FrequenciesOfChords chords keysig = (
 )
 
 fun SecondsOfDurations durations timesig tempo = (
+  //Returns a list consisting of the durations represented as seconds
   multiplier = FloatOfInt timesig$lower * 60.0 / FloatOfInt tempo
   seconds = float{}
   for duration in durations do (
@@ -302,18 +307,22 @@ fun SecondsOfDurations durations timesig tempo = (
 )
 
 fun Arpeggio chord = (
+  //Returns an array of chords representing the arpeggio using the pitches from chord
   chord$pitches
 )
 
 fun Rhythms track = (
+  //Returns the array of note durations of the track
   track$durations
 )
 
 fun Chords track = (
+  // Returns the array of chords of the track
   track$chords
 )
 
 fun Parallel ts = (
+  //Returns a song object with the tracks aligned in parallel (to be played concurrently)
   s = init song
   for t in ts do (
     s$tracks = s$tracks . { {t} }
@@ -323,16 +332,20 @@ fun Parallel ts = (
 )
 
 fun Sequential ts = (
+  //Returns a song object with the tracks aligned in a single sequence (to be played sequentially)
   init song { tracks = {ts} }
 )
 
 fun Length track = (
+  //Returns the duration of the track
   length = 0.0
   for d in track$durations do length = length + d
   length
 )
 
 fun Extend length tr = (
+  //Returns a track object that repeats the given track for length units. If len is not an 
+  //even multiple of the Length tr, the remainder is padded with rests
   multiplier = length / Length tr
   // Add as many copies of the track as will fit
   orig_chords = tr$chords; orig_durations = tr$durations
@@ -351,19 +364,23 @@ fun Extend length tr = (
 )
 
 fun StartWith tr base_track = (
+  //Returns a track with the start of base_track replaced with tr
     Reverse (EndWith (Reverse tr) (Reverse base_track))
 )
 
 fun EndWith tr base_track = (
+  //Returns a track with the end of base_track replaced with tr
   RemoveEnd (Length tr) base_track . tr
 )
 
 fun Reverse tr = (
+  //Returns the track with all the notes reversed
   init track{time_sig = tr$time_sig; key_sig = tr$key_sig; tempo=tr$tempo
   chords = (ReverseList tr$chords); durations = (ReverseList tr$durations)}
 )
 
 fun OctaveChordList shift ch = (
+  //Returns the chord object shifted by num octaves
   rel_chords = chord{}
   for c in ch do
     rel_chords = rel_chords . {(AddChordNum (shift * Size key_sig$scale) c key_sig)}
@@ -371,6 +388,7 @@ fun OctaveChordList shift ch = (
 )
 
 fun Relative shift tr = (
+  //Returns a track with all the notes shifted up by shift 
   rel_chords = chord{}
   for c in tr$chords do
     rel_chords = rel_chords . {(AddChordNum shift c tr$key_sig)}
@@ -379,10 +397,12 @@ fun Relative shift tr = (
 )
 
 fun Octave shift tr = (
+  //Returns the track object shifted by shift octaves.
   Relative (shift*(Size tr$key_sig$scale)) tr
 )
 
 fun Repeat times tr = (
+  //Returns a track object with the given track repeated times number of times
   if times <= 1 then
     tr
   else
@@ -390,6 +410,7 @@ fun Repeat times tr = (
 )
 
 fun RemoveEnd len tr = (
+  //Returns a track with the last $len$ duration of $tr$ sliced off
   dur = (Length tr) - len
   if dur < 0.0 then
     (throw "Remove End length is too long"; tr)

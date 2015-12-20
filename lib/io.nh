@@ -1,6 +1,7 @@
 extern "support.hpp" "nh_support" "print_string" fun Print string -> unit
 
 fun PrintEndline str = (
+  //Prints the string followed by a newline to standard out
   Print str
   Print "\n"
 )
