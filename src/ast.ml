@@ -96,7 +96,8 @@ let string_of_unop o = match o with | Not -> "!" | Neg -> "-" | Sharp -> "#"
 let rec string_of_expr e =
   match e with
   | Block l -> String.concat ~sep:" " [ "["; string_of_exp_list l; "]" ]
-  | Conditional(x, y, z) -> String.concat ~sep:" " [ "IF"; string_of_expr x; "THEN"; string_of_expr y; "ELSE"; string_of_expr z ]
+  | Conditional(x, y, z) ->
+      String.concat ~sep:" " [ "IF"; string_of_expr x; "THEN"; string_of_expr y; "ELSE"; string_of_expr z ]
   | For(x, y, z) -> String.concat ~sep:" " [ "FOR"; x; "IN "; string_of_expr y; "DO"; string_of_expr z ]
   | Binop(x, op, y) -> String.concat ~sep:" " [ "("; string_of_expr x; string_of_op op; string_of_expr y; ")" ]
   | Uniop(op, x) -> String.concat ~sep:" " [ "("; string_of_unop op; string_of_expr x; ")" ]

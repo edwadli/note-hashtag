@@ -3,7 +3,6 @@ open Ast
 open Sast
 open Cast
 
-
 let rec castx_of_sastx texpr =
   let unit_ret = Cast.Return(Cast.LitUnit) in
   let (expr, t) = texpr in
@@ -17,11 +16,11 @@ let rec castx_of_sastx texpr =
 
     | Sast.Binop(lexpr, op, rexpr) ->
         begin match op with
-          | Ast.Zip -> failwith "Internal error: binop zip should have been converted to Call NhFunction in ast2sast"
           | Ast.Concat ->
               Cast.Call(Cast.Function("nh_support","concat", []),[castx_of_sastx lexpr; castx_of_sastx rexpr])
-          | Ast.Chord -> failwith "Internal error: binop chord should have been converted to Call NhFunction in ast2sast"
-          | Ast.Octave -> failwith "Internal error: binop octave should have been converted to Call NhFunction in ast2sast"
+          | Ast.Zip | Ast.Chord | Ast.Octave ->
+              failwith (sprintf "Internal error: binop '%s' should have been converted to Call NhFunction in ast2sast"
+                (Ast.string_of_op op))
           | _ as cop -> let op = begin match cop with
             | Ast.Add -> Cast.Add
             | Ast.Sub -> Cast.Sub

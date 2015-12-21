@@ -45,7 +45,8 @@ let set_min_level l =
   min_level := l
 
 let print level fmt =
-  let prefix = (string_of_color (color_of_level level)) ^ (string_of_color Bold) ^ (string_of_level level) ^ ":" ^ (string_of_color Reset) in
+  let prefix = (string_of_color (color_of_level level)) ^ (string_of_color Bold) ^
+    (string_of_level level) ^ ":" ^ (string_of_color Reset) in
   let printer = if int_of_level level >= int_of_level !min_level then fprintf else ifprintf in
   printer stderr ("%s " ^^ fmt ^^ "\n%!") prefix
 
