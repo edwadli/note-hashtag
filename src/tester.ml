@@ -32,7 +32,7 @@ let test_file file =
 let test_files files =
   let print_test_file path =
     let passed = test_file path in
-    (if passed then Log.debug "✅  %s" else Log.debug "❎  %s") (Filename.basename path);
+    (if passed then Log.debug "✅  %s" else Log.debug "🔥  %s") (Filename.basename path);
     passed
   in
   List.map files ~f:print_test_file
