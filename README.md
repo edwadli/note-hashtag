@@ -1,6 +1,15 @@
 # 🎵#️⃣
 A programming language for exploring and creating music
 
+# Introduction
+
+We created a language optimized for exploring and composing music. The syntax facilitates writing snippets of music.
+Standard library functions transform and combine these snippets, allowing the programmer to take advantage of the
+repetition found in many songs. The song can then be written to an audio file (WAV).
+
+🎵#️⃣ is a modern language that provides type inference, static typing, low-overhead memory safety, and a clean,
+readable syntax. Users can simply concentrate on writing a great song, and let the compiler take care of the rest.
+
 # Authors
 - [Kevin Chen](http://kevinchen.co/)
 - Brian Kim
