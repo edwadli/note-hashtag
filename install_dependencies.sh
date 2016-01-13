@@ -64,8 +64,8 @@ if [[ "$platform" == 'ubuntu' || "$platform" == 'debian' ]]; then
         sudo add-apt-repository ppa:avsm/ppa
         sudo apt-get update
     fi
-    sudo apt-get install m4 ocaml-native-compilers camlp4-extra opam \
-    stk stk-doc libstk0-dev
+    sudo apt-get install m4 ocaml-native-compilers camlp4-extra aspcud opam \
+    stk stk-doc libstk0-dev --no-install-recommends
     
     # Ubuntu's OCaml package is ridiculously old. Ask OPAM to compile v4.02.3 for us.
     opam_extra_args="--comp 4.02.3"
