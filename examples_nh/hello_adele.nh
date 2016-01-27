@@ -1,0 +1,19 @@
+st = 1.0 / 16.0
+
+// https://en.wikipedia.org/wiki/Hello_(Adele_song)
+key_sig = f_minor
+tempo = 79
+
+// http://www.onlinesheetmusic.com/hello-p454262.aspx
+its_me = [(1.0 - st) st  q q q st e (st + q) q q ] : [ ~ 4 5 ~ ~ ~ 4 4 ~ ~]
+
+galloping = [ e ] . Repeat 7 [ st (st + e) ]
+wondering = galloping : [ 3 5 5 5 5 5 5 4 4 3 4 5 4 1 3 ]
+
+go_over = [ st e (st + e) st st q q st st st (st + e) e ] : [ 3 5 5 4 3 ~ ~ 4 4 4 4 5 ]
+
+hello = its_me . wondering . go_over
+Render (Parallel { hello }) "hello_minor.wav"
+
+hello$key_sig = f_major
+Render (Parallel { hello }) "hello_major.wav"
